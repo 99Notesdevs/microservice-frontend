@@ -1,38 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import TestPortal from './pages/testPortal';
+import SubmitPage from './pages/SubmitPage';
+import { HomeLayout } from './components/home/layout';
+import { Category } from './pages/Category';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <div className='w-full bg-red-700'>
-          ritik 
-        </div>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={
+          <HomeLayout username="John Doe" profilePicture="/default-avatar.png">
+            <Home />
+          </HomeLayout>
+        } />
+        <Route path="/testPortal" element={<TestPortal />} />
+        <Route path="/submit" element={<SubmitPage />} />
+        <Route path="/about" element={
+          <HomeLayout username="John Doe" profilePicture="/default-avatar.png">
+            <div className="space-y-4">
+              <h1 className="text-2xl font-bold">About Us</h1>
+              <p>Welcome to our test portal platform! We provide comprehensive test preparation resources and tools to help you succeed.</p>
+            </div>
+          </HomeLayout>
+        } />
+        <Route path="/contact" element={
+          <HomeLayout username="John Doe" profilePicture="/default-avatar.png">
+            <div className="space-y-4">
+              <h1 className="text-2xl font-bold">Contact Us</h1>
+              <div className="space-y-2">
+                <p>Email: support@example.com</p>
+                <p>Phone: +1 234 567 890</p>
+              </div>
+            </div>
+          </HomeLayout>
+        } />
+        <Route path="/category" element={
+          <HomeLayout username="John Doe" profilePicture="/default-avatar.png">
+            <Category />
+          </HomeLayout>
+        } />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
