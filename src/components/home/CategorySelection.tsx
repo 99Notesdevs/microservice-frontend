@@ -1,104 +1,109 @@
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import { env } from '../../config/env';
 
 interface Category {
-  id: string;
+  id: number;
   name: string;
-  subcategories?: Category[];
+  createdAt: string;
+  updatedAt: string;
+  pageId: number | null;
+  parentTagId: string | null;
 }
 
-const categories: Category[] = [
-  {
-    id: '1',
-    name: 'General Studies',
-    subcategories: [
-      { id: '1.1', name: 'GS 1' },
-      { id: '1.2', name: 'GS 2' },
-      { id: '1.3', name: 'GS 3' },
-      { id: '1.4', name: 'GS 4' }
-    ]
-  },
-  {
-    id: '2',
-    name: 'Optional Subjects',
-    subcategories: [
-      { id: '2.1', name: 'Mathematics' },
-      { id: '2.2', name: 'Physics' },
-      { id: '2.3', name: 'Chemistry' }
-    ]
-  },
-  {
-    id: '3',
-    name: 'Current Affairs',
-    subcategories: [
-      { id: '3.1', name: 'National' },
-      { id: '3.2', name: 'International' },
-      { id: '3.3', name: 'Economy' }
-    ]
-  }
-];
-
 export const CategorySelection = () => {
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`${env.API}/categories`, {
+          headers: { Authorization: `Bearer ${Cookies.get('token')}` }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const { data } = await response.json();
+        setCategories(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleCategorySelect = (category: Category) => {
-    setSelectedCategory(category);
-    setShowDropdown(false);
+    const isSelected = selectedCategories.some(c => c.id === category.id);
+    if (isSelected) {
+      setSelectedCategories(selectedCategories.filter(c => c.id !== category.id));
+    } else {
+      setSelectedCategories([...selectedCategories, category]);
+    }
   };
 
+  const isSelected = (category: Category) => {
+    return selectedCategories.some(c => c.id === category.id);
+  };
+
+  const handleGiveTest = () => {
+    if (selectedCategories.length === 0) {
+      alert('Please select at least one category');
+      return;
+    }
+    
+    // Convert category IDs to string format
+    const categoryIds = selectedCategories.map(cat => cat.id.toString()).join(',');
+    navigate(`/testPortal?categoryIds=${categoryIds}`);
+  };
+
+  if (isLoading) {
+    return <div className="text-center">Loading categories...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
   return (
-    <div className="space-y-4 relative">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Select Category</h2>
-        <Button
-          variant="outline"
-          className="w-full justify-between"
-          onClick={() => setShowDropdown(!showDropdown)}
-        >
-          {selectedCategory?.name || 'Select Category'}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </div>
-
-      {showDropdown && (
-        <div className="absolute left-0 top-full mt-2 w-full rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-          {categories.map((category) => (
-            <div key={category.id} className="px-2">
-              <div className="text-sm font-medium text-gray-500">
-                {category.name}
-              </div>
-              {category.subcategories?.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleCategorySelect(subcategory)}
-                  className={`w-full px-4 py-2 text-left text-sm ${
-                    selectedCategory?.id === subcategory.id
-                      ? 'bg-primary text-white'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  {subcategory.name}
-                </button>
-              ))}
+    <div className="space-y-4">
+      <div className="text-sm font-medium text-gray-700">Categories</div>
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => handleCategorySelect(category)}
+            className={`flex flex-col items-center justify-center rounded-lg border px-4 py-3 text-center transition-all duration-200 ${
+              isSelected(category)
+                ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            <div className="text-sm font-medium">{category.name}</div>
+            <div className="mt-1 text-xs text-gray-500">
+              {category.pageId ? 'Page' : 'No Page'}
             </div>
-          ))}
-        </div>
-      )}
-
-      <div className="flex justify-end">
-        <Button
-          onClick={() => {
-            if (selectedCategory) {
-              window.location.href = '/testPortal';
-            }
-          }}
-          disabled={!selectedCategory}
-        >
-          Give Test
-        </Button>
+          </button>
+        ))}
       </div>
+      <div className="mt-4">
+  <button
+    onClick={handleGiveTest}
+    disabled={selectedCategories.length === 0}
+    className="w-full flex items-center justify-center rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    <span className="mr-2">📝</span>
+    Give Test
+  </button>
+</div>
     </div>
   );
 };

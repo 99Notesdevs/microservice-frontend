@@ -1,5 +1,5 @@
 import type React from "react"
-import { type Question, QuestionStatus } from "../../types/testTypes"
+import type { Question, QuestionStatus } from "../../types/testTypes"
 
 interface QuestionGridProps {
   questions: Question[]
@@ -16,13 +16,13 @@ const QuestionGrid: React.FC<QuestionGridProps> = ({ questions, statuses, curren
     }
 
     switch (status) {
-      case QuestionStatus.NOT_VISITED:
+      case 'NOT_VISITED':
         return "bg-gray-300 hover:bg-gray-400"
-      case QuestionStatus.VISITED:
+      case 'VISITED':
         return "bg-red-500 hover:bg-red-600 text-white"
-      case QuestionStatus.SAVED_FOR_LATER:
+      case 'SAVED_FOR_LATER':
         return "bg-purple-500 hover:bg-purple-600 text-white"
-      case QuestionStatus.ANSWERED:
+      case 'ANSWERED':
         return "bg-green-500 hover:bg-green-600 text-white"
       default:
         return "bg-gray-300 hover:bg-gray-400"
@@ -31,7 +31,7 @@ const QuestionGrid: React.FC<QuestionGridProps> = ({ questions, statuses, curren
 
   return (
     <div className="grid grid-cols-3 gap-2">
-      {questions.map((question, index) => (
+      {questions.map((_, index) => (
         <button
           key={index}
           className={`w-full h-10 rounded-md font-medium transition-colors ${getButtonColor(statuses[index], index === currentIndex)}`}

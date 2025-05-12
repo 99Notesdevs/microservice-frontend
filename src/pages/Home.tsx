@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { CategorySelection } from '../components/home/CategorySelection';
 import { Button } from '../components/ui/button';
 
 const Home = () => {
@@ -36,11 +35,6 @@ const Home = () => {
                 </Link>
               </nav>
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="col-span-12 md:col-span-9 bg-white rounded-lg shadow-sm p-6">
-            <CategorySelection />
           </div>
         </div>
       </div>

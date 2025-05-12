@@ -1,80 +1,94 @@
-"use client"
-
-import type React from "react"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import QuestionGrid from "../components/testPortal/QuestionGrid"
 import QuestionDisplay from "../components/testPortal/QuestionDisplay"
 import NavigationButtons from "../components/testPortal/NavigationButtons"
 import Timer from "../components/testPortal/Timer"
-import { QuestionStatus } from "../types/testTypes"
-import { sampleQuestions } from "../data/Questions"
+import type { QuestionStatus, Question } from "../types/testTypes"
+import { env } from '../config/env'
+import Cookies from 'js-cookie'
 
-const TEST_DURATION = 30 * 60 // 30 minutes in seconds
+const TEST_DURATION = 30 * 60 // 30 minutes
 
 const TestPortal: React.FC = () => {
   const navigate = useNavigate()
 
-  // State for tracking current question index
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
-
-  // State for tracking question statuses
-  const [questionStatuses, setQuestionStatuses] = useState<QuestionStatus[]>(
-    sampleQuestions.map(() => QuestionStatus.NOT_VISITED),
-  )
-
-  // State for tracking selected answers
-  const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>(Array(sampleQuestions.length).fill(null))
-
-  // State for tracking test start time
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [questionStatuses, setQuestionStatuses] = useState<QuestionStatus[]>([])
+  const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([])
   const [startTime] = useState<number>(Date.now())
 
-  // Handle question selection from grid
-  const handleQuestionSelect = (index: number) => {
-    // Update current question
-    setCurrentQuestionIndex(index)
+  const fetchQuestions = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+  
+      const urlParams = new URLSearchParams(location.search)
+      const categoryIds = urlParams.get('categoryIds')
+  
+      if (!categoryIds) throw new Error('No categories selected')
+  
+      const response = await fetch(`${env.API}/questions/practice?limit=10&categoryIds=${categoryIds}`, {
+        headers: { Authorization: `Bearer ${Cookies.get('token')}` }
+      })
+  
+      if (!response.ok) throw new Error('Failed to fetch questions')
+  
+      const apiResponse = await response.json()
+      const data = apiResponse.data // Extract the data array
+      setQuestions(data)
+      setQuestionStatuses(data.map(() => 'NOT_VISITED' as QuestionStatus))
+      setSelectedAnswers(Array(data.length).fill(null))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    // Update status if not visited
-    if (questionStatuses[index] === QuestionStatus.NOT_VISITED) {
+  useEffect(() => {
+    fetchQuestions()
+  }, [location.search])
+
+  const handleQuestionSelect = (index: number) => {
+    setCurrentQuestionIndex(index)
+    if (questionStatuses[index] === 'NOT_VISITED') {
       const newStatuses = [...questionStatuses]
-      newStatuses[index] = QuestionStatus.VISITED
+      newStatuses[index] = 'VISITED'
       setQuestionStatuses(newStatuses)
     }
   }
 
-  // Handle option selection
   const handleOptionSelect = (optionIndex: number) => {
-    const newSelectedAnswers = [...selectedAnswers]
-    newSelectedAnswers[currentQuestionIndex] = optionIndex
-    setSelectedAnswers(newSelectedAnswers)
+    const newAnswers = [...selectedAnswers]
+    newAnswers[currentQuestionIndex] = optionIndex
+    setSelectedAnswers(newAnswers)
   }
 
-  // Handle confirm answer
   const handleConfirmAnswer = () => {
     if (selectedAnswers[currentQuestionIndex] !== null) {
       const newStatuses = [...questionStatuses]
-      newStatuses[currentQuestionIndex] = QuestionStatus.ANSWERED
+      newStatuses[currentQuestionIndex] = 'ANSWERED'
       setQuestionStatuses(newStatuses)
     }
   }
 
-  // Handle save for later
   const handleSaveForLater = () => {
     const newStatuses = [...questionStatuses]
-    newStatuses[currentQuestionIndex] = QuestionStatus.SAVED_FOR_LATER
+    newStatuses[currentQuestionIndex] = 'SAVED_FOR_LATER'
     setQuestionStatuses(newStatuses)
   }
 
-  // Handle navigation
   const handleNext = () => {
-    if (currentQuestionIndex < sampleQuestions.length - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       const nextIndex = currentQuestionIndex + 1
       setCurrentQuestionIndex(nextIndex)
-
-      // Update status if not visited
-      if (questionStatuses[nextIndex] === QuestionStatus.NOT_VISITED) {
+      if (questionStatuses[nextIndex] === 'NOT_VISITED') {
         const newStatuses = [...questionStatuses]
-        newStatuses[nextIndex] = QuestionStatus.VISITED
+        newStatuses[nextIndex] = 'VISITED'
         setQuestionStatuses(newStatuses)
       }
     }
@@ -86,35 +100,52 @@ const TestPortal: React.FC = () => {
     }
   }
 
-  // Handle test submission
   const handleSubmitTest = useCallback(() => {
     const endTime = Date.now()
-    const timeTaken = Math.floor((endTime - startTime) / 1000) // Time taken in seconds
-
-    // Calculate score
+    const timeTaken = Math.floor((endTime - startTime) / 1000)
+  
+    // Compare selected answer (number) with API answer (string)
     const score = selectedAnswers.reduce<number>((total, answer, index) => {
-      if (answer === sampleQuestions[index].correctAnswer) {
-        return total + 1
-      }
-      return total
+      // Convert selected answer to string to match API format
+      return String(answer) === questions[index].answer ? total + 1 : total
     }, 0)
-
-    // Prepare test results data
+  
     const testResults = {
       score,
-      totalQuestions: sampleQuestions.length,
+      totalQuestions: questions.length,
       timeTaken,
       answers: selectedAnswers,
-      questions: sampleQuestions,
+      questions,
       statuses: questionStatuses,
     }
-
-    // Store results in sessionStorage for the results page
+  
     sessionStorage.setItem("testResults", JSON.stringify(testResults))
-
-    // Navigate to results page
     navigate("/submit")
-  }, [selectedAnswers, questionStatuses, startTime, navigate])
+  }, [selectedAnswers, questionStatuses, questions, startTime, navigate])
+  // 👉 Show loading spinner
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-lg font-medium">
+        Loading questions...
+      </div>
+    )
+  }
+
+  // 👉 Show error with retry option
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen text-center px-4">
+        <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
+        <p className="mb-4">{error}</p>
+        <button
+          onClick={fetchQuestions}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -125,11 +156,10 @@ const TestPortal: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left sidebar with question grid */}
           <div className="lg:col-span-1 bg-gray-50 p-4 rounded-lg">
             <h2 className="text-lg font-semibold mb-4">Questions</h2>
             <QuestionGrid
-              questions={sampleQuestions}
+              questions={questions}
               statuses={questionStatuses}
               currentIndex={currentQuestionIndex}
               onQuestionSelect={handleQuestionSelect}
@@ -139,19 +169,19 @@ const TestPortal: React.FC = () => {
               <h3 className="text-md font-semibold mb-2">Legend</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-gray-300 rounded mr-2"></div>
+                  <div className="w-4 h-4 bg-gray-300 rounded mr-2" />
                   <span>Not visited</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                  <div className="w-4 h-4 bg-red-500 rounded mr-2" />
                   <span>Visited but not confirmed</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-purple-500 rounded mr-2"></div>
+                  <div className="w-4 h-4 bg-purple-500 rounded mr-2" />
                   <span>Saved for later</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                  <div className="w-4 h-4 bg-green-500 rounded mr-2" />
                   <span>Answered and confirmed</span>
                 </div>
               </div>
@@ -164,20 +194,21 @@ const TestPortal: React.FC = () => {
               Submit Test
             </button>
           </div>
-
-          {/* Main content area */}
+          
           <div className="lg:col-span-3">
             <QuestionDisplay
-              question={sampleQuestions[currentQuestionIndex]}
+              question={questions[currentQuestionIndex]}
               selectedOption={selectedAnswers[currentQuestionIndex]}
               onOptionSelect={handleOptionSelect}
               onConfirmAnswer={handleConfirmAnswer}
               onSaveForLater={handleSaveForLater}
+              currentQuestionIndex={currentQuestionIndex}
+              questions={questions}
             />
 
             <NavigationButtons
               currentIndex={currentQuestionIndex}
-              totalQuestions={sampleQuestions.length}
+              totalQuestions={questions.length}
               onNext={handleNext}
               onPrevious={handlePrevious}
             />
