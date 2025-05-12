@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { QuestionStatus } from "../types/testTypes"
+import type { QuestionStatus } from "../types/testTypes"
 
 interface TestResults {
   score: number
@@ -48,13 +48,13 @@ const SubmitPage: React.FC = () => {
   const calculateAnalytics = () => {
     if (!results) return null
 
-    const answeredCount = results.statuses.filter((status) => status === QuestionStatus.ANSWERED).length
+    const answeredCount = results.statuses.filter((status) => status === 'ANSWERED').length
 
-    const savedForLaterCount = results.statuses.filter((status) => status === QuestionStatus.SAVED_FOR_LATER).length
+    const savedForLaterCount = results.statuses.filter((status) => status === 'SAVED_FOR_LATER').length
 
-    const notVisitedCount = results.statuses.filter((status) => status === QuestionStatus.NOT_VISITED).length
+    const notVisitedCount = results.statuses.filter((status) => status === 'NOT_VISITED').length
 
-    const visitedButNotAnsweredCount = results.statuses.filter((status) => status === QuestionStatus.VISITED).length
+    const visitedButNotAnsweredCount = results.statuses.filter((status) => status === 'VISITED').length
 
     return {
       answeredCount,
@@ -178,16 +178,16 @@ const SubmitPage: React.FC = () => {
           <div className="space-y-4 mb-8">
             {results.questions.map((question, index) => {
               const userAnswer = results.answers[index]
-              const isCorrect = userAnswer === question.correctAnswer
+              const isCorrect = userAnswer === Number(question.answer)
               const status = results.statuses[index]
 
               return (
                 <div
                   key={index}
                   className={`p-4 border rounded-lg ${
-                    status === QuestionStatus.NOT_VISITED
+                    status === 'NOT_VISITED'
                       ? "border-gray-300 bg-gray-50"
-                      : status === QuestionStatus.ANSWERED
+                      : status === 'ANSWERED'
                         ? (isCorrect ? "border-green-300 bg-green-50" : "border-red-300 bg-red-50")
                         : "border-gray-300 bg-gray-50"
                   }`}
@@ -199,31 +199,31 @@ const SubmitPage: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium mb-2">{question.text}</p>
+                      <p className="font-medium mb-2">{question.question}</p>
 
-                      {status !== QuestionStatus.NOT_VISITED && (
+                      {status !== 'NOT_VISITED' && (
                         <div className="ml-4">
                           <div className="text-sm text-gray-600 mb-1">Your answer:</div>
                           <div className={`font-medium ${isCorrect ? "text-green-600" : "text-red-600"}`}>
                             {userAnswer !== null ? question.options[userAnswer] : "No answer selected"}
                           </div>
 
-                          {userAnswer !== question.correctAnswer && userAnswer !== null && (
+                          {userAnswer !== Number(question.answer) && userAnswer !== null && (
                             <div className="mt-2">
                               <div className="text-sm text-gray-600 mb-1">Correct answer:</div>
                               <div className="font-medium text-green-600">
-                                {question.options[question.correctAnswer]}
+                                {question.options[Number(question.answer)]}
                               </div>
                             </div>
                           )}
                         </div>
                       )}
 
-                      {status === QuestionStatus.NOT_VISITED && <div className="text-gray-500 italic">Not visited</div>}
+                      {status === 'NOT_VISITED' && <div className="text-gray-500 italic">Not visited</div>}
                     </div>
 
                     <div className="ml-4 flex-shrink-0">
-                      {status === QuestionStatus.ANSWERED &&
+                      {status === 'ANSWERED' &&
                         (isCorrect ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             Correct
@@ -233,12 +233,12 @@ const SubmitPage: React.FC = () => {
                             Incorrect
                           </span>
                         ))}
-                      {status === QuestionStatus.SAVED_FOR_LATER && (
+                      {status === 'SAVED_FOR_LATER' && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                           Saved for Later
                         </span>
                       )}
-                      {status === QuestionStatus.VISITED && (
+                      {status === 'VISITED' && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           Visited Only
                         </span>

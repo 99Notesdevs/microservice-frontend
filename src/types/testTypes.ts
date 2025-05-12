@@ -1,14 +1,12 @@
 export interface Question {
     id: number
-    text: string
+    question: string
     options: string[]
-    correctAnswer?: number // Optional for now, can be used later for scoring
+    answer?: string // Optional for now, can be used later for scoring
 }
   
-export enum QuestionStatus {
-    NOT_VISITED = "NOT_VISITED",
-    VISITED = "VISITED",
-    SAVED_FOR_LATER = "SAVED_FOR_LATER",
-    ANSWERED = "ANSWERED",
-}
-  
+export type QuestionStatus = 
+  | 'NOT_VISITED'
+  | 'VISITED'
+  | 'SAVED_FOR_LATER'
+  | 'ANSWERED';

@@ -1,11 +1,19 @@
 import { Link } from 'react-router-dom';
-import { User, Home, Info, Mail, TestTube } from 'lucide-react';
+import { Home, Info, Mail, TestTube } from 'lucide-react';
 
 interface SidebarProps {
   username: string;
   profilePicture?: string;
 }
 
+/**
+ * A sidebar component that displays a user's profile and navigation links
+ *
+ * @param {{ username: string, profilePicture?: string }} props
+ * @prop {string} username The username to display
+ * @prop {string} [profilePicture] The profile picture to display. If not provided, a default avatar is used
+ * @returns The sidebar component
+ */
 export const Sidebar: React.FC<SidebarProps> = ({ username, profilePicture }) => {
   return (
     <div className="h-screen w-64 bg-white shadow-sm">

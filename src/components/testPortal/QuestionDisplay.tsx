@@ -7,6 +7,8 @@ interface QuestionDisplayProps {
   onOptionSelect: (optionIndex: number) => void
   onConfirmAnswer: () => void
   onSaveForLater: () => void
+  currentQuestionIndex: number
+  questions: Question[]
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
@@ -15,12 +17,16 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   onOptionSelect,
   onConfirmAnswer,
   onSaveForLater,
+  currentQuestionIndex,
+  questions,
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Question {question.id}</h2>
-        <p className="text-gray-800">{question.text}</p>
+        <h2 className="text-xl font-semibold mb-2">
+          Question {currentQuestionIndex + 1} of {questions.length}
+        </h2>
+        <p className="text-gray-800">{question.question}</p>
       </div>
 
       <div className="space-y-3 mb-6">
