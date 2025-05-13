@@ -3,12 +3,12 @@ import { useLocation, NavLink } from "react-router-dom";
 import { useState } from 'react';
 
 const links = [
-  { name: "Home", icon: <Home size={18} />, path: "/" },
   { name: "Dashboard", icon: <Home size={18} />, path: "/dashboard" },
   { name: "Calendar", icon: <CalendarDays size={18} />, path: "/calendar" },
   { name: "Inbox", icon: <Mail size={18} />, path: "/inbox" },
   { name: "My Course", icon: <BookOpenCheck size={18} />, path: "/course" },
-  { name: "My Tests", icon: <Pencil size={18} />, path: "/category" },
+  { name: "Givetest", icon: <Star size={18} />, path: "/category" },
+  { name: "My Tests", icon: <Pencil size={18} />, path: "/givetest" },
   { name: "My Purchase", icon: <ShoppingBag size={18} />, path: "/purchases" },
 ];
 
@@ -61,7 +61,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <div 
-        className={`fixed md:static inset-y-0 left-0 z-[999] w-70 transform ${
+        className={`fixed md:static inset-y-0 left-0 z-[1100] w-70 transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 transition-transform duration-300 ease-in-out min-h-screen bg-[#e9ded7] flex flex-col justify-between`}
       >
@@ -104,9 +104,6 @@ export default function Sidebar() {
         <div className="bg-orange-400 text-white text-sm flex justify-around py-3">
           <button className="flex items-center gap-1">
             <PhoneCall size={16} /> Connect Us
-          </button>
-          <button className="flex items-center gap-1">
-            <Star size={16} /> Rate Us
           </button>
           <button className="flex items-center gap-1">
             <Power size={16} /> Logout
