@@ -1,65 +1,118 @@
-import { Link } from 'react-router-dom';
-import { User, Home, Info, Mail, TestTube } from 'lucide-react';
+import { Home, CalendarDays, Mail, BookOpenCheck, Pencil, ShoppingBag, PhoneCall, Star, Power, Settings } from "lucide-react";
+import { useLocation, NavLink } from "react-router-dom";
+import { useState } from 'react';
 
-interface SidebarProps {
-  username: string;
-  profilePicture?: string;
-}
+const links = [
+  { name: "Home", icon: <Home size={18} />, path: "/" },
+  { name: "Dashboard", icon: <Home size={18} />, path: "/dashboard" },
+  { name: "Calendar", icon: <CalendarDays size={18} />, path: "/calendar" },
+  { name: "Inbox", icon: <Mail size={18} />, path: "/inbox" },
+  { name: "My Course", icon: <BookOpenCheck size={18} />, path: "/course" },
+  { name: "My Tests", icon: <Pencil size={18} />, path: "/tests" },
+  { name: "My Purchase", icon: <ShoppingBag size={18} />, path: "/purchases" },
+];
 
-export const Sidebar: React.FC<SidebarProps> = ({ username, profilePicture }) => {
+export default function Sidebar() {
+  // Location is used internally by NavLink for active state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  useLocation();
+
   return (
-    <div className="h-screen w-64 bg-white shadow-sm">
-      {/* Profile Section */}
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-3">
-          <div className="relative w-12 h-12">
-            <img
-              src={profilePicture || '/default-avatar.png'}
-              alt="Profile"
-              className="w-full h-full rounded-full object-cover"
+    <>
+      {/* Hamburger Menu Button (visible only on mobile) */}
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-4 right-4 z-[997] p-2 rounded-lg bg-orange-100 hover:bg-orange-200 md:hidden shadow-md"
+        style={{ position: 'fixed', top: '1rem', right: '1rem' }}
+        aria-label="Toggle menu"
+      >
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {isSidebarOpen ? (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
             />
-          </div>
-          <div>
-            <h3 className="font-semibold">{username}</h3>
-            <p className="text-sm text-gray-500">Student</p>
+          ) : (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          )}
+        </svg>
+      </button>
+
+      {/* Overlay (visible only on mobile when sidebar is open) */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-[998] md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div 
+        className={`fixed md:static inset-y-0 left-0 z-[999] w-70 transform ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0 transition-transform duration-300 ease-in-out min-h-screen bg-[#e9ded7] flex flex-col justify-between`}
+      >
+        {/* Top Profile Section */}
+        <div className="p-4 flex items-center gap-3 border-b border-orange-200 pb-4">
+          <img src="../../assets/react.svg" alt="Avatar" className="w-14 h-14 rounded-full" />
+          <div className="flex-1 flex items-center justify-between">
+            <div className="text-left">
+              <p className="font-semibold text-sm">Ritik Gupta</p>
+              <p className="text-xs text-gray-700">+91 9026704436</p>
+            </div>
+            <NavLink to="/profile/edit" className="ml-2 p-1 rounded-full hover:bg-orange-100">
+              <Settings size={20} />
+            </NavLink>
           </div>
         </div>
+
+        {/* Navigation Links */}
+        <nav className="flex-1">
+          {links.map((link) => (
+            <NavLink
+              key={link.name}
+              to={link.path}
+              onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile when clicking a link
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-4 py-2 text-sm ${
+                  isActive
+                    ? "bg-orange-400 text-black font-semibold"
+                    : "hover:bg-orange-100 text-gray-700"
+                }`
+              }
+            >
+              {link.icon}
+              {link.name}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Bottom Buttons */}
+        <div className="bg-orange-400 text-white text-sm flex justify-around py-3">
+          <button className="flex items-center gap-1">
+            <PhoneCall size={16} /> Connect Us
+          </button>
+          <button className="flex items-center gap-1">
+            <Star size={16} /> Rate Us
+          </button>
+          <button className="flex items-center gap-1">
+            <Power size={16} /> Logout
+          </button>
+        </div>
       </div>
-
-      {/* Navigation */}
-      <nav className="p-4 space-y-2">
-        <Link
-          to="/"
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <Home className="w-5 h-5" />
-          <span>Home</span>
-        </Link>
-
-        <Link
-          to="/about"
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <Info className="w-5 h-5" />
-          <span>About</span>
-        </Link>
-
-        <Link
-          to="/contact"
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <Mail className="w-5 h-5" />
-          <span>Contact</span>
-        </Link>
-
-        <Link
-          to="/category"
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <TestTube className="w-5 h-5" />
-          <span>Tests</span>
-        </Link>
-      </nav>
-    </div>
+    </>
   );
-};
+}

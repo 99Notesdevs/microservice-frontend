@@ -15,9 +15,9 @@ export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', s
   };
   
   const variantStyles = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50'
+    primary: 'bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 text-white shadow-md hover:from-yellow-500 hover:via-orange-500 hover:to-yellow-600 focus:ring-2 focus:ring-orange-300',
+    secondary: 'bg-yellow-100 text-orange-700 hover:bg-yellow-200',
+    outline: 'border-2 border-yellow-400 text-orange-600 bg-white hover:bg-yellow-50 focus:ring-2 focus:ring-orange-200'
   };
 
   return (
