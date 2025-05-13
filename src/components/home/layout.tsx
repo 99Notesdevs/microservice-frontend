@@ -1,4 +1,5 @@
 import Sidebar from './sidebar';
+import Navbar from './Navbar';
 
 interface HomeLayoutProps {
   children: React.ReactNode;
@@ -13,8 +14,10 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6">
+      <div className="flex-1 overflow-auto relative">
+        {/* Navbar */}
+        <Navbar />
+        <div className="" style={{ paddingTop: 56 }}>
           {children}
         </div>
       </div>
