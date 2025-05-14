@@ -8,50 +8,102 @@ import type { QuestionStatus, Question } from "../types/testTypes"
 import { env } from '../config/env'
 import Cookies from 'js-cookie'
 
-const TEST_DURATION = 30 * 60 // 30 minutes
-
 const TestPortal: React.FC = () => {
   const navigate = useNavigate()
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [questionStatuses, setQuestionStatuses] = useState<QuestionStatus[]>([])
-  const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([])
-  const [startTime] = useState<number>(Date.now())
+  const [testDuration, setTestDuration] = useState<number>(30 * 60); // Default to 30 minutes
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [questionStatuses, setQuestionStatuses] = useState<QuestionStatus[]>([]);
+  const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([]);
+  const [startTime] = useState<number>(Date.now());
+  const [negativeMarking, setNegativeMarking] = useState<boolean>(false);
+  const [testStarted, setTestStarted] = useState<boolean>(true) // Set to true when test starts
 
   const fetchQuestions = async () => {
     try {
-      setLoading(true)
-      setError(null)
-  
-      const urlParams = new URLSearchParams(location.search)
-      const categoryIds = urlParams.get('categoryIds')
-  
-      if (!categoryIds) throw new Error('No categories selected')
-  
-      const response = await fetch(`${env.API}/questions/practice?limit=10&categoryIds=${categoryIds}`, {
-        headers: { Authorization: `Bearer ${Cookies.get('token')}` }
-      })
-  
-      if (!response.ok) throw new Error('Failed to fetch questions')
-  
-      const apiResponse = await response.json()
-      const data = apiResponse.data // Extract the data array
-      setQuestions(data)
-      setQuestionStatuses(data.map(() => 'NOT_VISITED' as QuestionStatus))
-      setSelectedAnswers(Array(data.length).fill(null))
+      setLoading(true);
+      setError(null);
+
+      const urlParams = new URLSearchParams(location.search);
+      const categoryIds = urlParams.get('categoryIds');
+      const limit = urlParams.get('limit') || '10';
+      const timeLimit = urlParams.get('timeLimit') || '30';
+      const negativeMarkingParam = urlParams.get('negativeMarking') === 'true';
+
+      if (!categoryIds) throw new Error('No categories selected');
+
+      // Update test duration based on URL parameter
+      setTestDuration(parseInt(timeLimit) * 60);
+      setNegativeMarking(negativeMarkingParam);
+
+      const response = await fetch(
+        `${env.API}/questions/practice?limit=${limit}&categoryIds=${categoryIds}`, 
+        {
+          headers: { Authorization: `Bearer ${Cookies.get('token')}` }
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch questions');
+
+      const apiResponse = await response.json();
+      const data = apiResponse.data;
+      setQuestions(data);
+      setQuestionStatuses(data.map(() => 'NOT_VISITED' as QuestionStatus));
+      setSelectedAnswers(Array(data.length).fill(null));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchQuestions()
   }, [location.search])
+
+  useEffect(() => {
+    if (!testStarted) return;
+
+    // Handle browser back/forward buttons
+    const handlePopState = (_event: PopStateEvent) => {
+      // Show confirmation dialog
+      const confirmLeave = window.confirm(
+        'Are you sure you want to leave the test? Your progress may be lost.'
+      );
+      
+      if (!confirmLeave) {
+        // Stay on the current page
+        navigate(window.location.pathname, { replace: true });
+      } else {
+        // User confirmed, allow navigation
+        setTestStarted(false);
+        return;
+      }
+    };
+
+    // Handle page refresh or tab close
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (testStarted) {
+        event.preventDefault();
+        // Modern browsers require returnValue to be set
+        event.returnValue = 'Are you sure you want to leave? Your test progress will be lost.';
+        return event.returnValue;
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [navigate, testStarted]);
 
   const handleQuestionSelect = (index: number) => {
     setCurrentQuestionIndex(index)
@@ -101,27 +153,36 @@ const TestPortal: React.FC = () => {
   }
 
   const handleSubmitTest = useCallback(() => {
+    // Set test as completed before navigation
+    setTestStarted(false);
+    
     const endTime = Date.now()
     const timeTaken = Math.floor((endTime - startTime) / 1000)
-  
-    // Compare selected answer (number) with API answer (string)
+
+    // Calculate score based on negative marking setting
     const score = selectedAnswers.reduce<number>((total, answer, index) => {
-      // Convert selected answer to string to match API format
-      return String(answer) === questions[index].answer ? total + 1 : total
-    }, 0)
-  
+      const isCorrect = String(answer) === questions[index].answer;
+      if (isCorrect) {
+        return total + 1;
+      }
+      // Apply negative marking if enabled
+      return negativeMarking ? total - 1 : total;
+    }, 0);
+
     const testResults = {
       score,
       totalQuestions: questions.length,
+      negativeMarking,
       timeTaken,
       answers: selectedAnswers,
       questions,
       statuses: questionStatuses,
     }
-  
+
     sessionStorage.setItem("testResults", JSON.stringify(testResults))
     navigate("/submit")
-  }, [selectedAnswers, questionStatuses, questions, startTime, navigate])
+  }, [selectedAnswers, questionStatuses, questions, startTime, navigate, negativeMarking])
+
   // 👉 Show loading spinner
   if (loading) {
     return (
@@ -149,10 +210,13 @@ const TestPortal: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Test Portal</h1>
-          <Timer initialTime={TEST_DURATION} onTimeEnd={handleSubmitTest} />
+          <h1 className="text-2xl font-bold text-gray-800">Test</h1>
+          <Timer 
+            initialTime={testDuration} 
+            onTimeEnd={handleSubmitTest} 
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

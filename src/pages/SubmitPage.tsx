@@ -214,6 +214,17 @@ const SubmitPage: React.FC = () => {
                               <div className="font-medium text-green-600">
                                 {question.options[Number(question.answer)]}
                               </div>
+                              {question.explaination && (
+                                <div className="mt-3 p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r">
+                                  <p className="text-sm font-medium text-blue-800 mb-1">Explanation:</p>
+                                  <p className="text-sm text-blue-700">{question.explaination}</p>
+                                  {question.creatorName && (
+                                    <p className="text-xs text-gray-600 mt-2 italic">
+                                      Added by: {question.creatorName}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
