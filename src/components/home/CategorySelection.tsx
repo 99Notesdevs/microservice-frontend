@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { env } from '../../config/env';
 import { Button } from '../ui/button';
@@ -16,8 +15,16 @@ interface Category {
   isExpanded?: boolean;
 }
 
-export const CategorySelection = () => {
-  const navigate = useNavigate();
+interface CategorySelectionProps {
+  testSettings: {
+    timeLimit: number;
+    questionCount: number;
+    negativeMarking: boolean;
+  };
+  onStartTest: (selectedCategories: number[]) => void;
+}
+
+export const CategorySelection = ({ onStartTest }: CategorySelectionProps) => {
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -155,7 +162,7 @@ export const CategorySelection = () => {
     }
     
     const categoryIds = selectedCategories.map(cat => cat.id).join(',');
-    navigate(`/testPortal?categoryIds=${categoryIds}`);
+    onStartTest(categoryIds.split(',').map(Number));
   };
 
   // Recursive component to render categories and their children

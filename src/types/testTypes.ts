@@ -3,6 +3,8 @@ export interface Question {
     question: string
     options: string[]
     answer?: string // Optional for now, can be used later for scoring
+    explaination?: string
+    creatorName?: string
 }
   
 export type QuestionStatus = 
