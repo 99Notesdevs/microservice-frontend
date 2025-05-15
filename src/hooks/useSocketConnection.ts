@@ -49,7 +49,6 @@ export function useSocketConnection({
   setTestResults,
 }: UseSocketConnectionProps) {
   const [socket, setSocket] = useState<any>(null)
-  const [score, setScore] = useState<number>(0)
 
   useEffect(() => {
     if (!userId) return
@@ -83,100 +82,46 @@ export function useSocketConnection({
       if (data.status === "success") {
         // Process results for review mode
         const updatedQuestions = questions.map(q => {
-            const result = data.result[q.id];  // Access directly as object property
+            const result = data.result[q.id];
             return {
               ...q,
-              explanation: result?.explaination,  // Note: it's "explaination" in the data
+              explanation: result?.explaination,
               answer: result?.answer
             };
           });
           
-          setQuestions(updatedQuestions);  // Update the questions state with full info
-          
-        const correctAnswers: Record<string, number> = {}
+          setQuestions(updatedQuestions);
 
-        // Extract correct answers from the result
-        Object.entries(data.result).forEach(([questionId, _isCorrect]) => {
-          const questionIndex = questions.findIndex((q) => q.id === questionId)
-          if (questionIndex !== -1) {
-            // If the server provides the correct answer index
-            if (data.correctAnswers && data.correctAnswers[questionId] !== undefined) {
-              correctAnswers[questionId] = data.correctAnswers[questionId]
-            } else {
-              // Fallback to the question's correctOption if available
-              const question = questions[questionIndex]
-              if (question.answer !== undefined) {
-                correctAnswers[questionId] = Number(question.answer)
-              }
+          const correctAnswers = Object.entries(data.result).reduce<Record<string, number>>((acc, [questionId, result]) => {
+            acc[questionId] = Number((result as { answer: string }).answer);
+            return acc;
+          }, {});
+
+          // Calculate score using isCorrect values
+          const score = Object.entries(data.result as Record<string, { isCorrect: boolean }>).reduce<number>((total, [questionId, result]) => {
+            const isCorrect = result.isCorrect;
+            const questionIndex = questions.findIndex((q) => q.id === questionId);
+            const answer = selectedAnswers[questionIndex];
+
+            if (isCorrect) {
+              return total + 1;
             }
+            return answer !== null && negativeMarking ? total - 0.25 : total;
+          }, 0);
+
+          const results: TestResults = {
+            score: Math.max(0, Math.round(score * 100) / 100),
+            totalQuestions: questions.length,
+            negativeMarking,
+            timeTaken: Math.floor((Date.now() - startTime) / 1000),
+            answers: selectedAnswers.map((answer) => answer?.toString() || null),
+            correctAnswers,
           }
-        })
 
-        // Calculate score using isCorrect values
-        const score = Object.entries(data.result as Record<string, { isCorrect: boolean }>).reduce<number>((total, [questionId, result]) => {
-          const isCorrect = result.isCorrect;
-          const questionIndex = questions.findIndex((q) => q.id === questionId);
-          const answer = selectedAnswers[questionIndex];
-
-          if (isCorrect) {
-            return total + 1;
-          }
-          return answer !== null && negativeMarking ? total - 0.25 : total;
-        }, 0);
-        setScore(score)
-        const results: TestResults = {
-          score,
-          totalQuestions: questions.length,
-          negativeMarking,
-          timeTaken: Math.floor((Date.now() - startTime) / 1000),
-          answers: selectedAnswers.map((answer) => answer?.toString() || null),
-          correctAnswers,
-        }
-
-        setTestResults(results)
-        setIsReviewMode(true)
+          setTestResults(results);
+          setIsReviewMode(true);
       } else {
-        setError(data.message || "Failed to submit test")
-      }
-      console.log("Received test results:", data)
-      if (data.status === "success") {
-        // Define the type for the result object
-        type QuestionResult = {
-          id: string;
-          answer: string | number;
-          isCorrect: boolean;
-        };
-
-        // Type the data.result object
-        const resultArray = Object.values(data.result) as QuestionResult[];
-
-        // Create correctAnswers object from result
-        const correctAnswers: Record<string, number> = {};
-        resultArray.forEach((question) => {
-          correctAnswers[question.id] = Number(question.answer);
-        });
-
-        // Calculate score using isCorrect values
-        // const score = resultArray.reduce<number>((total, question) => {
-        //   if (question.isCorrect) {
-        //     return total + 1;
-        //   }
-        //   return total;
-        // }, 0);
-
-        const results: TestResults = {
-          score,
-          totalQuestions: questions.length,
-          negativeMarking,
-          timeTaken: Math.floor((Date.now() - startTime) / 1000),
-          answers: selectedAnswers.map((answer) => answer?.toString() || null),
-          correctAnswers,
-        }
-
-        setTestResults(results)
-        setIsReviewMode(true)
-      } else {
-        setError("Failed to get test results")
+        setError(data.message || "Failed to submit test");
       }
     })
 
