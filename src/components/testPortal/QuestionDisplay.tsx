@@ -1,7 +1,12 @@
-import type React from "react"
-import type { Question } from "../../types/testTypes"
+"use client"
 
-interface QuestionDisplayProps {
+import React, { useState, useEffect } from "react"
+import type { Question, QuestionStatus } from "../../types/testTypes"
+import { ChevronDown, ChevronUp } from "lucide-react"
+import { cn } from "../../lib/utils"
+import { Button } from "../ui/button"
+
+type QuestionDisplayProps = {
   question: Question
   selectedOption: number | null
   onOptionSelect: (optionIndex: number) => void
@@ -9,6 +14,9 @@ interface QuestionDisplayProps {
   onSaveForLater: () => void
   currentQuestionIndex: number
   questions: Question[]
+  isReviewMode?: boolean
+  correctOption?: number
+  status?: QuestionStatus
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
@@ -19,56 +27,143 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   onSaveForLater,
   currentQuestionIndex,
   questions,
+  isReviewMode = false,
+  correctOption,
+  status,
 }) => {
+  const [showAnswer, setShowAnswer] = useState(false)
+  const [tempAnswer, setTempAnswer] = useState<number | null>(null)
+
+  // Reset tempAnswer when question changes, but keep selectedOption
+  useEffect(() => {
+    setTempAnswer(null)
+  }, [currentQuestionIndex])
+
+  if (!question) return null
+
+  const getOptionClass = (index: number) => {
+    // In review mode, show saved/confirmed answers
+    if (isReviewMode) {
+      if (status === "SAVED_FOR_LATER") {
+        if (selectedOption === index) {
+          return "bg-yellow-50 border-yellow-300 text-yellow-800"
+        }
+      } else if (status === "ANSWERED") {
+        if (selectedOption === index) {
+          return "bg-green-50 border-green-300 text-green-800"
+        }
+      }
+      return ""
+    }
+
+    // In normal mode, show tempAnswer highlighting
+    if (tempAnswer === index) {
+      return "bg-blue-50 border border-blue-200"
+    }
+
+    // Also show selectedOption in normal mode if it exists
+    if (selectedOption !== null && selectedOption === index) {
+      return "bg-blue-50 border border-blue-200"
+    }
+
+    return ""
+  }
+
+  const handleOptionSelect = (index: number) => {
+    setTempAnswer(index)
+    onOptionSelect(index)
+  }
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">
-          Question {currentQuestionIndex + 1} of {questions.length}
-        </h2>
-        <p className="text-gray-800">{question.question}</p>
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-semibold">Question {currentQuestionIndex + 1} of {questions.length}</h3>
+          {isReviewMode && status && (
+            <span className={cn(
+              "px-2 py-1 rounded-full text-sm font-medium",
+              {
+                "bg-blue-100 text-blue-800": status === "VISITED",
+                "bg-green-100 text-green-800": status === "ANSWERED",
+                "bg-yellow-100 text-yellow-800": status === "SAVED_FOR_LATER",
+                "bg-gray-100 text-gray-800": status === "NOT_VISITED"
+              }
+            )}>
+              {status}
+            </span>
+          )}
+        </div>
+        <p className="text-gray-700">{question.question}</p>
       </div>
 
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3">
         {question.options.map((option, index) => (
           <div
             key={index}
-            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-              selectedOption === index ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-            }`}
-            onClick={() => onOptionSelect(index)}
+            className={cn(
+              "flex items-center space-x-3 p-3 rounded-lg cursor-pointer",
+              getOptionClass(index),
+              // Always show hover effect
+              "hover:bg-gray-50",
+              // Disable clicking in review mode
+              isReviewMode && "cursor-not-allowed"
+            )}
+            onClick={() => !isReviewMode && handleOptionSelect(index)}
           >
-            <div className="flex items-start">
-              <div
-                className={`w-5 h-5 rounded-full border flex-shrink-0 mr-3 mt-0.5 flex items-center justify-center ${
-                  selectedOption === index ? "border-blue-500 bg-blue-500" : "border-gray-300"
-                }`}
-              >
-                {selectedOption === index && <div className="w-2 h-2 rounded-full bg-white"></div>}
-              </div>
-              <span>{option}</span>
-            </div>
+            <input
+              type="radio"
+              name={`question-${currentQuestionIndex}`}
+              defaultChecked={getOptionClass(index) !== ""}
+              readOnly={isReviewMode}
+              className="hidden"
+            />
+            <div className="flex-1 text-gray-700">{option}</div>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={onConfirmAnswer}
-          disabled={selectedOption === null}
-        >
-          Confirm Answer
-        </button>
-        <button
-          className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-          onClick={onSaveForLater}
-        >
-          Save for Later
-        </button>
-      </div>
+      {isReviewMode && (
+        <div className="mt-4 p-4 rounded-lg bg-white border border-gray-200">
+          <div className="flex justify-between items-center mb-2">
+            <div>
+              <p className="text-gray-700 mb-1">Your Answer: {selectedOption !== null ? question.options[selectedOption as number] : "Not selected"}</p>
+              <p className="text-gray-700 mb-1">Correct Answer: {correctOption !== null ? question.options[correctOption as number] : "Not available"}</p>
+              <p className="text-gray-700 mb-2">Status: {status}</p>
+            </div>
+            <button
+              onClick={() => setShowAnswer(!showAnswer)}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              {showAnswer ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+          </div>
+          {showAnswer && question.explanation && (
+            <div className="mt-2">
+              <p className="text-gray-600">{`Explanation: ${question.explanation}`}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!isReviewMode && (
+        <div className="mt-6 flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            onClick={onSaveForLater}
+            disabled={status === "SAVED_FOR_LATER"}
+          >
+            Save for Later
+          </Button>
+          <Button
+            onClick={onConfirmAnswer}
+            disabled={tempAnswer === null}
+          >
+            Confirm Answer
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
 
-export default QuestionDisplay
+export default React.memo(QuestionDisplay)

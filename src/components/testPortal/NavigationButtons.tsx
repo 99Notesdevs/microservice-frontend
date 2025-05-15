@@ -1,6 +1,10 @@
-import type React from "react"
+"use client"
 
-interface NavigationButtonsProps {
+import React from "react"
+import { Button } from "../ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+
+type NavigationButtonsProps = {
   currentIndex: number
   totalQuestions: number
   onNext: () => void
@@ -9,30 +13,23 @@ interface NavigationButtonsProps {
 
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({ currentIndex, totalQuestions, onNext, onPrevious }) => {
   return (
-    <div className="flex justify-between mt-6">
-      <button
-        className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        onClick={onPrevious}
-        disabled={currentIndex === 0}
-      >
+    <div className="flex justify-between p-6 pt-0">
+      <Button onClick={onPrevious} disabled={currentIndex === 0} variant="outline" className="flex items-center gap-1">
+        <ChevronLeft className="h-4 w-4" />
         Previous
-      </button>
+      </Button>
 
-      <div className="text-center py-2">
-        <span className="font-medium">
-          Question {currentIndex + 1} of {totalQuestions}
-        </span>
-      </div>
-
-      <button
-        className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      <Button
         onClick={onNext}
         disabled={currentIndex === totalQuestions - 1}
+        variant="outline"
+        className="flex items-center gap-1"
       >
         Next
-      </button>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
     </div>
   )
 }
 
-export default NavigationButtons
+export default React.memo(NavigationButtons)
