@@ -139,7 +139,7 @@ const TestPortal: React.FC = () => {
         throw new Error('Socket connection not established');
       }
 
-      const response = await fetch(`${env.API}/questions/practice?limit=${limit}&categoryIds=${categoryIds}`, {
+      const response = await fetch(`${env.API}/questions/test?limit=${limit}&categoryIds=${categoryIds}`, {
         method: 'GET',
         headers:{'Authorization': `Bearer ${Cookies.get('token')}`}
       });
