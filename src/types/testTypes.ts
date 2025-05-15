@@ -1,14 +1,19 @@
-export interface Question {
-    id: number
-    question: string
-    options: string[]
-    answer?: string // Optional for now, can be used later for scoring
-    explaination?: string
-    creatorName?: string
+export type QuestionStatus = "NOT_VISITED" | "VISITED" | "SAVED_FOR_LATER" | "ANSWERED"
+
+export type Question = {
+  id: string
+  question: string
+  options: string[]
+  answer?: string
+  explanation?: string
+  categoryId?: string
 }
-  
-export type QuestionStatus = 
-  | 'NOT_VISITED'
-  | 'VISITED'
-  | 'SAVED_FOR_LATER'
-  | 'ANSWERED';
+
+export type TestResults = {
+  score: number
+  totalQuestions: number
+  negativeMarking: boolean
+  timeTaken: number
+  answers: (string | null)[]
+  correctAnswers?: Record<string, number>
+}
