@@ -7,12 +7,43 @@ import Timer from "../components/testPortal/Timer"
 import type { QuestionStatus, Question } from "../types/testTypes"
 import { env } from '../config/env'
 import Cookies from 'js-cookie'
+import  io from 'socket.io-client';
+
+// Custom hook for socket connection
+const useSocket = (userId: string | null) => {
+  const [socket, setSocket] = useState<SocketIOClient.Socket | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const newSocket = io(env.SOCKET_URL, {
+      path: '/socket.io'
+    });
+
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('Connected to socket');
+      newSocket.emit('join_room', JSON.stringify({ userId: userId }));
+      console.log('Connected to socket and joined room:', userId);
+    });
+
+    return () => {
+      if (newSocket) {
+        newSocket.disconnect();
+      }
+    };
+  }, [userId]);
+
+  return socket;
+};
 
 const TestPortal: React.FC = () => {
   const navigate = useNavigate()
-
+  const userId = localStorage.getItem('userId');
+  const socket = useSocket(userId);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
-  const [testDuration, setTestDuration] = useState<number>(30 * 60); // Default to 30 minutes
+  const [testDuration, setTestDuration] = useState<number>(30 * 60);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +51,73 @@ const TestPortal: React.FC = () => {
   const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([]);
   const [startTime] = useState<number>(Date.now());
   const [negativeMarking, setNegativeMarking] = useState<boolean>(false);
-  const [testStarted, setTestStarted] = useState<boolean>(true) // Set to true when test starts
+  const [testStarted, setTestStarted] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (socket) {
+      // Set up event handlers
+      socket.on('fetch-questions', (data: any) => {
+        console.log('Received questions:', data);
+        if (data.status === 'success') {
+          setQuestions(data.questions);
+          setQuestionStatuses(data.questions.map(() => 'NOT_VISITED' as QuestionStatus));
+          setSelectedAnswers(Array(data.questions.length).fill(null));
+          setLoading(false);
+        } else {
+          setError(data.message || 'Failed to fetch questions');
+          setLoading(false);
+        }
+      });
+
+      socket.on('submit-questions', (data: any) => {
+        console.log('Received test results:', data);
+        if (data.status === 'success') {
+          const score = selectedAnswers.reduce<number>((total, _answer, index) => {
+            const questionId = questions[index].id;
+            if (data.result[questionId]) {
+              return total + 1;
+            }
+            return negativeMarking ? total - 1 : total;
+          }, 0);
+
+          const testResults = {
+            score,
+            totalQuestions: questions.length,
+            negativeMarking,
+            timeTaken: Math.floor((Date.now() - startTime) / 1000),
+            answers: selectedAnswers,
+            questions,
+            statuses: questionStatuses,
+          };
+
+          sessionStorage.setItem("testResults", JSON.stringify(testResults));
+          navigate("/submit");
+        } else {
+          setError(data.message || 'Failed to submit test');
+        }
+      });
+
+      return () => {
+        if (socket) {
+          socket.off('fetch-questions');
+          socket.off('submit-questions');
+        }
+      };
+    }
+  }, [socket, navigate, selectedAnswers, questions, startTime, negativeMarking]);
+
+  useEffect(() => {
+    if (socket) {
+      fetchQuestions();
+    }
+  }, [socket, location.search]);
+
+  useEffect(() => {
+    if (!userId) {
+      setError('User not authenticated');
+      return;
+    }
+  }, [userId]);
 
   const fetchQuestions = async () => {
     try {
@@ -35,70 +132,135 @@ const TestPortal: React.FC = () => {
 
       if (!categoryIds) throw new Error('No categories selected');
 
-      // Update test duration based on URL parameter
       setTestDuration(parseInt(timeLimit) * 60);
       setNegativeMarking(negativeMarkingParam);
 
-      const response = await fetch(
-        `${env.API}/questions/practice?limit=${limit}&categoryIds=${categoryIds}`, 
-        {
-          headers: { Authorization: `Bearer ${Cookies.get('token')}` }
-        }
-      );
+      if (!socket) {
+        throw new Error('Socket connection not established');
+      }
 
-      if (!response.ok) throw new Error('Failed to fetch questions');
+      const response = await fetch(`${env.API}/questions/practice?limit=${limit}&categoryIds=${categoryIds}`, {
+        method: 'GET',
+        headers:{'Authorization': `Bearer ${Cookies.get('token')}`}
+      });
+      if(!response.ok){
+        throw new Error('Failed to fetch questions');
+      }
+      console.log('Sending request to /practice with:', {
+        categoryIds,
+        limit
+      });
 
-      const apiResponse = await response.json();
-      const data = apiResponse.data;
-      setQuestions(data);
-      setQuestionStatuses(data.map(() => 'NOT_VISITED' as QuestionStatus));
-      setSelectedAnswers(Array(data.length).fill(null));
+      // The server will respond with questions via 'fetch-questions' event
+      socket.emit('practice', {
+        categoryIds,
+        limit
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchQuestions()
-  }, [location.search])
+  const handleSubmitTest = useCallback(async () => {
+    setTestStarted(false);
+    const endTime = Date.now();
+    const timeTaken = Math.floor((endTime - startTime) / 1000);
+
+    if (!socket) {
+      setError('Socket connection not established');
+      return;
+    }
+
+    try {
+      // Send POST request to /questions/submit
+      const response = await fetch(`${env.API}/questions/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Cookies.get('token')}`
+        },
+        body: JSON.stringify({
+          submissions: questions.map((q, index) => ({
+            questionId: q.id,
+            selectedOption: String(selectedAnswers[index])
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit test');
+      }
+
+      // Wait for the socket response
+      socket.on('test_results', (data: any) => {
+        console.log('Received test results:', data);
+        if (data.status === 'success') {
+          // Handle the array of questionId mapped with true/false
+          const score = selectedAnswers.reduce<number>((total, _answer, index) => {
+            const questionId = questions[index].id;
+            if (data.results[questionId]) {
+              return total + 1;
+            }
+            return negativeMarking ? total - 1 : total;
+          }, 0);
+
+          const testResults = {
+            score,
+            totalQuestions: questions.length,
+            negativeMarking,
+            timeTaken,
+            answers: selectedAnswers,
+            questions,
+            statuses: questionStatuses,
+            results: data.results
+          };
+
+          sessionStorage.setItem("testResults", JSON.stringify(testResults));
+          navigate("/submit");
+        } else {
+          setError(data.message || 'Failed to get test results');
+        }
+      });
+
+      // Emit the test submission event
+      socket.emit('submit_test', {
+        userId,
+        timeTaken
+      });
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    }
+  }, [selectedAnswers, questions, startTime, navigate, negativeMarking, socket, userId, questionStatuses]);
 
   useEffect(() => {
     if (!testStarted) return;
 
-    // Handle browser back/forward buttons
     const handlePopState = (_event: PopStateEvent) => {
-      // Show confirmation dialog
       const confirmLeave = window.confirm(
         'Are you sure you want to leave the test? Your progress may be lost.'
       );
       
       if (!confirmLeave) {
-        // Stay on the current page
         navigate(window.location.pathname, { replace: true });
       } else {
-        // User confirmed, allow navigation
         setTestStarted(false);
         return;
       }
     };
 
-    // Handle page refresh or tab close
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (testStarted) {
         event.preventDefault();
-        // Modern browsers require returnValue to be set
         event.returnValue = 'Are you sure you want to leave? Your test progress will be lost.';
         return event.returnValue;
       }
     };
 
-    // Add event listeners
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Cleanup function
     return () => {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -152,38 +314,6 @@ const TestPortal: React.FC = () => {
     }
   }
 
-  const handleSubmitTest = useCallback(() => {
-    // Set test as completed before navigation
-    setTestStarted(false);
-    
-    const endTime = Date.now()
-    const timeTaken = Math.floor((endTime - startTime) / 1000)
-
-    // Calculate score based on negative marking setting
-    const score = selectedAnswers.reduce<number>((total, answer, index) => {
-      const isCorrect = String(answer) === questions[index].answer;
-      if (isCorrect) {
-        return total + 1;
-      }
-      // Apply negative marking if enabled
-      return negativeMarking ? total - 1 : total;
-    }, 0);
-
-    const testResults = {
-      score,
-      totalQuestions: questions.length,
-      negativeMarking,
-      timeTaken,
-      answers: selectedAnswers,
-      questions,
-      statuses: questionStatuses,
-    }
-
-    sessionStorage.setItem("testResults", JSON.stringify(testResults))
-    navigate("/submit")
-  }, [selectedAnswers, questionStatuses, questions, startTime, navigate, negativeMarking])
-
-  // 👉 Show loading spinner
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen text-lg font-medium">
@@ -192,7 +322,6 @@ const TestPortal: React.FC = () => {
     )
   }
 
-  // 👉 Show error with retry option
   if (error) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-center px-4">

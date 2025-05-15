@@ -83,9 +83,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = data.data.split(' ')[1];
       Cookies.set('token', token, { expires: 5 }); // 5 days
       // Get user data
-      const validateResponse = await fetch(`${env.API_MAIN}/user/validate`, {
-        headers:{'Authorization': `Bearer ${token}`}
-      });
+const userData = await fetch(`${env.API_MAIN}/user`, {
+  headers: { 'Authorization': `Bearer ${token}` }
+});
+
+if (!userData.ok) {
+  throw new Error('Failed to fetch user data');
+}
+
+const userDataJson = await userData.json();
+const userId = userDataJson.data.id;
+
+// Store user ID in localStorage (more secure than cookies for this purpose)
+localStorage.setItem('userId', userId);
+
+// Continue with validation
+const validateResponse = await fetch(`${env.API_MAIN}/user/validate`, {
+  headers: { 'Authorization': `Bearer ${token}` }
+});
       console.log('validateResponse',validateResponse);
       console.log(validateResponse.ok);
       if (validateResponse.status === 200) {
