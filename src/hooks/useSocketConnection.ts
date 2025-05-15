@@ -49,6 +49,7 @@ export function useSocketConnection({
   setTestResults,
 }: UseSocketConnectionProps) {
   const [socket, setSocket] = useState<any>(null)
+  const [score, setScore] = useState<number>(0)
 
   useEffect(() => {
     if (!userId) return
@@ -122,7 +123,7 @@ export function useSocketConnection({
           }
           return answer !== null && negativeMarking ? total - 0.25 : total;
         }, 0);
-
+        setScore(score)
         const results: TestResults = {
           score,
           totalQuestions: questions.length,
@@ -156,12 +157,12 @@ export function useSocketConnection({
         });
 
         // Calculate score using isCorrect values
-        const score = resultArray.reduce<number>((total, question) => {
-          if (question.isCorrect) {
-            return total + 1;
-          }
-          return total;
-        }, 0);
+        // const score = resultArray.reduce<number>((total, question) => {
+        //   if (question.isCorrect) {
+        //     return total + 1;
+        //   }
+        //   return total;
+        // }, 0);
 
         const results: TestResults = {
           score,
