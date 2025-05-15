@@ -72,7 +72,7 @@ const TestPortal: React.FC = () => {
       socket.on('submit-questions', (data: any) => {
         console.log('Received test results:', data);
         if (data.status === 'success') {
-          const score = selectedAnswers.reduce<number>((total, answer, index) => {
+          const score = selectedAnswers.reduce<number>((total, _answer, index) => {
             const questionId = questions[index].id;
             if (data.result[questionId]) {
               return total + 1;
@@ -197,7 +197,7 @@ const TestPortal: React.FC = () => {
         console.log('Received test results:', data);
         if (data.status === 'success') {
           // Handle the array of questionId mapped with true/false
-          const score = selectedAnswers.reduce<number>((total, answer, index) => {
+          const score = selectedAnswers.reduce<number>((total, _answer, index) => {
             const questionId = questions[index].id;
             if (data.results[questionId]) {
               return total + 1;
