@@ -12,7 +12,9 @@ export function useTestState() {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [questionStatuses, setQuestionStatuses] = useState<QuestionStatus[]>([])
-  const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([])
+  const [selectedAnswers, setSelectedAnswers] = useState<(number | null | number[] | null)[]>(
+    () => Array(questions.length).fill(null)
+  )
   const [negativeMarking, setNegativeMarking] = useState<boolean>(
     searchParams.get('negativeMarking') === 'true'
   )

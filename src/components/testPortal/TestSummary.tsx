@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Button } from "../ui/button"
-import { Clock, Award, BarChart } from "lucide-react"
+import { Clock, Award } from "lucide-react"
 
 type TestSummaryProps = {
   score: number
@@ -41,36 +41,24 @@ const TestSummary: React.FC<TestSummaryProps> = ({ score, totalQuestions, timeTa
               <p className="text-xl font-bold">
                 {score} / {totalQuestions}
               </p>
+              <p className="text-sm text-gray-600">{percentage}%</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
-            <BarChart className="h-6 w-6 text-green-600" />
+            <Clock className="h-6 w-6 text-green-600" />
             <div>
-              <p className="text-sm text-green-600 font-medium">Percentage</p>
-              <p className="text-xl font-bold">{percentage}%</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">
-            <Clock className="h-6 w-6 text-purple-600" />
-            <div>
-              <p className="text-sm text-purple-600 font-medium">Time Taken</p>
+              <p className="text-sm text-green-600 font-medium">Time Taken</p>
               <p className="text-xl font-bold">{formatTime(timeTaken)}</p>
             </div>
           </div>
         </div>
 
-        <p className="text-muted-foreground mb-4">
-          Review your answers below. Correct answers are highlighted in green, and incorrect answers are highlighted in
-          red.
-        </p>
-
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={onRetake} variant="outline">
+        <div className="flex justify-between mt-6">
+          <Button variant="outline" onClick={onRetake}>
             Retake Test
           </Button>
-          <Button onClick={onFinish}>Finish Review</Button>
+          <Button onClick={onFinish}>Finish</Button>
         </div>
       </div>
     </div>

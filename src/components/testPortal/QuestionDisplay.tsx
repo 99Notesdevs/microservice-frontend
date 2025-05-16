@@ -8,14 +8,14 @@ import { Button } from "../ui/button"
 
 type QuestionDisplayProps = {
   question: Question
-  selectedOption: number | null
-  onOptionSelect: (optionIndex: number) => void
+  selectedOption: number | null | string
+  onOptionSelect: (optionIndex: number | string) => void
   onConfirmAnswer: () => void
   onSaveForLater: () => void
   currentQuestionIndex: number
   questions: Question[]
   isReviewMode?: boolean
-  correctOption?: number
+  correctOption?: number | string | number[] | string[] | null
   status?: QuestionStatus
 }
 
@@ -32,37 +32,58 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   status,
 }) => {
   const [showAnswer, setShowAnswer] = useState(false)
-  const [tempAnswer, setTempAnswer] = useState<number | null>(null)
+  const [tempAnswer, setTempAnswer] = useState<number | null | string>(null)
+  const [inputValue, setInputValue] = useState("")
 
-  // Reset tempAnswer when question changes, but keep selectedOption
+  // Reset tempAnswer and inputValue when question changes
   useEffect(() => {
-    setTempAnswer(null)
-  }, [currentQuestionIndex])
+    setTempAnswer(selectedOption || null)
+    if (question?.options.length === 0) {
+      setInputValue(selectedOption?.toString() || "")
+    } else {
+      setInputValue("")
+    }
+  }, [currentQuestionIndex, selectedOption, question])
 
   if (!question) return null
 
   const getOptionClass = (index: number) => {
     // In review mode, show saved/confirmed answers
     if (isReviewMode) {
-      if (status === "SAVED_FOR_LATER") {
-        if (selectedOption === index) {
-          return "bg-yellow-50 border-yellow-300 text-yellow-800"
-        }
-      } else if (status === "ANSWERED") {
-        if (selectedOption === index) {
-          return "bg-green-50 border-green-300 text-green-800"
+      if (status === "SAVED_FOR_LATER" || status === "ANSWERED") {
+        if (selectedOption && typeof selectedOption === 'string') {
+          const options = selectedOption.split(',');
+          if (options.includes((index + 1).toString())) {
+            return status === "SAVED_FOR_LATER" 
+              ? "bg-yellow-50 border-yellow-300 text-yellow-800"
+              : "bg-green-50 border-green-300 text-green-800";
+          }
+        } else if (selectedOption === index) {
+          return status === "SAVED_FOR_LATER" 
+            ? "bg-yellow-50 border-yellow-300 text-yellow-800"
+            : "bg-green-50 border-green-300 text-green-800";
         }
       }
       return ""
     }
 
     // In normal mode, show tempAnswer highlighting
-    if (tempAnswer === index) {
+    if (tempAnswer && typeof tempAnswer === 'string') {
+      const options = tempAnswer.split(',');
+      if (options.includes((index + 1).toString())) {
+        return "bg-blue-50 border border-blue-200"
+      }
+    } else if (tempAnswer === index) {
       return "bg-blue-50 border border-blue-200"
     }
 
     // Also show selectedOption in normal mode if it exists
-    if (selectedOption !== null && selectedOption === index) {
+    if (selectedOption && typeof selectedOption === 'string') {
+      const options = selectedOption.split(',');
+      if (options.includes((index + 1).toString())) {
+        return "bg-blue-50 border border-blue-200"
+      }
+    } else if (selectedOption !== null && selectedOption === index) {
       return "bg-blue-50 border border-blue-200"
     }
 
@@ -70,8 +91,24 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   }
 
   const handleOptionSelect = (index: number) => {
-    setTempAnswer(index)
-    onOptionSelect(index)
+    if (question.multipleCorrectType) {
+      const currentAnswers = tempAnswer ? tempAnswer.toString().split(',') : [];
+      const newAnswers = currentAnswers.includes((index + 1).toString())
+        ? currentAnswers.filter(a => a !== (index + 1).toString())
+        : [...currentAnswers, (index + 1).toString()];
+      setTempAnswer(newAnswers.join(','));
+      onOptionSelect(newAnswers.join(','));
+    } else {
+      setTempAnswer(index);
+      onOptionSelect(index);
+    }
+  }
+
+  const handleIntegerAnswer = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    setTempAnswer(value);
+    onOptionSelect(value);
   }
 
   return (
@@ -93,33 +130,66 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
             </span>
           )}
         </div>
+        <p>{question.multipleCorrectType ? "Multiple Correct" : "Single Correct"}</p>
         <p className="text-gray-700">{question.question}</p>
       </div>
 
       <div className="space-y-3">
-        {question.options.map((option, index) => (
-          <div
-            key={index}
-            className={cn(
-              "flex items-center space-x-3 p-3 rounded-lg cursor-pointer",
-              getOptionClass(index),
-              // Always show hover effect
-              "hover:bg-gray-50",
-              // Disable clicking in review mode
-              isReviewMode && "cursor-not-allowed"
-            )}
-            onClick={() => !isReviewMode && handleOptionSelect(index)}
-          >
+        {question.options.length === 0 ? (
+          <div className="flex flex-col gap-2">
             <input
-              type="radio"
-              name={`question-${currentQuestionIndex}`}
-              defaultChecked={getOptionClass(index) !== ""}
-              readOnly={isReviewMode}
-              className="hidden"
+              type="number"
+              value={inputValue}
+              onChange={handleIntegerAnswer}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your answer"
             />
-            <div className="flex-1 text-gray-700">{option}</div>
           </div>
-        ))}
+        ) : question.multipleCorrectType ? (
+          question.options.map((option, index) => (
+            <div
+              key={index}
+              className={cn(
+                "flex items-center space-x-3 p-3 rounded-lg cursor-pointer",
+                getOptionClass(index),
+                "hover:bg-gray-50",
+                isReviewMode && "cursor-not-allowed"
+              )}
+              onClick={() => !isReviewMode && handleOptionSelect(index)}
+            >
+              <input
+                type="checkbox"
+                name={`question-${currentQuestionIndex}`}
+                checked={getOptionClass(index) !== ""}
+                readOnly={isReviewMode}
+                className="hidden"
+              />
+              <div className="flex-1 text-gray-700">{option}</div>
+            </div>
+          ))
+        ) : (
+          question.options.map((option, index) => (
+            <div
+              key={index}
+              className={cn(
+                "flex items-center space-x-3 p-3 rounded-lg cursor-pointer",
+                getOptionClass(index),
+                "hover:bg-gray-50",
+                isReviewMode && "cursor-not-allowed"
+              )}
+              onClick={() => !isReviewMode && handleOptionSelect(index)}
+            >
+              <input
+                type="radio"
+                name={`question-${currentQuestionIndex}`}
+                defaultChecked={getOptionClass(index) !== ""}
+                readOnly={isReviewMode}
+                className="hidden"
+              />
+              <div className="flex-1 text-gray-700">{option}</div>
+            </div>
+          ))
+        )}
       </div>
 
       {isReviewMode && (

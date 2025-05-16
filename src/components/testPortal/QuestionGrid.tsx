@@ -10,8 +10,8 @@ type QuestionGridProps = {
   currentIndex: number
   onQuestionSelect: (index: number) => void
   isReviewMode?: boolean
-  correctAnswers?: Record<string, number>
-  selectedAnswers: (number | null)[]
+  correctAnswers?: Record<string, string[]>
+  selectedAnswers: (number | null | number[] | null)[]
 }
 
 const QuestionGrid: React.FC<QuestionGridProps> = ({
@@ -37,10 +37,21 @@ const QuestionGrid: React.FC<QuestionGridProps> = ({
       } else if (status === "ANSWERED") {
         if (selectedAnswer === null) {
           return "bg-gray-300" // Not answered
-        } else if (selectedAnswer === correctAnswer) {
-          return "bg-green-500 text-white" // Correct answer
+        } else if (Array.isArray(selectedAnswer) && Array.isArray(correctAnswer)) {
+          // Multiple answer case
+          const correctCount = selectedAnswer.filter(answer => correctAnswer.includes(answer.toString())).length
+          if (correctCount === correctAnswer.length) {
+            return "bg-green-500 text-white" // All correct
+          } else if (correctCount > 0) {
+            return "bg-yellow-500 text-white" // Partially correct
+          } else {
+            return "bg-red-500 text-white" // All wrong
+          }
         } else {
-          return "bg-red-500 text-white" // Wrong answer
+          // Single answer case
+          return selectedAnswer?.toString() === correctAnswer?.[0] 
+            ? "bg-green-500 text-white"
+            : "bg-red-500 text-white"
         }
       } else if (status === "SAVED_FOR_LATER") {
         return "bg-yellow-500 text-white" // Saved for later
