@@ -1,11 +1,10 @@
-
 import type React from "react"
 
 import { useState, useEffect, useCallback } from "react"
 import io from "socket.io-client"
 import Cookies from "js-cookie"
 import { env } from "../config/env"
-import type { Question, QuestionStatus, TestResults } from "../types/testTypes"
+import type { Question, QuestionStatus, TestResults, QuestionType } from "../types/testTypes"
 
 type UseSocketConnectionProps = {
   userId: string | null
@@ -77,9 +76,25 @@ export function useSocketConnection({
     socket.on("fetch-questions", (data: any) => {
       console.log("Received questions:", data)
       if (data.status === "success") {
-        setQuestions(data.questions)
-        setQuestionStatuses(data.questions.map(() => "NOT_VISITED" as QuestionStatus))
-        setSelectedAnswers(Array(data.questions.length).fill(null))
+        // Set proper type for each question based on its format
+        const typedQuestions = data.questions.map((q: any) => {
+          // Determine question type based on format
+          const type: QuestionType = 
+            q.multipleCorrectType ? 'MULTIPLE' :
+            q.options && q.options.length > 0 ? 'SINGLE' :
+            'INTEGER';
+          
+          return {
+            ...q,
+            type,
+            // Ensure answer is properly typed
+            answer: q.answer ? (typeof q.answer === 'number' ? q.answer.toString() : q.answer) : undefined
+          };
+        });
+        
+        setQuestions(typedQuestions)
+        setQuestionStatuses(typedQuestions.map(() => "NOT_VISITED" as QuestionStatus))
+        setSelectedAnswers(Array(typedQuestions.length).fill(null))
         setLoading(false)
       } else {
         setError(data.message || "Failed to fetch questions")
@@ -91,7 +106,7 @@ export function useSocketConnection({
       console.log("Received test results:", data)
       if (data.status === "success") {
         // Process results for review mode
-        const updatedQuestions = questions.map(q => {
+        const updatedQuestions = questions.map((q: any) => {
             const result = data.result[q.id];
             return {
               ...q,
@@ -222,6 +237,12 @@ export function useSocketConnection({
           status: questionStatuses[index]
         }
       });
+// Add this line before the fetch request
+// console.log("Sending test submission:", {
+//   submissions,
+//   timeTaken,
+//   negativeMarking
+// });
 
       // Send POST request to /questions/submit
       const response = await fetch(`${env.API}/questions/submit`, {
