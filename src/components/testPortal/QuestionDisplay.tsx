@@ -8,8 +8,8 @@ import { Button } from "../ui/button"
 
 type QuestionDisplayProps = {
   question: Question
-  selectedOption: number | null
-  onOptionSelect: (optionIndex: number) => void
+  selectedOption: number | null | string
+  onOptionSelect: (optionIndex: number | string) => void
   onConfirmAnswer: () => void
   onSaveForLater: () => void
   currentQuestionIndex: number
@@ -32,11 +32,13 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   status,
 }) => {
   const [showAnswer, setShowAnswer] = useState(false)
-  const [tempAnswer, setTempAnswer] = useState<number | null>(null)
+  const [tempAnswer, setTempAnswer] = useState<number | null | string>(null)
+  const [inputValue, setInputValue] = useState("")
 
-  // Reset tempAnswer when question changes, but keep selectedOption
+  // Reset tempAnswer and inputValue when question changes
   useEffect(() => {
     setTempAnswer(null)
+    setInputValue("")
   }, [currentQuestionIndex])
 
   if (!question) return null
@@ -97,29 +99,50 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       </div>
 
       <div className="space-y-3">
-        {question.options.map((option, index) => (
-          <div
-            key={index}
-            className={cn(
-              "flex items-center space-x-3 p-3 rounded-lg cursor-pointer",
-              getOptionClass(index),
-              // Always show hover effect
-              "hover:bg-gray-50",
-              // Disable clicking in review mode
-              isReviewMode && "cursor-not-allowed"
-            )}
-            onClick={() => !isReviewMode && handleOptionSelect(index)}
-          >
+        {question.options.length === 0 ? (
+          <div className="flex flex-col gap-2">
             <input
-              type="radio"
-              name={`question-${currentQuestionIndex}`}
-              defaultChecked={getOptionClass(index) !== ""}
-              readOnly={isReviewMode}
-              className="hidden"
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your answer"
             />
-            <div className="flex-1 text-gray-700">{option}</div>
+            <Button
+              onClick={() => {
+                setTempAnswer(inputValue)
+                onOptionSelect(inputValue)
+              }}
+              className="w-full"
+            >
+              Submit Answer
+            </Button>
           </div>
-        ))}
+        ) : (
+          question.options.map((option, index) => (
+            <div
+              key={index}
+              className={cn(
+                "flex items-center space-x-3 p-3 rounded-lg cursor-pointer",
+                getOptionClass(index),
+                // Always show hover effect
+                "hover:bg-gray-50",
+                // Disable clicking in review mode
+                isReviewMode && "cursor-not-allowed"
+              )}
+              onClick={() => !isReviewMode && handleOptionSelect(index)}
+            >
+              <input
+                type="radio"
+                name={`question-${currentQuestionIndex}`}
+                defaultChecked={getOptionClass(index) !== ""}
+                readOnly={isReviewMode}
+                className="hidden"
+              />
+              <div className="flex-1 text-gray-700">{option}</div>
+            </div>
+          ))
+        )}
       </div>
 
       {isReviewMode && (
