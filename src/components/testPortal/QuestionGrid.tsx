@@ -11,7 +11,7 @@ type QuestionGridProps = {
   onQuestionSelect: (index: number) => void
   isReviewMode?: boolean
   correctAnswers?: Record<string, string[]>
-  selectedAnswers: (number | null | number[] | null)[]
+  selectedAnswers: string[]
 }
 
 const QuestionGrid: React.FC<QuestionGridProps> = ({

@@ -6,16 +6,21 @@ import Cookies from "js-cookie"
 import { env } from "../config/env"
 import type { Question, QuestionStatus, TestResults, QuestionType } from "../types/testTypes"
 
+interface TestResult {
+  answer: string | string[];
+  [key: string]: any; // Allow for additional properties
+}
+
 type UseSocketConnectionProps = {
   userId: string | null
   questions: Question[]
-  selectedAnswers: (number | null | number[] | null)[]
+  selectedAnswers: string[]
   questionStatuses: QuestionStatus[]
   startTime: number
   negativeMarking: boolean
   setQuestions: React.Dispatch<React.SetStateAction<Question[]>>
   setQuestionStatuses: React.Dispatch<React.SetStateAction<QuestionStatus[]>>
-  setSelectedAnswers: React.Dispatch<React.SetStateAction<(number | null | number[] | null)[]>>
+  setSelectedAnswers: React.Dispatch<React.SetStateAction<string[]>>
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
   setError: React.Dispatch<React.SetStateAction<string | null>>
   setTestDuration: React.Dispatch<React.SetStateAction<number>>
@@ -118,7 +123,7 @@ export function useSocketConnection({
           setQuestions(updatedQuestions);
 
           const correctAnswers = Object.entries(data.result).reduce<Record<string, string[]>>((acc, [questionId, result]) => {
-            const correctAnswer = (result as { answer: string | string[] }).answer;
+            const correctAnswer = (result as TestResult).answer || "";
             acc[questionId] = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer];
             return acc;
           }, {});
@@ -128,20 +133,15 @@ export function useSocketConnection({
             const isCorrect = result.isCorrect;
             const questionIndex = questions.findIndex((q) => q.id === questionId);
             const selectedAnswer = selectedAnswers[questionIndex];
-            const correctAnswer = (result as { answer: string | string[] }).answer;
+            const correctAnswer = result?.answer || "";
 
             if (isCorrect) {
               return total + 1;
             }
 
             // Handle partial credit for multiple answer questions
-            if (Array.isArray(selectedAnswer) && Array.isArray(correctAnswer)) {
-              const correctCount = selectedAnswer.filter(answer => {
-                if (typeof answer === 'number') {
-                  return correctAnswer.includes(String(answer));
-                }
-                return correctAnswer.includes(answer);
-              }).length;
+            if (selectedAnswer && Array.isArray(selectedAnswer)) {
+              const correctCount = selectedAnswer.filter(answer => correctAnswer.includes(answer)).length;
               const totalCorrect = correctAnswer.length;
               
               // Give partial credit based on number of correct answers selected
@@ -156,9 +156,7 @@ export function useSocketConnection({
             totalQuestions: questions.length,
             negativeMarking,
             timeTaken: Math.floor((Date.now() - startTime) / 1000),
-            answers: selectedAnswers.map((answer) => 
-              Array.isArray(answer) ? (answer as number[]).map(n => n.toString()) : answer?.toString() || null
-            ),
+            answers: selectedAnswers,
             correctAnswers,
           }
 
@@ -237,12 +235,11 @@ export function useSocketConnection({
           status: questionStatuses[index]
         }
       });
-// Add this line before the fetch request
-// console.log("Sending test submission:", {
-//   submissions,
-//   timeTaken,
-//   negativeMarking
-// });
+      console.log("Sending test submission:", {
+        submissions,
+        timeTaken,
+        negativeMarking
+      });
 
       // Send POST request to /questions/submit
       const response = await fetch(`${env.API}/questions/submit`, {

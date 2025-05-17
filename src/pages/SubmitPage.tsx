@@ -9,7 +9,7 @@ interface TestResults {
   score: number
   totalQuestions: number
   timeTaken: number
-  answers: (number | null)[]
+  answers: string[]
   questions: any[]
   statuses: QuestionStatus[]
 }
@@ -178,7 +178,7 @@ const SubmitPage: React.FC = () => {
           <div className="space-y-4 mb-8">
             {results.questions.map((question, index) => {
               const userAnswer = results.answers[index]
-              const isCorrect = userAnswer === Number(question.answer)
+              const isCorrect = userAnswer === question.answer
               const status = results.statuses[index]
 
               return (
@@ -205,10 +205,10 @@ const SubmitPage: React.FC = () => {
                         <div className="ml-4">
                           <div className="text-sm text-gray-600 mb-1">Your answer:</div>
                           <div className={`font-medium ${isCorrect ? "text-green-600" : "text-red-600"}`}>
-                            {userAnswer !== null ? question.options[userAnswer] : "No answer selected"}
+                            {userAnswer ? question.options[Number(userAnswer)] : "No answer selected"}
                           </div>
 
-                          {userAnswer !== Number(question.answer) && userAnswer !== null && (
+                          {userAnswer !== question.answer && userAnswer && (
                             <div className="mt-2">
                               <div className="text-sm text-gray-600 mb-1">Correct answer:</div>
                               <div className="font-medium text-green-600">
