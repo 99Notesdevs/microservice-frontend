@@ -53,7 +53,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       if (status === "SAVED_FOR_LATER" || status === "ANSWERED") {
         if (selectedOption && typeof selectedOption === 'string') {
           const options = selectedOption.split(',');
-          if (options.includes((index + 1).toString())) {
+          if (options.includes((index).toString())) {
             return status === "SAVED_FOR_LATER" 
               ? "bg-yellow-50 border-yellow-300 text-yellow-800"
               : "bg-green-50 border-green-300 text-green-800";
@@ -70,7 +70,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     // In normal mode, show tempAnswer highlighting
     if (tempAnswer && typeof tempAnswer === 'string') {
       const options = tempAnswer.split(',');
-      if (options.includes((index + 1).toString())) {
+      if (options.includes((index).toString())) {
         return "bg-blue-50 border border-blue-200"
       }
     } else if (tempAnswer === index) {
@@ -80,7 +80,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     // Also show selectedOption in normal mode if it exists
     if (selectedOption && typeof selectedOption === 'string') {
       const options = selectedOption.split(',');
-      if (options.includes((index + 1).toString())) {
+      if (options.includes((index).toString())) {
         return "bg-blue-50 border border-blue-200"
       }
     } else if (selectedOption !== null && selectedOption === index) {
@@ -93,9 +93,9 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   const handleOptionSelect = (index: number) => {
     if (question.multipleCorrectType) {
       const currentAnswers = tempAnswer ? tempAnswer.toString().split(',') : [];
-      const newAnswers = currentAnswers.includes((index + 1).toString())
-        ? currentAnswers.filter(a => a !== (index + 1).toString())
-        : [...currentAnswers, (index + 1).toString()];
+      const newAnswers = currentAnswers.includes((index).toString())
+        ? currentAnswers.filter(a => a !== (index).toString())
+        : [...currentAnswers, (index).toString()];
       setTempAnswer(newAnswers.join(','));
       onOptionSelect(newAnswers.join(','));
     } else {

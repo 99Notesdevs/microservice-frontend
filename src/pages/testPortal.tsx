@@ -66,7 +66,6 @@ const TestPortal: React.FC = () => {
 
   const { socket, fetchQuestions, handleSubmitTest } = useSocketConnection({
     userId,
-    navigate,
     questions,
     selectedAnswers,
     questionStatuses,

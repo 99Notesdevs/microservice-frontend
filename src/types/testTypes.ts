@@ -6,7 +6,7 @@ export type Question = {
   id: string
   question: string
   options: string[]
-  answer?: string | number  
+  answer?: string
   multipleCorrectType?: boolean
   explanation?: string
   categoryId?: string
@@ -15,7 +15,7 @@ export type Question = {
 
 export type QuestionResult = {
   id: string
-  answer: string | number  
+  answer: string  
   type: QuestionType  
   isCorrect: boolean
   explanation?: string
@@ -26,6 +26,6 @@ export type TestResults = {
   totalQuestions: number
   negativeMarking: boolean
   timeTaken: number
-  answers: (string | string[] | number | null)[]  
-  correctAnswers: Record<string, string[] | number[]>  
+  answers: string[]  
+  correctAnswers: Record<string, string[]>  
 }

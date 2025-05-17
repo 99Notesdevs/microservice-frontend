@@ -7,13 +7,13 @@ import type { QuestionStatus, Question } from "../types/testTypes"
 type UseTestNavigationProps = {
   questions: Question[]
   questionStatuses: QuestionStatus[]
-  selectedAnswers: (number | null)[]
+  selectedAnswers: string[]
   currentQuestionIndex: number
   isReviewMode: boolean
   setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>
   setQuestionStatuses: React.Dispatch<React.SetStateAction<QuestionStatus[]>>
-  setSelectedAnswers: React.Dispatch<React.SetStateAction<(number | null)[]>>
-  onOptionSelect?: (optionIndex: number) => void
+  setSelectedAnswers: React.Dispatch<React.SetStateAction<string[]>>
+  onOptionSelect?: (optionIndex: string | number) => void
 }
 
 export function useTestNavigation({
@@ -28,7 +28,7 @@ export function useTestNavigation({
   onOptionSelect,
 }: UseTestNavigationProps) {
   const [testStarted, setTestStarted] = useState<boolean>(true)
-  const [tempAnswer, setTempAnswer] = useState<number | null>(null)
+  const [tempAnswer, setTempAnswer] = useState<string | number | null>(null)
 
   // Load saved states from localStorage
   useEffect(() => {
@@ -67,7 +67,7 @@ export function useTestNavigation({
   )
 
   const handleOptionSelect = useCallback(
-    (optionIndex: number) => {
+    (optionIndex: string | number) => {
       if (isReviewMode) return
       
       // Allow changing options even if question is answered
@@ -82,7 +82,7 @@ export function useTestNavigation({
 
     // Update selected answers
     const newAnswers = [...selectedAnswers]
-    newAnswers[currentQuestionIndex] = tempAnswer
+    newAnswers[currentQuestionIndex] = tempAnswer.toString()
     setSelectedAnswers(newAnswers)
 
     // Update status to ANSWERED
@@ -107,7 +107,7 @@ export function useTestNavigation({
       if (selectedAnswers[currentQuestionIndex] !== null) {
         setSelectedAnswers(prevAnswers => {
           const newAnswers = [...prevAnswers]
-          newAnswers[currentQuestionIndex] = null
+          newAnswers[currentQuestionIndex] = ''
           localStorage.setItem('selectedAnswers', JSON.stringify(newAnswers))
           return newAnswers
         })
