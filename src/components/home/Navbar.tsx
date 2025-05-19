@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  // const { isAuthenticated } = useAuth();
 
   const links = [
     { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },

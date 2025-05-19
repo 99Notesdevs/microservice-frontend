@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -34,7 +32,6 @@ const fetchTestSeriesData = async (testSeriesId: string) => {
       return {
         id: Number.parseInt(testSeriesId),
         name: data.data.name || `Test Series ${testSeriesId}`,
-        duration: data.data.duration || 30 * 60, // Default to 30 minutes if not provided
         questions: data.data.questions.map((q: any) => ({
           id: q.id,
           question: q.question,
@@ -47,7 +44,7 @@ const fetchTestSeriesData = async (testSeriesId: string) => {
           creatorName: q.creatorName,
         })),
       }
-    }
+    }   
 
     throw new Error("Invalid test series data format")
   } catch (error) {
@@ -80,6 +77,8 @@ const submitTestSeriesResults = async (testSeriesId: string, result: any) => {
   }
 }
 
+const TEST_DURATION = 30 * 60 // 30 minutes in seconds
+
 const TestSeriesPage: React.FC = () => {
   const navigate = useNavigate()
   const { testSeriesId } = useParams<{ testSeriesId: string }>()
@@ -99,7 +98,7 @@ const TestSeriesPage: React.FC = () => {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [remainingTime, setRemainingTime] = useState(0) // Will be set from test data
+  const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
 
@@ -117,11 +116,9 @@ const TestSeriesPage: React.FC = () => {
         setTestData({
           id: data.id,
           name: data.name,
-          duration: data.duration, // Store duration in test data
           questions: data.questions,
           type: "testSeries",
         })
-        setRemainingTime(data.duration) // Set initial remaining time
         setLoading(false)
       } catch (err) {
         setError("Failed to load test series data")

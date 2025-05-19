@@ -1,12 +1,22 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import {env} from "../config/env"
+import { env } from "../config/env"
+
+interface TestSeries {
+  id: number
+  name: string
+  description: string
+  totalQuestions: number
+  timeLimit: number
+  createdAt: string
+}
 
 const TestSelector: React.FC = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState<boolean>(false)
-  const [testSeries, setTestSeries] = useState<any[]>([])
+  const [testSeries, setTestSeries] = useState<TestSeries[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchTestSeries = async () => {
@@ -22,9 +32,6 @@ const TestSelector: React.FC = () => {
             description: series.name, // Using name as description since API doesn't provide description
             totalQuestions: series.questions.length,
             timeLimit: Math.ceil(series.timeTaken / 60), // Convert seconds to minutes
-            correctAttempted: series.correctAttempted,
-            wrongAttempted: series.wrongAttempted,
-            partialAttempted: series.partialAttempted,
             createdAt: series.createdAt
           })))
         } else {
@@ -32,6 +39,7 @@ const TestSelector: React.FC = () => {
         }
       } catch (err) {
         console.error("Error fetching test series:", err)
+        setError("Failed to load test series")
       } finally {
         setLoading(false)
       }
@@ -57,6 +65,14 @@ const TestSelector: React.FC = () => {
       )
     }
 
+    if (error) {
+      return (
+        <div className="text-center text-red-500 py-4">
+          {error}
+        </div>
+      )
+    }
+
     if (testSeries.length === 0) {
       return (
         <div className="text-center text-gray-500 py-4">
@@ -68,7 +84,7 @@ const TestSelector: React.FC = () => {
     return testSeries.map((series) => (
       <div
         key={series.id}
-        className="border rounded-lg p-4 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors mb-4"
+        className="border rounded-lg p-4 hover:bg-green-50 hover:border-green-300 cursor-pointer transition-colors mb-4"
         onClick={() => navigate(`/test-series/${series.id}`)}
       >
         <h3 className="font-medium text-lg">{series.name}</h3>

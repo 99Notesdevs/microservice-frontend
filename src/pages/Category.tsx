@@ -1,7 +1,9 @@
+// pages/Category.tsx
 import { useState } from 'react';
 import { Button } from '../components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { CategorySelection } from '../components/home/CategorySelection';
+// import type { CategoryType } from '../components/home/CategorySelection';
 
 interface TestStats {
   correctAttempted: number;
@@ -29,26 +31,26 @@ export const Category = () => {
     questionsMultiple: 0
   });
 
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+
   const handleChange = (field: keyof TestStats, value: number) => {
-    const minValue = 0;
-    const maxValue = field === 'timeTaken' ? 3600 : 1000; // Maximum 1 hour for time, 1000 for other fields
-    const clampedValue = Math.max(minValue, Math.min(maxValue, value));
-    
-    setTestStats(prev => ({
-      ...prev,
-      [field]: clampedValue
-    }));
+    const clamped = Math.max(0, Math.min(field === 'timeTaken' ? 3600 : 1000, value));
+    setTestStats(prev => ({ ...prev, [field]: clamped }));
   };
 
   const handleStartTest = () => {
-    // Navigate to test page with test stats as parameters
+    if (selectedCategoryIds.length === 0) {
+      alert('Please select at least one category!');
+      return;
+    }
+  
     const params = new URLSearchParams();
+    params.append('categoryIds', selectedCategoryIds.join(',')); // Changed to single parameter
     Object.entries(testStats).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        params.append(key, value.toString());
-      }
+      if (value != null) params.append(key, value.toString());
     });
-    navigate(`/test?${params.toString()}`);
+  
+    navigate(`/socket-test?${params.toString()}`);
   };
 
   return (
@@ -62,152 +64,46 @@ export const Category = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Marks Section */}
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-emerald-900">Marks Configuration</h2>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Marks for Correct Answer
+              {/* Input fields */}
+              {(['correctAttempted', 'wrongAttempted', 'notAttempted', 'partialAttempted', 'partialNotAttempted', 'partialWrongAttempted'] as (keyof TestStats)[]).map(field => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1 capitalize">
+                    {field.replace(/([A-Z])/g, ' $1')}
                   </label>
                   <input
                     type="number"
-                    value={testStats.correctAttempted}
-                    onChange={(e) => handleChange('correctAttempted', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
+                    value={testStats[field] ?? ''}
+                    onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Marks for Wrong Answer
-                  </label>
-                  <input
-                    type="number"
-                    value={testStats.wrongAttempted}
-                    onChange={(e) => handleChange('wrongAttempted', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Marks for Not Attempted
-                  </label>
-                  <input
-                    type="number"
-                    value={testStats.notAttempted}
-                    onChange={(e) => handleChange('notAttempted', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Marks for Partial Answer
-                  </label>
-                  <input
-                    type="number"
-                    value={testStats.partialAttempted || ''}
-                    onChange={(e) => handleChange('partialAttempted', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Marks for Partial Not Attempted
-                  </label>
-                  <input
-                    type="number"
-                    value={testStats.partialNotAttempted || ''}
-                    onChange={(e) => handleChange('partialNotAttempted', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Marks for Partial Wrong Answer
-                  </label>
-                  <input
-                    type="number"
-                    value={testStats.partialWrongAttempted || ''}
-                    onChange={(e) => handleChange('partialWrongAttempted', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Question Types */}
-            <div className="col-span-2 space-y-4">
-              <h2 className="text-xl font-semibold text-emerald-900">Question Types</h2>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Single Choice Questions
-                  </label>
-                  <input
-                    type="number"
-                    value={testStats.questionsSingle}
-                    onChange={(e) => handleChange('questionsSingle', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1">
-                    Multiple Choice Questions
-                  </label>
-                  <input
-                    type="number"
-                    value={testStats.questionsMultiple || ''}
-                    onChange={(e) => handleChange('questionsMultiple', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    min="0"
-                    max="1000"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Time Taken */}
-            <div className="col-span-2 space-y-4">
-              <h2 className="text-xl font-semibold text-emerald-900">Time Management</h2>
+              ))}
+              {/* Time Taken */}
               <div>
-                <label className="block text-sm font-medium text-emerald-700 mb-1">
-                  Time Limit (in seconds)
-                </label>
+                <label className="block text-sm font-medium text-emerald-700 mb-1">Time (seconds)</label>
                 <input
                   type="number"
                   value={testStats.timeTaken}
                   onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  min="0"
-                  max="3600"
+                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 />
-                <p className="text-sm text-emerald-500 mt-1">
-                  Maximum time limit: 1 hour (3600 seconds)
-                </p>
               </div>
+            </div>
+
+            {/* Category Selector */}
+            <div>
+              <h2 className="text-xl font-semibold text-emerald-900 mb-2">Select Categories</h2>
+              <CategorySelection onSelectionChange={setSelectedCategoryIds} />
             </div>
           </div>
 
           <div className="mt-8 text-center">
             <Button
-              size="lg"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8"
               onClick={handleStartTest}
+              className="px-8 py-4 text-lg font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+              disabled={selectedCategoryIds.length === 0}
             >
-              Start Test
-              <ArrowRight className="ml-2 w-4 h-4" />
+              🚀 Start Test
             </Button>
           </div>
         </div>

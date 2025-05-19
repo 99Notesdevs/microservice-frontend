@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useCallback, useRef } from "react"
+import { useEffect, useCallback } from "react"
 import Cookies from "js-cookie"
 import type { QuestionStatus } from "../types/testTypes"
 import { useSocket } from "../contexts/SocketContext"
 import { env } from "../config/env"
+
 interface UseSocketConnectionProps {
   userId: string | null | undefined
   questions: any[]
@@ -25,7 +26,7 @@ interface UseSocketConnectionProps {
 }
 
 export const useSocketConnection = ({
-  userId,
+//   userId,
   questions,
   selectedAnswers,
   questionStatuses,
@@ -46,8 +47,8 @@ export const useSocketConnection = ({
   const apiUrl = env.API || "http://localhost:5000/api"
 
   // Use refs to track if event listeners are already set up
-  const fetchQuestionsListenerSet = useRef(false)
-  const submitQuestionsListenerSet = useRef(false)
+//   const fetchQuestionsListenerSet = useRef(false)
+//   const submitQuestionsListenerSet = useRef(false)
 
   // Replace the entire useEffect hook that sets up event listeners with this more stable version
   // This will prevent the constant reconnections and event listener setup/teardown
@@ -66,7 +67,7 @@ export const useSocketConnection = ({
         const typedQuestions = data.questions.map((q: any) => {
           // Determine question type based on format
           const type = q.multipleCorrectType ? "MULTIPLE" : q.options && q.options.length > 0 ? "SINGLE" : "INTEGER"
-          
+
           return {
             ...q,
             type,

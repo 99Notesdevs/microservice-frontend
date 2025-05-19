@@ -8,10 +8,10 @@ interface PrivateRouteProps {
   element: React.ReactNode
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = async ({ element }) => {
-  const { checkAuth, loading } = useAuth()
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ element }) => {
+  const { isAuthenticated, isLoading } = useAuth()
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-xl">Loading...</div>
@@ -19,7 +19,6 @@ const PrivateRoute: React.FC<PrivateRouteProps> = async ({ element }) => {
     )
   }
 
-  const isAuthenticated = await checkAuth()
   return isAuthenticated ? <>{element}</> : <Navigate to="/login" replace />
 }
 

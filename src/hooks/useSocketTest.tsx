@@ -42,7 +42,7 @@ export function useSocketTest() {
 
   // Initialize socket connection
   const {
-    socket,
+    // socket,
     fetchQuestions,
     handleSubmitTest: socketSubmitTest,
   } = useSocketConnection({
@@ -81,7 +81,7 @@ export function useSocketTest() {
         name: testData?.name || "Socket Test",
         correctAttempted: 0, // Calculate from results
         wrongAttempted: 0,
-        notAttempted: results.totalQuestions - results.answers.filter((a) => a !== null).length,
+        notAttempted: results.totalQuestions - results.answers.filter((a: string | null) => a !== null).length,
         timeTaken: results.timeTaken,
         questionsSingle: socketQuestions.filter((q) => !q.multipleCorrectType).length,
         questionsMultiple: socketQuestions.filter((q) => q.multipleCorrectType).length,
@@ -146,7 +146,7 @@ export function useSocketTest() {
       }
 
       console.log("HTTP request successful, now fetching questions via socket")
-      console.log("socket", socket)
+
       // Then fetch questions via socket
       setTestStarted(true)
       fetchQuestions()

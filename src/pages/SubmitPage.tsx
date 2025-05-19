@@ -9,7 +9,7 @@ import { CheckCircle, XCircle, AlertCircle, Clock, FileText, Home, RotateCcw, Ey
 const SubmitPage: React.FC = () => {
   const navigate = useNavigate()
   const { testData, testResult, setIsReviewMode } = useTestContext()
-  console.log("testResult on submit page", testResult)
+
   useEffect(() => {
     // Redirect to home if no test result is available
     if (!testResult) {

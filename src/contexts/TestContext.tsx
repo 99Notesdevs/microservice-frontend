@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import {
   type TestData,
   type TestResult,
@@ -57,14 +57,11 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
   const [testData, setTestData] = useState<TestData | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
   const [questionStatuses, setQuestionStatuses] = useState<QuestionStatus[]>([])
-  const [selectedAnswers, setSelectedAnswers] = useState<UserAnswer[]>(
-    () => Array(testData?.questions.length || 0).fill({ selectedOptions: [] })
-  )
+  const [selectedAnswers, setSelectedAnswers] = useState<UserAnswer[]>([])
   const [startTime] = useState<number>(Date.now())
   const [isReviewMode, setIsReviewMode] = useState<boolean>(false)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [negativeMarking, setNegativeMarking] = useState<boolean>(false)
-  const [duration, setDuration] = useState<number>(0)
 
   // Initialize question statuses and selected answers when test data changes
   useEffect(() => {
@@ -280,14 +277,34 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     })
   }
 
-  const setSelectedAnswersFromSocket = useCallback((answers: (string | null)[]) => {
-    setSelectedAnswers((prevAnswers) =>
-      answers.map((answer, index) => ({
-        ...prevAnswers[index],
-        selectedOptions: answer ? answer.split(',').map(Number) : []
-      }))
-    )
-  }, [testData?.questions.length])
+  const setSelectedAnswersFromSocket = (answers: (string | null)[]) => {
+    if (!testData || !answers) return
+
+    const formattedAnswers = testData.questions.map((question, index) => {
+      const socketAnswer = answers[index]
+      let selectedOptions: number[] = []
+
+      if (socketAnswer !== null) {
+        // Handle both single and multiple answers
+        if (socketAnswer.includes(",")) {
+          selectedOptions = socketAnswer.split(",").map(Number)
+        } else {
+          const option = Number(socketAnswer)
+          if (!isNaN(option)) {
+            selectedOptions = [option]
+          }
+        }
+      }
+
+      return {
+        questionId: question.id,
+        selectedOptions,
+        isCorrect: false, // Will be calculated later
+      }
+    })
+
+    setSelectedAnswers(formattedAnswers)
+  }
 
   const value = {
     testData,
@@ -298,7 +315,6 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     isReviewMode,
     testResult,
     negativeMarking,
-    duration,
 
     setTestData,
     setCurrentQuestionIndex,
@@ -310,7 +326,6 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     setIsReviewMode,
     setTestResult,
     setNegativeMarking,
-    setDuration,
 
     // Socket integration
     setQuestions,

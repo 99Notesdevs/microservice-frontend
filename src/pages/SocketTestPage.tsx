@@ -1,9 +1,7 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { useTestContext } from "../contexts/TestContext"    
+import { useTestContext } from "../contexts/TestContext"
 import { useSocketTest } from "../hooks/useSocketTest"
 import QuestionGrid from "../components/testPortal/QuestionGrid"
 import QuestionDisplay from "../components/testPortal/QuestionDisplay"
@@ -30,7 +28,7 @@ const SocketTestPage: React.FC = () => {
   const [remainingTime, setRemainingTime] = useState(testDuration)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     // Start socket test when component mounts
@@ -136,7 +134,7 @@ const SocketTestPage: React.FC = () => {
       }, 1000)
     } catch (error) {
       console.error("Error submitting test:", error)
-      setError("Failed to submit test. Please try again.")
+      // setError("Failed to submit test. Please try again.")
     }
   }
 
