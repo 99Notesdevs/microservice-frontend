@@ -10,6 +10,7 @@ const links = [
   { name: "Givetest", icon: <Star size={18} />, path: "/category" },
   { name: "My Tests", icon: <Pencil size={18} />, path: "/givetest" },
   { name: "My Purchase", icon: <ShoppingBag size={18} />, path: "/purchases" },
+  { name: "Test Selection", icon: <Pencil size={18} />, path: "/test-selection" },
 ];
 
 export default function Sidebar() {

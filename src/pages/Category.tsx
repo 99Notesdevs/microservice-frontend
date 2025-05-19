@@ -89,7 +89,7 @@ export const Category = () => {
                 timeLimit: testSettings.timeLimit.toString(),
                 negativeMarking: testSettings.negativeMarking.toString()
               });
-              window.location.href = `/testPortal?${params.toString()}`;
+              window.location.href = `/socket-test?${params.toString()}`;
             }} 
           />
         </div>

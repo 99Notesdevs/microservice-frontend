@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import TestPortal from './pages/testPortal';
+import TestPortal from './pages/TestPortal';
 import SubmitPage from './pages/SubmitPage';
 import { Category } from './pages/Category';
 import { HomeLayout } from './components/home/layout';
@@ -8,6 +8,13 @@ import Givetest from './pages/Givetest';
 import LogIn from './pages/logIn';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { TestProvider } from "./contexts/TestContext"
+import { SocketProvider } from "./contexts/SocketContext"
+import TestSelector from "./pages/TestSelector"
+import SocketTestPage from "./pages/SocketTestPage"
+import TestSeriesPage from "./pages/TestSeriesPage"
+import ReviewPage from "./pages/ReviewPage"
+import Login from "./pages/logIn"
 
 // Layout wrapper component
 const LayoutWithSidebar = () => (
@@ -20,11 +27,13 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          {/* Routes with Layout */}
-          <Route element={<LayoutWithSidebar />}>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route element={<ProtectedRoute requirePaid={true} />}>
+        <SocketProvider>
+          <TestProvider>
+            <Routes>
+              {/* Routes with Layout */}
+              <Route element={<LayoutWithSidebar />}>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route element={<ProtectedRoute requirePaid={true} />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/submit" element={<SubmitPage />} />
               <Route path="/about" element={
@@ -35,15 +44,23 @@ function App() {
               } />
               <Route path="/category" element={<Category />} />
               <Route path="/givetest" element={<Givetest />} />
+              <Route path="/test-selection" element={<TestSelector />} />
             </Route>
             <Route path="/login" element={<LogIn />} />
           </Route>
           
           {/* Test Portal route without Layout */}
           <Route element={<ProtectedRoute requirePaid={true} />}>
-            <Route path="/testPortal" element={<TestPortal />} />
+              <Route path="/test" element={<TestPortal />} />
+              <Route path="/socket-test" element={<SocketTestPage />} />
+              <Route path="/test-series/:testSeriesId" element={<TestSeriesPage />} />
+              <Route path="/review/:testId" element={<ReviewPage />} />
+              <Route path="/submit" element={<SubmitPage />} />
+              <Route path="/testPortal" element={<TestPortal />} />
           </Route>
         </Routes>
+      </TestProvider>
+    </SocketProvider>
       </AuthProvider>
     </Router>
   );

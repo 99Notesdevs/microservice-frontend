@@ -1,31 +1,75 @@
-export type QuestionStatus = "NOT_VISITED" | "VISITED" | "SAVED_FOR_LATER" | "ANSWERED"
-
-export type QuestionType = 'SINGLE' | 'MULTIPLE' | 'INTEGER';
-
-export type Question = {
-  id: string
+export interface Question {
+  id: number
   question: string
   options: string[]
-  answer?: string
-  multipleCorrectType?: boolean
-  explanation?: string
-  categoryId?: string
-  type: QuestionType  
+  answer: string // Can be a single value or comma-separated for multiple correct answers
+  explaination?: string
+  explanation?: string // Support both spellings
+  creatorName?: string
+  pyq?: boolean
+  multipleCorrectType: boolean
+  year?: number
+  acceptance?: number
+  rating?: number
+  categoryId?: number
+  type?: "SINGLE" | "MULTIPLE" | "INTEGER" // For socket integration
 }
 
-export type QuestionResult = {
-  id: string
-  answer: string  
-  type: QuestionType  
+export interface TestData {
+  id?: number
+  name: string
+  questions: Question[]
+  type: "testSeries" | "test" | "review"
+}
+
+export interface TestResult {
+  id?: number
+  name: string
+  correctAttempted: number
+  wrongAttempted: number
+  notAttempted: number
+  partialAttempted?: number
+  partialNotAttempted?: number
+  partialWrongAttempted?: number
+  timeTaken: number
+  questionsSingle: number
+  questionsMultiple?: number
+  answers: UserAnswer[]
+  negativeMarking?: boolean
+}
+
+export interface UserAnswer {
+  questionId: number
+  selectedOptions: number[] // Array of selected option indices
   isCorrect: boolean
-  explanation?: string
+  isPartiallyCorrect?: boolean
 }
 
-export type TestResults = {
+export const QuestionStatus = {
+  NOT_VISITED: "NOT_VISITED",
+  VISITED: "VISITED",
+  ANSWERED: "ANSWERED",
+  SAVED_FOR_LATER: "SAVED_FOR_LATER"
+} as const
+
+export type QuestionStatus = (typeof QuestionStatus)[keyof typeof QuestionStatus]
+
+export type SubmitFunction = (result: TestResult) => Promise<void> | void
+
+// Socket integration types
+export interface TestResults {
   score: number
   totalQuestions: number
-  negativeMarking: boolean
   timeTaken: number
-  answers: string[]  
-  correctAnswers: Record<string, string[]>  
+  answers: (string | null)[]
+  correctAnswers: Record<string, string[]>
+  negativeMarking: boolean
+}
+
+export interface TestConfig {
+  fetchFunction: () => Promise<any>;
+  submitFunction: (result: any) => Promise<void>;
+  testDuration: number;
+  testName: string;
+  initialData?: any;
 }

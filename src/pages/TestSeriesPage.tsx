@@ -1,33 +1,88 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useCallback } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import { useTestContext } from "../contexts/TestContext"
 import QuestionGrid from "../components/testPortal/QuestionGrid"
 import QuestionDisplay from "../components/testPortal/QuestionDisplay"
 import NavigationButtons from "../components/testPortal/NavigationButtons"
-import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import FullScreenHeader from "../components/testPortal/FullScreenHeader"
-import type { SubmitFunction } from "../types/testTypes"
+import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import { AlertTriangle } from "lucide-react"
+import Cookies from "js-cookie"
+import {env} from "../config/env"
+// API function to fetch test series data
+const fetchTestSeriesData = async (testSeriesId: string) => {
+  try {
+    const apiUrl = env.API || "http://localhost:5000/api"
+    const response = await fetch(`${apiUrl}/testSeries/${testSeriesId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${Cookies.get("token")}`,
+      },
+    })
 
-// Example submit functions (to be replaced with actual implementations)
-const submitTestSeries: SubmitFunction = async (result) => {
-  console.log("Submitting test series result:", result)
-  // Implementation for submitting test series results
-  // e.g., API call to save results
+    if (!response.ok) {
+      throw new Error("Failed to fetch test series data")
+    }
+
+    const data = await response.json()
+
+    // Extract questions from the response
+    if (data && data.data && data.data.questions) {
+      return {
+        id: Number.parseInt(testSeriesId),
+        name: data.data.name || `Test Series ${testSeriesId}`,
+        duration: data.data.duration || 30 * 60, // Default to 30 minutes if not provided
+        questions: data.data.questions.map((q: any) => ({
+          id: q.id,
+          question: q.question,
+          options: q.options || [],
+          answer: q.answer || "",
+          explaination: q.explanation || q.explaination || "",
+          multipleCorrectType: q.multipleCorrectType || false,
+          pyq: q.pyq || false,
+          year: q.year,
+          creatorName: q.creatorName,
+        })),
+      }
+    }
+
+    throw new Error("Invalid test series data format")
+  } catch (error) {
+    console.error("Error fetching test series:", error)
+    throw error
+  }
 }
 
-const submitTest: SubmitFunction = async (result) => {
-  console.log("Submitting test result:", result)
-  // Implementation for submitting individual test results
+// API function to submit test series results
+const submitTestSeriesResults = async (testSeriesId: string, result: any) => {
+  try {
+    const apiUrl = env.API || "http://localhost:5000/api"
+    const response = await fetch(`${apiUrl}/testSeries/${testSeriesId}/submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Cookies.get("token")}`,
+      },
+      body: JSON.stringify(result),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to submit test series results")
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error("Error submitting test series results:", error)
+    throw error
+  }
 }
 
-const TEST_DURATION = 30 * 60 // 30 minutes in seconds
-
-const TestPortal: React.FC = () => {
+const TestSeriesPage: React.FC = () => {
   const navigate = useNavigate()
+  const { testSeriesId } = useParams<{ testSeriesId: string }>()
   const {
     testData,
     currentQuestionIndex,
@@ -39,22 +94,47 @@ const TestPortal: React.FC = () => {
     handleConfirmAnswer,
     handleSaveForLater,
     handleSubmitTest,
+    setTestData,
   } = useTestContext()
 
-  const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [remainingTime, setRemainingTime] = useState(0) // Will be set from test data
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
 
+  // Fetch test series data
   useEffect(() => {
-    // Redirect to home if no test data is available
-    if (!testData) {
-      navigate("/")
+    const loadTestSeriesData = async () => {
+      if (!testSeriesId) {
+        setError("No test series ID provided")
+        setLoading(false)
+        return
+      }
+
+      try {
+        const data = await fetchTestSeriesData(testSeriesId)
+        setTestData({
+          id: data.id,
+          name: data.name,
+          duration: data.duration, // Store duration in test data
+          questions: data.questions,
+          type: "testSeries",
+        })
+        setRemainingTime(data.duration) // Set initial remaining time
+        setLoading(false)
+      } catch (err) {
+        setError("Failed to load test series data")
+        setLoading(false)
+      }
     }
-  }, [testData, navigate])
+
+    loadTestSeriesData()
+  }, [testSeriesId, setTestData])
 
   // Timer effect
   useEffect(() => {
-    if (isReviewMode) return
+    if (isReviewMode || loading) return
 
     const timer = setInterval(() => {
       setRemainingTime((prev) => {
@@ -68,7 +148,7 @@ const TestPortal: React.FC = () => {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [isReviewMode])
+  }, [isReviewMode, loading])
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -94,24 +174,51 @@ const TestPortal: React.FC = () => {
     }
   }, [])
 
-  const handleSubmit = useCallback(() => {
-    // Choose the appropriate submit function based on test type
-    let submitFn: SubmitFunction | undefined
+  const handleSubmit = async () => {
+    if (!testSeriesId) return
 
-    if (testData?.type === "testSeries") {
-      submitFn = submitTestSeries
-    } else if (testData?.type === "test") {
-      submitFn = submitTest
+    // Custom submit function for test series
+    const submitFn = async (result: any) => {
+      try {
+        await submitTestSeriesResults(testSeriesId, result)
+      } catch (err) {
+        console.error("Failed to submit test series results:", err)
+      }
     }
 
     handleSubmitTest(submitFn)
     navigate("/submit")
-  }, [testData, handleSubmitTest, navigate])
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-xl">Loading test series data...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="max-w-md p-6 bg-white rounded-lg shadow-lg">
+          <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-700">{error}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            onClick={() => navigate("/")}
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (!testData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-xl">Loading test data...</div>
+        <div className="text-xl">No test data available</div>
       </div>
     )
   }
@@ -257,4 +364,4 @@ const TestPortal: React.FC = () => {
   )
 }
 
-export default TestPortal
+export default TestSeriesPage
