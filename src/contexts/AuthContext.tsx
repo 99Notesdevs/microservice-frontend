@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,7 +38,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers:{'Authorization': `Bearer ${Cookies.get('token')}`}
       });
       if (response.ok) {
-        setIsAuthenticated(true);
         return true;
       }
       return false;
@@ -56,7 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers:{'Authorization': `Bearer ${Cookies.get('token')}`}
       });
       if (response.ok) {
-        setIsAuthenticated(true);
         return true;
       }
       return false;
@@ -140,7 +137,7 @@ const validateResponse = await fetch(`${env.API_MAIN}/user/validate`, {
   };
 
   return (
-    <AuthContext.Provider value={{ user,userId,isAuthenticated, login, logout, loading, checkAuth, checkPaid }}>
+    <AuthContext.Provider value={{ user,userId,isAuthenticated:!!userId, login, logout, loading, checkAuth, checkPaid }}>
       {children}
     </AuthContext.Provider>
   );

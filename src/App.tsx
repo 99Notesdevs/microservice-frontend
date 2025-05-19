@@ -14,8 +14,8 @@ import TestSelector from "./pages/TestSelector"
 import SocketTestPage from "./pages/SocketTestPage"
 import TestSeriesPage from "./pages/TestSeriesPage"
 import ReviewPage from "./pages/ReviewPage"
-import Login from "./pages/logIn"
-
+import TestSelection from "./pages/testSelection"
+import About from "./pages/about"
 // Layout wrapper component
 const LayoutWithSidebar = () => (
   <HomeLayout>
@@ -36,15 +36,11 @@ function App() {
                 <Route element={<ProtectedRoute requirePaid={true} />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/submit" element={<SubmitPage />} />
-              <Route path="/about" element={
-                <div className="p-6">
-                  <h1 className="text-2xl font-bold">About Us</h1>
-                  <p>Welcome to our test portal platform! We provide comprehensive test preparation resources and tools to help you succeed.</p>
-                </div>
-              } />
-              <Route path="/category" element={<Category />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/tests" element={<TestSelection />} />
+              <Route path="/create-test" element={<Category />} />
               <Route path="/givetest" element={<Givetest />} />
-              <Route path="/test-selection" element={<TestSelector />} />
+              <Route path="/packages" element={<TestSelector />} />
             </Route>
             <Route path="/login" element={<LogIn />} />
           </Route>

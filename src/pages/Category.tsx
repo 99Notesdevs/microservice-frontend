@@ -1,97 +1,215 @@
 import { useState } from 'react';
-import { CategorySelection } from '../components/home/CategorySelection';
+import { Button } from '../components/ui/button';
+import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface TestSettings {
-  timeLimit: number;
-  questionCount: number;
-  negativeMarking: boolean;
+interface TestStats {
+  correctAttempted: number;
+  wrongAttempted: number;
+  notAttempted: number;
+  partialAttempted?: number;
+  partialNotAttempted?: number;
+  partialWrongAttempted?: number;
+  timeTaken: number;
+  questionsSingle: number;
+  questionsMultiple?: number;
 }
 
 export const Category = () => {
-  const [testSettings, setTestSettings] = useState<TestSettings>({
-    timeLimit: 30, // minutes
-    questionCount: 10,
-    negativeMarking: false
+  const navigate = useNavigate();
+  const [testStats, setTestStats] = useState<TestStats>({
+    correctAttempted: 0,
+    wrongAttempted: 0,
+    notAttempted: 0,
+    partialAttempted: 0,
+    partialNotAttempted: 0,
+    partialWrongAttempted: 0,
+    timeTaken: 0,
+    questionsSingle: 0,
+    questionsMultiple: 0
   });
 
-  const handleSettingsChange = (field: keyof TestSettings, value: number | boolean) => {
-    setTestSettings(prev => ({
+  const handleChange = (field: keyof TestStats, value: number) => {
+    const minValue = 0;
+    const maxValue = field === 'timeTaken' ? 3600 : 1000; // Maximum 1 hour for time, 1000 for other fields
+    const clampedValue = Math.max(minValue, Math.min(maxValue, value));
+    
+    setTestStats(prev => ({
       ...prev,
-      [field]: value
+      [field]: clampedValue
     }));
   };
 
+  const handleStartTest = () => {
+    // Navigate to test page with test stats as parameters
+    const params = new URLSearchParams();
+    Object.entries(testStats).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+    navigate(`/test?${params.toString()}`);
+  };
+
   return (
-    <div className="space-y-8 max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold text-center text-gray-800">Test Configuration</h1>
-      
-      <div className="bg-white rounded-xl shadow-sm p-6 space-y-8">
-        <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Test Settings</h2>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-lg shadow-sm p-8">
+          <h1 className="text-3xl font-bold text-center text-emerald-900 mb-8">
+            Test Configuration
+          </h1>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time Limit (minutes)
-              </label>
-              <select
-                value={testSettings.timeLimit}
-                onChange={(e) => handleSettingsChange('timeLimit', parseInt(e.target.value))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value={10}>10 minutes</option>
-                <option value={20}>20 minutes</option>
-                <option value={30}>30 minutes</option>
-                <option value={45}>45 minutes</option>
-                <option value={60}>60 minutes</option>
-                <option value={90}>90 minutes</option>
-                <option value={120}>120 minutes</option>
-              </select>
+            {/* Marks Section */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-emerald-900">Marks Configuration</h2>
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Marks for Correct Answer
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.correctAttempted}
+                    onChange={(e) => handleChange('correctAttempted', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Marks for Wrong Answer
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.wrongAttempted}
+                    onChange={(e) => handleChange('wrongAttempted', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Marks for Not Attempted
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.notAttempted}
+                    onChange={(e) => handleChange('notAttempted', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Marks for Partial Answer
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.partialAttempted || ''}
+                    onChange={(e) => handleChange('partialAttempted', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Marks for Partial Not Attempted
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.partialNotAttempted || ''}
+                    onChange={(e) => handleChange('partialNotAttempted', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Marks for Partial Wrong Answer
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.partialWrongAttempted || ''}
+                    onChange={(e) => handleChange('partialWrongAttempted', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Number of Questions
-              </label>
-              <select
-                value={testSettings.questionCount}
-                onChange={(e) => handleSettingsChange('questionCount', parseInt(e.target.value))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value={5}>5 questions</option>
-                <option value={10}>10 questions</option>
-                <option value={20}>20 questions</option>
-                <option value={30}>30 questions</option>
-                <option value={50}>50 questions</option>
-              </select>
+
+            {/* Question Types */}
+            <div className="col-span-2 space-y-4">
+              <h2 className="text-xl font-semibold text-emerald-900">Question Types</h2>
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Single Choice Questions
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.questionsSingle}
+                    onChange={(e) => handleChange('questionsSingle', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-emerald-700 mb-1">
+                    Multiple Choice Questions
+                  </label>
+                  <input
+                    type="number"
+                    value={testStats.questionsMultiple || ''}
+                    onChange={(e) => handleChange('questionsMultiple', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    min="0"
+                    max="1000"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="negativeMarking"
-                checked={testSettings.negativeMarking as boolean}
-                onChange={(e) => handleSettingsChange('negativeMarking', e.target.checked)}
-                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-              />
-              <label htmlFor="negativeMarking" className="text-sm font-medium text-gray-700">
-                Enable Negative Marking (-1 for wrong answers)
-              </label>
+
+            {/* Time Taken */}
+            <div className="col-span-2 space-y-4">
+              <h2 className="text-xl font-semibold text-emerald-900">Time Management</h2>
+              <div>
+                <label className="block text-sm font-medium text-emerald-700 mb-1">
+                  Time Limit (in seconds)
+                </label>
+                <input
+                  type="number"
+                  value={testStats.timeTaken}
+                  onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
+                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  min="0"
+                  max="3600"
+                />
+                <p className="text-sm text-emerald-500 mt-1">
+                  Maximum time limit: 1 hour (3600 seconds)
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="pt-4">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Select Categories</h2>
-          <CategorySelection 
-            testSettings={testSettings}
-            onStartTest={(selectedCategories) => {
-              const params = new URLSearchParams({
-                categoryIds: selectedCategories.join(','),
-                limit: testSettings.questionCount.toString(),
-                timeLimit: testSettings.timeLimit.toString(),
-                negativeMarking: testSettings.negativeMarking.toString()
-              });
-              window.location.href = `/socket-test?${params.toString()}`;
-            }} 
-          />
+          <div className="mt-8 text-center">
+            <Button
+              size="lg"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8"
+              onClick={handleStartTest}
+            >
+              Start Test
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

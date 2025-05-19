@@ -2,12 +2,13 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import io, { type Socket } from "socket.io-client"
+import io from "socket.io-client"
 import { useAuth } from "./AuthContext"
 import { env } from "../config/env"
+import { Socket } from "socket.io-client"
 
 interface SocketContextType {
-  socket: Socket | null
+  socket: typeof Socket | null
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined)
@@ -25,55 +26,64 @@ interface SocketProviderProps {
 }
 
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
-  const [socket, setSocket] = useState<Socket | null>(null)
-  const { userId, isAuthenticated } = useAuth()
-
-  // Replace the useEffect hook with this more stable version
-  // This will prevent the socket from reconnecting unnecessarily
-
-  useEffect(() => {
-    let socketInstance: Socket | null = null
-
-    // Only connect if the user is authenticated and we don't already have a socket
-    if (isAuthenticated && userId) {
-      console.log("Establishing persistent socket connection for user:", userId)
-
-      socketInstance = io(env.SOCKET_URL, {
-        path: "/socket.io",
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        // Add this to prevent multiple connections
-        transports: ["websocket"],
-        forceNew: false,
-      })
-
-      socketInstance.on("connect", () => {
-        console.log("Socket connected successfully with ID:", socketInstance?.id)
-        // Join user's room
-        socketInstance?.emit("join_room", JSON.stringify({ userId: userId }))
-      })
-
-      socketInstance.on("connect_error", (error) => {
-        console.error("Socket connection error:", error)
-      })
-
-      socketInstance.on("disconnect", (reason) => {
-        console.log("Socket disconnected:", reason)
-      })
-
-      setSocket(socketInstance)
-    }
-
-    // Clean up function will only run when component unmounts or user logs out
-    return () => {
-      if (socketInstance) {
-        console.log("Cleaning up socket connection on unmount or logout")
-        socketInstance.disconnect()
-        setSocket(null)
+    const [socket, setSocket] = useState<typeof Socket | null>(null)
+    const { userId, isAuthenticated } = useAuth()
+  
+    useEffect(() => {
+        let socketInstance: typeof Socket | null = null
+      
+        // Only connect if the user is authenticated and we don't already have a socket
+        if (isAuthenticated && userId && !socket) {
+          console.log("Establishing persistent socket connection for user:", userId)
+      
+          socketInstance = io(env.SOCKET_URL, {
+            path: "/socket.io",
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            transports: ["websocket"],
+            forceNew: false,
+          })
+      
+          socketInstance.on("connect", () => {
+            console.log("Socket connected successfully with ID:", socketInstance?.id)
+            socketInstance?.emit("join_room", JSON.stringify({ userId: userId }))
+            console.log("User joined room:", userId)
+            console.log("Socket instance before set:", socketInstance)
+            
+            // Set the socket only after it's fully connected
+            setSocket(socketInstance)
+          })
+      
+          socketInstance.on("connect_error", (error: any) => {
+            console.error("Socket connection error:", error)
+          })
+      
+          socketInstance.on("disconnect", (reason: any) => {
+            console.log("Socket disconnected:", reason)
+          })
+        }
+      
+        // Clean up function will only run when component unmounts or user logs out
+        return () => {
+          if (socketInstance) {
+            console.log("Cleaning up socket connection on unmount or logout")
+            socketInstance.disconnect()
+            setSocket(null)
+          }
+        }
+      }, [isAuthenticated, userId, socket])  // Add socket to dependencies
+  
+    // Add this useEffect to monitor socket state changes
+    useEffect(() => {
+      console.log("Socket state updated:", socket?.id)
+      if (socket) {
+        console.log("Socket instance is now available in state")
+        console.log("Socket type:", typeof socket)
+        console.log("Socket methods available:", Object.keys(socket))
+        console.log("Socket instance:", socket)
       }
-    }
-  }, [isAuthenticated, userId]) // Only depend on auth state and user ID
-
-  return <SocketContext.Provider value={{ socket }}>{children}</SocketContext.Provider>
-}
+    }, [socket])
+  
+    return <SocketContext.Provider value={{ socket }}>{children}</SocketContext.Provider>
+  }
