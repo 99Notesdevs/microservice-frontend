@@ -121,13 +121,19 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
             <div className="w-6"></div>
           )}
 
-          <span className={`font-medium ${isSelected ? 'text-orange-600' : 'text-gray-700'}`}>
+          <span className={`
+            font-medium transition-colors duration-200
+            ${isSelected ? 'text-orange-600' : 'text-gray-600 group-hover:text-gray-900'}
+          `}>
             {category.name}
           </span>
 
           {isSelected && (
-            <div className="ml-auto w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-              <Check size={14} className="text-white" />
+            <div className="ml-auto transform scale-95 hover:scale-100 transition-transform">
+              <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-500 
+                rounded-full flex items-center justify-center shadow-sm">
+                <Check size={14} className="text-white" />
+              </div>
             </div>
           )}
         </div>
@@ -150,16 +156,23 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
   }
 
   return (
-    <div className="border rounded-xl bg-white overflow-y-auto max-h-[60vh] shadow">
-      <div className="px-4 py-3 bg-gray-50 border-b font-medium text-gray-700">
-        Available Categories
+    <div className="border-2 border-orange-100 rounded-2xl bg-white overflow-hidden shadow-lg">
+      <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-yellow-50 border-b border-orange-100">
+        <h3 className="font-semibold text-lg text-orange-700">Available Categories</h3>
+        <p className="text-sm text-orange-600/70 mt-1">Select categories for your test</p>
       </div>
-      <div className="divide-y divide-gray-100">
-        {categories.length > 0 ? (
-          categories.map(category => renderCategory(category))
-        ) : (
-          <div className="p-6 text-center text-gray-500">No categories available</div>
-        )}
+      
+      <div className="custom-scrollbar overflow-y-auto max-h-[60vh]">
+        <div className="p-4 space-y-2">
+          {categories.length > 0 ? (
+            categories.map(category => renderCategory(category))
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              <div className="text-orange-400 mb-2">📚</div>
+              No categories available
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

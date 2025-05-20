@@ -54,53 +54,83 @@ export const Category = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          <h1 className="text-3xl font-bold text-center text-emerald-900 mb-8">
+    <div className="min-h-screen  w-full w-max-2000px bg-gray-200 py-10 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 sm:p-12 border border-orange-100">
+          <h1 className="text-3xl sm:text-4xl font-bold text-center text-orange-500 mb-12">
             Test Configuration
           </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Marks Section */}
-            <div className="space-y-4">
-              {/* Input fields */}
-              {(['correctAttempted', 'wrongAttempted', 'notAttempted', 'partialAttempted', 'partialNotAttempted', 'partialWrongAttempted'] as (keyof TestStats)[]).map(field => (
-                <div key={field}>
-                  <label className="block text-sm font-medium text-emerald-700 mb-1 capitalize">
-                    {field.replace(/([A-Z])/g, ' $1')}
+            <div className="space-y-6 bg-white/70 p-8 rounded-2xl shadow-lg border border-orange-100">
+              <h2 className="text-2xl font-semibold text-orange-600 mb-6 pb-2 border-b border-orange-200">
+                Test Parameters
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {(['correctAttempted', 'wrongAttempted', 'notAttempted'] as (keyof TestStats)[]).map(field => (
+                  <div key={field} className="group transition-all duration-300 hover:transform hover:scale-102">
+                    <label className="block text-sm font-medium text-yellow-700 mb-2 capitalize group-hover:text-orange-500">
+                      {field.replace(/([A-Z])/g, ' $1')}
+                    </label>
+                    <input
+                      type="number"
+                      value={testStats[field] ?? ''}
+                      onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
+                      className="w-full px-4 py-3 border-2 border-orange-200 rounded-xl
+                      focus:ring-2 focus:ring-orange-300 focus:border-orange-400
+                      bg-white hover:bg-orange-50/50 transition-all duration-200"
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                {(['partialAttempted', 'partialNotAttempted', 'partialWrongAttempted'] as (keyof TestStats)[]).map(field => (
+                  <div key={field} className="group transition-all duration-300 hover:transform hover:scale-102">
+                    <label className="block text-sm font-medium text-yellow-700 mb-2 capitalize group-hover:text-orange-500">
+                      {field.replace(/([A-Z])/g, ' $1')}
+                    </label>
+                    <input
+                      type="number"
+                      value={testStats[field] ?? ''}
+                      onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
+                      className="w-full px-4 py-3 border-2 border-orange-200 rounded-xl
+                      focus:ring-2 focus:ring-orange-300 focus:border-orange-400
+                      bg-white hover:bg-orange-50/50 transition-all duration-200"
+                    />
+                  </div>
+                ))}
+                <div className="group transition-all duration-300 hover:transform hover:scale-102">
+                  <label className="block text-sm font-medium text-yellow-700 mb-2 group-hover:text-orange-500">
+                    Time (seconds)
                   </label>
                   <input
                     type="number"
-                    value={testStats[field] ?? ''}
-                    onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    value={testStats.timeTaken}
+                    onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-3 border-2 border-orange-200 rounded-xl
+                    focus:ring-2 focus:ring-orange-300 focus:border-orange-400
+                    bg-white hover:bg-orange-50/50 transition-all duration-200"
                   />
                 </div>
-              ))}
-              {/* Time Taken */}
-              <div>
-                <label className="block text-sm font-medium text-emerald-700 mb-1">Time (seconds)</label>
-                <input
-                  type="number"
-                  value={testStats.timeTaken}
-                  onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                />
               </div>
             </div>
 
             {/* Category Selector */}
-            <div>
-              <h2 className="text-xl font-semibold text-emerald-900 mb-2">Select Categories</h2>
+            <div className="bg-gradient-to-br from-orange-50/50 to-yellow-50/50 p-8 rounded-xl border border-orange-100 shadow-sm">
+              <h2 className="text-2xl font-semibold text-orange-600 mb-6">Select Categories</h2>
               <CategorySelection onSelectionChange={setSelectedCategoryIds} />
             </div>
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-12 text-center pt-6 border-t border-orange-100">
             <Button
               onClick={handleStartTest}
-              className="px-8 py-4 text-lg font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+              className="px-12 py-4 text-lg font-semibold bg-gradient-to-r from-orange-400 to-yellow-500
+              hover:from-orange-500 hover:to-yellow-600 text-white shadow-xl hover:shadow-2xl
+              transition-all duration-300 rounded-xl transform hover:-translate-y-1
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled={selectedCategoryIds.length === 0}
             >
               🚀 Start Test

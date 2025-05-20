@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
 // import { useAuth } from '../../contexts/AuthContext';
-
+import logo from '../../assets/logo.png';
 const Navbar: React.FC = () => {
   // const { isAuthenticated } = useAuth();
 
@@ -16,11 +16,16 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-white shadow-md z-50 h-16 flex items-center justify-between px-4">
+    <>
+    <div className="h-16 w-full" />
+    <nav className="fixed top-0 left-0 w-full bg-white shadow-md z-50 h-16 flex items-center justify-between px-8">
       {/* Left Section - Logo */}
       <Link to="/about">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-emerald-600 tracking-tight">99notes</h1>
+          <img 
+          className="w-22 h-8" 
+          src={logo} 
+          alt="99notes" />
         </div>
       </Link>
 
@@ -35,7 +40,7 @@ const Navbar: React.FC = () => {
               className={({ isActive }) => 
                 `flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
                   isActive 
-                    ? 'bg-emerald-50 text-emerald-600' 
+                    ? 'bg-orange-50 text-orange-600' 
                     : 'hover:bg-gray-50 text-gray-600'
                 }`
               }
@@ -51,12 +56,12 @@ const Navbar: React.FC = () => {
           <NavLink
             to="/tests"
             className={({ isActive }) => 
-              `relative flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 ${
-                isActive ? 'ring-2 ring-emerald-300 ring-offset-2' : ''
+              `relative flex items-center justify-center px-8 py-3 rounded-full bg-orange-500 text-white font-semibold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 ${
+                isActive ? 'ring-2 ring-orange-300 ring-offset-2' : ''
               }`
             }
           >
-            <div className="absolute -top-4 -left-4 w-32 h-32 rounded-full bg-gradient-to-r from-emerald-100/20 to-transparent blur-2xl animate-pulse"></div>
+            <div className="absolute -left-4 w-32 h-32 rounded-full bg-orange-100 blur-2xl animate-pulse"></div>
             <div className="relative">
               
               <div className="relative">
@@ -75,7 +80,7 @@ const Navbar: React.FC = () => {
               className={({ isActive }) => 
                 `flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
                   isActive 
-                    ? 'bg-emerald-50 text-emerald-600' 
+                    ? 'bg-orange-50 text-orange-600' 
                     : 'hover:bg-gray-50 text-gray-600'
                 }`
               }
@@ -89,9 +94,36 @@ const Navbar: React.FC = () => {
 
       {/* Right Section - Profile/Settings */}
       <div className="flex items-center gap-4">
-        {/* Add profile or settings icon here */}
+        <div className="relative">
+          <img 
+            src="https://via.placeholder.com/40" 
+            alt="Profile" 
+            className="w-10 h-10 rounded-full cursor-pointer"
+          />
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 hidden">
+            <NavLink 
+              to="/dashboard" 
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Dashboard
+            </NavLink>
+            <NavLink 
+              to="/profile" 
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Profile
+            </NavLink>
+            <hr className="border-t border-gray-200 my-1" />
+            <button 
+              className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
       </div>
     </nav>
+    </>
   );
 };
 
