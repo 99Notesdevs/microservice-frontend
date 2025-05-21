@@ -9,6 +9,7 @@ import {
   type UserAnswer,
   type SubmitFunction,
   type Question,
+  type MarkingScheme,
 } from "../types/testTypes"
 
 interface TestContextProps {
@@ -20,6 +21,7 @@ interface TestContextProps {
   isReviewMode: boolean
   testResult: TestResult | null
   negativeMarking: boolean
+  markingScheme: MarkingScheme | null
 
   // Actions
   setTestData: (data: TestData) => void
@@ -32,6 +34,7 @@ interface TestContextProps {
   setIsReviewMode: (isReview: boolean) => void
   setTestResult: (result: TestResult | null) => void
   setNegativeMarking: (value: boolean) => void
+  setMarkingScheme: (scheme: MarkingScheme | null) => void
 
   // Socket integration
   setQuestions: (questions: Question[]) => void
@@ -62,6 +65,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
   const [isReviewMode, setIsReviewMode] = useState<boolean>(false)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [negativeMarking, setNegativeMarking] = useState<boolean>(false)
+  const [markingScheme, setMarkingScheme] = useState<MarkingScheme | null>(null)
 
   // Initialize question statuses and selected answers when test data changes
   useEffect(() => {
@@ -315,6 +319,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     isReviewMode,
     testResult,
     negativeMarking,
+    markingScheme,
 
     setTestData,
     setCurrentQuestionIndex,
@@ -331,6 +336,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     setQuestions,
     setQuestionStatuses,
     setSelectedAnswersFromSocket,
+    setMarkingScheme,
   }
 
   return <TestContext.Provider value={value}>{children}</TestContext.Provider>

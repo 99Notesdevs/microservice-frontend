@@ -21,7 +21,14 @@ export interface TestData {
   questions: Question[]
   type: "testSeries" | "test" | "review"
 }
-
+export interface MarkingScheme {
+  correct: number
+  incorrect: number
+  unattempted: number
+  partial: number
+  partialWrong: number
+  partialUnattempted: number
+}
 export interface TestResult {
   id?: number
   name: string

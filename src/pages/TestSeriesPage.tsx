@@ -10,6 +10,7 @@ import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import { AlertTriangle } from "lucide-react"
 import Cookies from "js-cookie"
 import {env} from "../config/env"
+import { useSocketTest } from "../hooks/useSocketTest"
 // API function to fetch test series data
 const fetchTestSeriesData = async (testSeriesId: string) => {
   try {
@@ -82,6 +83,7 @@ const TEST_DURATION = 30 * 60 // 30 minutes in seconds
 const TestSeriesPage: React.FC = () => {
   const navigate = useNavigate()
   const { testSeriesId } = useParams<{ testSeriesId: string }>()
+  const {submitSocketTest} = useSocketTest()
   const {
     testData,
     currentQuestionIndex,
@@ -171,22 +173,37 @@ const TestSeriesPage: React.FC = () => {
     }
   }, [])
 
+  // const handleSubmit = async () => {
+  //   if (!testSeriesId) return
+
+  //   // Custom submit function for test series
+  //   const submitFn = async (result: any) => {
+  //     try {
+  //       await submitTestSeriesResults(testSeriesId, result)
+  //     } catch (err) {
+  //       console.error("Failed to submit test series results:", err)
+  //     }
+  //   }
+
+  //   handleSubmitTest(submitFn)
+  //   navigate("/submit")
+  // }
   const handleSubmit = async () => {
-    if (!testSeriesId) return
+    try {
+      setShowConfirmSubmit(false)
+      console.log("Submitting socket test...")
+      await submitSocketTest()
 
-    // Custom submit function for test series
-    const submitFn = async (result: any) => {
-      try {
-        await submitTestSeriesResults(testSeriesId, result)
-      } catch (err) {
-        console.error("Failed to submit test series results:", err)
-      }
+      // Force navigation after a short delay
+      // setTimeout(() => {
+      //   console.log("Forcing navigation to submit page")
+      //   navigate("/submit", { replace: true })
+      // }, 1000)
+    } catch (error) {
+      console.error("Error submitting test:", error)
+      // setError("Failed to submit test. Please try again.")
     }
-
-    handleSubmitTest(submitFn)
-    navigate("/submit")
   }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
