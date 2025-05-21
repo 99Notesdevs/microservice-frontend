@@ -50,62 +50,68 @@ export const Category = () => {
     questionsMultiple: 0
   });
   const [testPatterns, setTestPatterns] = useState<TestPattern[]>([]);
-const [selectedPattern, setSelectedPattern] = useState<string | null>(null);
-const [isLoading, setIsLoading] = useState(true);
-const [error, setError] = useState<string | null>(null);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [selectedPattern, setSelectedPattern] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedSingleCategories, setSelectedSingleCategories] = useState<number[]>([]);
+  const [selectedMultipleCategories, setSelectedMultipleCategories] = useState<number[]>([]);
   // Add this effect to fetch test patterns
   useEffect(() => {
     const fetchTestPatterns = async () => {
       try {
-      const response = await fetch(`${env.API}/test`,{
-        headers: {
-          Authorization: `Bearer ${Cookies.get('token')}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch test patterns');
+        const response = await fetch(`${env.API}/test`,{
+          headers: {
+            Authorization: `Bearer ${Cookies.get('token')}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch test patterns');
+        }
+        const testPatternsData = await response.json();
+        setTestPatterns(testPatternsData.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load test patterns');
+        console.error('Error fetching test patterns:', err);
+      } finally {
+        setIsLoading(false);
       }
-      const testPatternsData = await response.json();
-      setTestPatterns(testPatternsData.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load test patterns');
-      console.error('Error fetching test patterns:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  fetchTestPatterns();
-}, []);
+    fetchTestPatterns();
+  }, []);
   // Add this handler to apply a test pattern
-const handleSelectPattern = (pattern: TestPattern) => {
-  setSelectedPattern(pattern.id);
-  setTestStats({
-    correctAttempted: pattern.correctAttempted,
-    wrongAttempted: pattern.wrongAttempted,
-    notAttempted: pattern.notAttempted,
-    partialAttempted: pattern.partialAttempted,
-    partialNotAttempted: pattern.partialNotAttempted,
-    partialWrongAttempted: pattern.partialWrongAttempted,
-    timeTaken: pattern.timeTaken,
-    questionsSingle: pattern.questionsSingle,
-    questionsMultiple: pattern.questionsMultiple,
-  });
-};
+  const handleSelectPattern = (pattern: TestPattern) => {
+    setSelectedPattern(pattern.id);
+    setTestStats({
+      correctAttempted: pattern.correctAttempted,
+      wrongAttempted: pattern.wrongAttempted,
+      notAttempted: pattern.notAttempted,
+      partialAttempted: pattern.partialAttempted,
+      partialNotAttempted: pattern.partialNotAttempted,
+      partialWrongAttempted: pattern.partialWrongAttempted,
+      timeTaken: pattern.timeTaken,
+      questionsSingle: pattern.questionsSingle,
+      questionsMultiple: pattern.questionsMultiple,
+    });
+  };
   const handleChange = (field: keyof TestStats, value: number) => {
     const clamped = Math.max(0, Math.min(field === 'timeTaken' ? 3600 : 1000, value));
     setTestStats(prev => ({ ...prev, [field]: clamped }));
   };
 
   const handleStartTest = () => {
-    if (selectedCategoryIds.length === 0) {
+    if (selectedSingleCategories.length === 0 && selectedMultipleCategories.length === 0) {
       alert('Please select at least one category!');
       return;
     }
   
     const params = new URLSearchParams();
-    params.append('categoryIds', selectedCategoryIds.join(',')); // Changed to single parameter
+    if (selectedSingleCategories.length > 0) {
+      params.append('categoryS', selectedSingleCategories.join(','));
+    }
+    if (selectedMultipleCategories.length > 0) {
+      params.append('categoryM', selectedMultipleCategories.join(','));
+    }
     Object.entries(testStats).forEach(([key, value]) => {
       if (value != null) params.append(key, value.toString());
     });
@@ -116,50 +122,50 @@ const handleSelectPattern = (pattern: TestPattern) => {
   return (
     <div className="min-h-screen  w-full w-max-2000px bg-gray-200 py-10 px-4 sm:px-6">
       {isLoading ? (
-  <div className="text-center py-8">Loading test patterns...</div>
-) : error ? (
-  <div className="text-center py-8 text-red-500">{error}</div>
-) : testPatterns.length > 0 && (
-  <div className="max-w-7xl mx-auto mb-8">
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-6 border border-orange-100">
-      <h2 className="text-2xl font-bold text-orange-500 mb-4">Saved Test Patterns</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {testPatterns.map((pattern) => (
-          <div
-            key={pattern.id}
-            onClick={() => handleSelectPattern(pattern)}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-              selectedPattern === pattern.id
-                ? 'border-orange-500 bg-orange-50'
-                : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
-            }`}
-          >
-            <h3 className="font-semibold text-lg text-gray-800">{pattern.name}</h3>
-            {pattern.description && (
-              <p className="text-sm text-gray-600 mt-1">{pattern.description}</p>
-            )}
-            <div className="mt-2 flex flex-wrap gap-2">
-              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                {pattern.questionsSingle} Single
-              </span>
-              {pattern.questionsMultiple && (
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  {pattern.questionsMultiple} Multiple
-                </span>
-              )}
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                {pattern.timeTaken}s
-              </span>
-            </div>
-            <div className="mt-2 text-xs text-gray-500">
-              Created: {new Date(pattern.createdAt).toLocaleDateString()}
+        <div className="text-center py-8">Loading test patterns...</div>
+      ) : error ? (
+        <div className="text-center py-8 text-red-500">{error}</div>
+      ) : testPatterns.length > 0 && (
+        <div className="max-w-7xl mx-auto mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-6 border border-orange-100">
+            <h2 className="text-2xl font-bold text-orange-500 mb-4">Saved Test Patterns</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {testPatterns.map((pattern) => (
+                <div
+                  key={pattern.id}
+                  onClick={() => handleSelectPattern(pattern)}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    selectedPattern === pattern.id
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
+                  }`}
+                >
+                  <h3 className="font-semibold text-lg text-gray-800">{pattern.name}</h3>
+                  {pattern.description && (
+                    <p className="text-sm text-gray-600 mt-1">{pattern.description}</p>
+                  )}
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                      {pattern.questionsSingle} Single
+                    </span>
+                    {pattern.questionsMultiple && (
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {pattern.questionsMultiple} Multiple
+                      </span>
+                    )}
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                      {pattern.timeTaken}s
+                    </span>
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    Created: {new Date(pattern.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 sm:p-12 border border-orange-100">
           <h1 className="text-3xl sm:text-4xl font-bold text-center text-orange-500 mb-12">
@@ -225,7 +231,7 @@ const handleSelectPattern = (pattern: TestPattern) => {
             {/* Category Selector */}
             <div className="bg-gradient-to-br from-orange-50/50 to-yellow-50/50 p-8 rounded-xl border border-orange-100 shadow-sm">
               <h2 className="text-2xl font-semibold text-orange-600 mb-6">Select Categories</h2>
-              <CategorySelection onSelectionChange={setSelectedCategoryIds} />
+              <CategorySelection onSingleSelectionChange={setSelectedSingleCategories} onMultipleSelectionChange={setSelectedMultipleCategories} />
             </div>
           </div>
 
@@ -236,7 +242,7 @@ const handleSelectPattern = (pattern: TestPattern) => {
               hover:from-orange-500 hover:to-yellow-600 text-white shadow-xl hover:shadow-2xl
               transition-all duration-300 rounded-xl transform hover:-translate-y-1
               disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              disabled={selectedCategoryIds.length === 0}
+              disabled={selectedSingleCategories.length === 0 && selectedMultipleCategories.length === 0}
             >
               🚀 Start Test
             </Button>

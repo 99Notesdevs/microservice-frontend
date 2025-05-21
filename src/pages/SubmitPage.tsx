@@ -9,7 +9,8 @@ import { CheckCircle, XCircle, AlertCircle, Clock, FileText, Home, RotateCcw, Ey
 const SubmitPage: React.FC = () => {
   const navigate = useNavigate()
   const { testData, testResult, setIsReviewMode } = useTestContext()
-
+  console.log("testResult", testResult)
+  console.log("testData", testData)
   useEffect(() => {
     // Redirect to home if no test result is available
     if (!testResult) {
@@ -44,7 +45,7 @@ const SubmitPage: React.FC = () => {
 
   // Calculate score percentage
   const scorePercentage = Math.round(
-    ((testResult.correctAttempted + (testResult.partialAttempted || 0) * 0.5) / totalQuestions) * 100,
+    (testResult.score / totalQuestions) * 100,
   )
 
   const handleReviewTest = () => {

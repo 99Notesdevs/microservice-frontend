@@ -122,9 +122,11 @@ export function useSocketTest() {
     try {
       // Get URL parameters
       const urlParams = new URLSearchParams(window.location.search)
-      const categoryIds = urlParams.get("categoryIds")
-      const limit = urlParams.get("limit") || "10"
-      const timeLimit = urlParams.get("timeLimit") || "30"
+      const categoryS = urlParams.get("categoryS")
+      const categoryM = urlParams.get("categoryM")
+      const limitS = urlParams.get("questionsSingle") || "10"
+      const limitM = urlParams.get("questionsMultiple") || "10"
+      const timeLimit = urlParams.get("timeTaken") || "30"
       const negativeMarkingParam = urlParams.get("negativeMarking") === "true"
       const correctAttempted = urlParams.get("correctAttempted") || "0"
       const wrongAttempted = urlParams.get("wrongAttempted") || "0"
@@ -140,14 +142,14 @@ export function useSocketTest() {
         partialWrong: Number.parseInt(partialNotAttempted),
         partialUnattempted: Number.parseInt(partialWrongAttempted),
       }
-      if (!categoryIds) throw new Error("No categories selected")
+      if (!categoryS && !categoryM) throw new Error("No categories selected")
 
       // Set test parameters
       setTestDuration(Number.parseInt(timeLimit) * 60)
       setNegativeMarking(negativeMarkingParam)
       setMarkingScheme(markingScheme) 
       // First make the HTTP request to queue the questions
-      const response = await fetch(`${env.API}/questions/test?limit=${limit}&categoryIds=${categoryIds}`, {
+      const response = await fetch(`${env.API}/questions/test?limitS=${limitS}&limitM=${limitM}&categoryS=${categoryS}&categoryM=${categoryM}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${Cookies.get("token")}`,
@@ -180,10 +182,10 @@ export function useSocketTest() {
       await socketSubmitTest()
 
       // Add a small delay to ensure the socket response is processed
-      // setTimeout(() => {
-      //   // console.log("Navigating to submit page after test submission")
-      //   // navigate("/submit")
-      // }, 500)
+      setTimeout(() => {
+        console.log("Navigating to submit page after test submission")
+        navigate("/submit")
+      }, 500)
       console.log("Test submitted successfully came out of SocketSubmitTest")
     } catch (error) {
       setError("Failed to submit test")

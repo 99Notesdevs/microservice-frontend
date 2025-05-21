@@ -32,6 +32,7 @@ export interface MarkingScheme {
 export interface TestResult {
   id?: number
   name: string
+  score: number
   correctAttempted: number
   wrongAttempted: number
   notAttempted: number

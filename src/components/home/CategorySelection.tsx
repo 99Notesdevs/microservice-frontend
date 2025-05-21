@@ -16,11 +16,13 @@ export interface CategoryType {
 }
 
 interface CategorySelectionProps {
-  onSelectionChange: (selectedIds: number[]) => void;
+  onSingleSelectionChange: (selectedIds: number[]) => void;
+  onMultipleSelectionChange: (selectedIds: number[]) => void;
 }
 
-export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps) => {
-  const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([]);
+export const CategorySelection = ({ onSingleSelectionChange, onMultipleSelectionChange }: CategorySelectionProps) => {
+  const [selectedSingleCategories, setSelectedSingleCategories] = useState<number[]>([]);
+  const [selectedMultipleCategories, setSelectedMultipleCategories] = useState<number[]>([]);
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,17 +49,29 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
     return tree;
   };
 
-  const isCategorySelected = (category: CategoryType) => {
-    return selectedCategories.some(selected => selected.id === category.id);
+  const isCategorySelected = (category: CategoryType, type: 'single' | 'multiple') => {
+    if (type === 'single') {
+      return selectedSingleCategories.includes(category.id);
+    }
+    return selectedMultipleCategories.includes(category.id);
   };
 
-  const handleCategorySelect = (category: CategoryType, event: React.MouseEvent) => {
+  const handleSingleCategorySelect = (category: CategoryType, event: React.MouseEvent) => {
     event.stopPropagation();
-    const updated = isCategorySelected(category)
-      ? selectedCategories.filter(cat => cat.id !== category.id)
-      : [...selectedCategories, category];
-    setSelectedCategories(updated);
-    onSelectionChange(updated.map(cat => cat.id));
+    const updated = isCategorySelected(category, 'single')
+      ? selectedSingleCategories.filter(id => id !== category.id)
+      : [...selectedSingleCategories, category.id];
+    setSelectedSingleCategories(updated);
+    onSingleSelectionChange(updated);
+  };
+
+  const handleMultipleCategorySelect = (category: CategoryType, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const updated = isCategorySelected(category, 'multiple')
+      ? selectedMultipleCategories.filter(id => id !== category.id)
+      : [...selectedMultipleCategories, category.id];
+    setSelectedMultipleCategories(updated);
+    onMultipleSelectionChange(updated);
   };
 
   const toggleCategory = (category: CategoryType, event: React.MouseEvent) => {
@@ -95,12 +109,12 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
     fetchCategories();
   }, []);
 
-  const renderCategory = (category: CategoryType, level = 0): React.JSX.Element => {
-    const isSelected = isCategorySelected(category);
+  const renderCategory = (category: CategoryType, level = 0, type: 'single' | 'multiple'): React.JSX.Element => {
+    const isSelected = isCategorySelected(category, type);
     const hasChildren = category.children?.length;
 
     return (
-      <div key={category.id} className="w-full">
+      <div key={`${category.id}-${type}`} className="w-full">
         <div
           className={`flex items-center p-3 rounded-lg cursor-pointer ${
             isSelected
@@ -108,7 +122,7 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
               : 'hover:bg-gray-50'
           }`}
           style={{ paddingLeft: `${level * 16 + 8}px` }}
-          onClick={e => handleCategorySelect(category, e)}
+          onClick={e => type === 'single' ? handleSingleCategorySelect(category, e) : handleMultipleCategorySelect(category, e)}
         >
           {hasChildren ? (
             <button
@@ -121,10 +135,9 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
             <div className="w-6"></div>
           )}
 
-          <span className={`
-            font-medium transition-colors duration-200
-            ${isSelected ? 'text-orange-600' : 'text-gray-600 group-hover:text-gray-900'}
-          `}>
+          <span className={`font-medium transition-colors duration-200 ${
+            isSelected ? 'text-orange-600' : 'text-gray-600 group-hover:text-gray-900'
+          }`}>
             {category.name}
           </span>
 
@@ -140,7 +153,7 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
 
         {hasChildren && category.isExpanded && (
           <div className="ml-4 border-l-2 border-gray-200">
-            {category.children?.map(child => renderCategory(child, level + 1))}
+            {category.children?.map(child => renderCategory(child, level + 1, type))}
           </div>
         )}
       </div>
@@ -157,15 +170,35 @@ export const CategorySelection = ({ onSelectionChange }: CategorySelectionProps)
 
   return (
     <div className="border-2 border-orange-100 rounded-2xl bg-white overflow-hidden shadow-lg">
+      {/* Single Category Selection */}
       <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-yellow-50 border-b border-orange-100">
-        <h3 className="font-semibold text-lg text-orange-700">Available Categories</h3>
-        <p className="text-sm text-orange-600/70 mt-1">Select categories for your test</p>
+        <h3 className="font-semibold text-lg text-orange-700">Select Single Choice Categories</h3>
+        <p className="text-sm text-orange-600/70 mt-1">Choose one or more categories for single choice questions</p>
       </div>
       
-      <div className="custom-scrollbar overflow-y-auto max-h-[60vh]">
+      <div className="custom-scrollbar overflow-y-auto max-h-[30vh]">
         <div className="p-4 space-y-2">
           {categories.length > 0 ? (
-            categories.map(category => renderCategory(category))
+            categories.map(category => renderCategory(category, 0, 'single'))
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              <div className="text-orange-400 mb-2">📚</div>
+              No categories available
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Multiple Category Selection */}
+      <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-yellow-50 border-b border-orange-100">
+        <h3 className="font-semibold text-lg text-orange-700">Select Multiple Choice Categories</h3>
+        <p className="text-sm text-orange-600/70 mt-1">Choose multiple categories for multiple choice questions</p>
+      </div>
+      
+      <div className="custom-scrollbar overflow-y-auto max-h-[30vh]">
+        <div className="p-4 space-y-2">
+          {categories.length > 0 ? (
+            categories.map(category => renderCategory(category, 0, 'multiple'))
           ) : (
             <div className="p-8 text-center text-gray-500">
               <div className="text-orange-400 mb-2">📚</div>

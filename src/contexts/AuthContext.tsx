@@ -342,6 +342,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const userData = await response.json();
             if (userData.success && userData.data) {
               setUser(userData.data);
+                localStorage.setItem("userId", userData.data.id.toString())
+
               console.log("User data:", userData.data);
             }
           } else {
@@ -380,9 +382,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       Cookies.set("token", token, { expires: 7 }) // 7 days expiry
 
       // Save userId to localStorage for socket connection
-      if (data.user && data.user.id) {
-        localStorage.setItem("userId", data.user.id.toString())
-      }
+      
 
       setUser(data.user)
       setIsLoading(false)

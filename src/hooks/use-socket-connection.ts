@@ -92,6 +92,8 @@ export const useSocketConnection = ({
     // Function to handle submit-questions event
     const handleSubmitQuestions = (data: any) => {
       console.log("Received test results:", data)
+      console.log("data.score", data.score)
+      console.log("data.result", data.result)
       if (data.status === "success") {
         // Process results for review mode
         const updatedQuestions = questions.map((q: any) => {
@@ -115,30 +117,7 @@ export const useSocketConnection = ({
         )
 
         // Calculate score using isCorrect values
-        const score = Object.entries(data.result as Record<string, any>).reduce<number>(
-          (total, [questionId, result]) => {
-            const isCorrect = result.isCorrect
-            const questionIndex = questions.findIndex((q) => q.id === questionId)
-            const selectedAnswer = selectedAnswers[questionIndex]
-            const correctAnswer = result?.answer || ""
-
-            if (isCorrect) {
-              return total + 1
-            }
-
-            // Handle partial credit for multiple answer questions
-            if (selectedAnswer && Array.isArray(selectedAnswer)) {
-              const correctCount = selectedAnswer.filter((answer) => correctAnswer.includes(answer)).length
-              const totalCorrect = correctAnswer.length
-
-              // Give partial credit based on number of correct answers selected
-              return total + correctCount / totalCorrect
-            }
-
-            return selectedAnswer !== null && negativeMarking ? total - 0.25 : total
-          },
-          0,
-        )
+        const score = data.score
 
         const results = {
           score: Math.max(0, Math.round(score * 100) / 100),
@@ -148,7 +127,7 @@ export const useSocketConnection = ({
           answers: selectedAnswers,
           correctAnswers,
         }
-
+        console.log("results", results)
         setTestResults(results)
         setIsReviewMode(true)
       } else {
@@ -168,39 +147,6 @@ export const useSocketConnection = ({
       socket.off("submit-questions", handleSubmitQuestions)
     }
   }, [socket]) // Only depend on socket, not on any other state variables
-
-  // const fetchQuestions = useCallback(async () => {
-  //   try {
-  //     setLoading(true)
-  //     setError(null)
-
-  //     const urlParams = new URLSearchParams(window.location.search)
-  //     const categoryIds = urlParams.get("categoryIds")
-  //     const limit = urlParams.get("limit") || "10"
-  //     const timeLimit = urlParams.get("timeLimit") || "30"
-  //     const negativeMarkingParam = urlParams.get("negativeMarking") === "true"
-
-  //     if (!categoryIds) throw new Error("No categories selected")
-
-  //     setTestDuration(Number.parseInt(timeLimit) * 60)
-  //     setNegativeMarking(negativeMarkingParam)
-
-  //     if (!socket) {
-  //       throw new Error("Socket connection not established")
-  //     }
-
-  //     // The HTTP request is now made in the useSocketTest hook
-  //     // Here we just emit the socket event
-  //     console.log("Emitting practice event to socket")
-  //     // socket.emit("practice", {
-  //     //   categoryIds,
-  //     //   limit,
-  //     // })
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err.message : "Something went wrong")
-  //     setLoading(false)
-  //   }
-  // }, [socket, setLoading, setError, setTestDuration, setNegativeMarking])
 
   const handleSubmitTest = useCallback(async () => {
     setTestStarted(false)
