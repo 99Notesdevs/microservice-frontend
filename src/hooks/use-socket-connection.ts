@@ -157,6 +157,7 @@ export const useSocketConnection = ({
     }
 
     // Add event listeners
+    console.log("Adding socket event listeners")
     socket.on("fetch-questions", handleFetchQuestions)
     socket.on("submit-questions", handleSubmitQuestions)
 
@@ -168,41 +169,42 @@ export const useSocketConnection = ({
     }
   }, [socket]) // Only depend on socket, not on any other state variables
 
-  const fetchQuestions = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
+  // const fetchQuestions = useCallback(async () => {
+  //   try {
+  //     setLoading(true)
+  //     setError(null)
 
-      const urlParams = new URLSearchParams(window.location.search)
-      const categoryIds = urlParams.get("categoryIds")
-      const limit = urlParams.get("limit") || "10"
-      const timeLimit = urlParams.get("timeLimit") || "30"
-      const negativeMarkingParam = urlParams.get("negativeMarking") === "true"
+  //     const urlParams = new URLSearchParams(window.location.search)
+  //     const categoryIds = urlParams.get("categoryIds")
+  //     const limit = urlParams.get("limit") || "10"
+  //     const timeLimit = urlParams.get("timeLimit") || "30"
+  //     const negativeMarkingParam = urlParams.get("negativeMarking") === "true"
 
-      if (!categoryIds) throw new Error("No categories selected")
+  //     if (!categoryIds) throw new Error("No categories selected")
 
-      setTestDuration(Number.parseInt(timeLimit) * 60)
-      setNegativeMarking(negativeMarkingParam)
+  //     setTestDuration(Number.parseInt(timeLimit) * 60)
+  //     setNegativeMarking(negativeMarkingParam)
 
-      if (!socket) {
-        throw new Error("Socket connection not established")
-      }
+  //     if (!socket) {
+  //       throw new Error("Socket connection not established")
+  //     }
 
-      // The HTTP request is now made in the useSocketTest hook
-      // Here we just emit the socket event
-      console.log("Emitting practice event to socket")
-      socket.emit("practice", {
-        categoryIds,
-        limit,
-      })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
-      setLoading(false)
-    }
-  }, [socket, setLoading, setError, setTestDuration, setNegativeMarking])
+  //     // The HTTP request is now made in the useSocketTest hook
+  //     // Here we just emit the socket event
+  //     console.log("Emitting practice event to socket")
+  //     // socket.emit("practice", {
+  //     //   categoryIds,
+  //     //   limit,
+  //     // })
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "Something went wrong")
+  //     setLoading(false)
+  //   }
+  // }, [socket, setLoading, setError, setTestDuration, setNegativeMarking])
 
   const handleSubmitTest = useCallback(async () => {
     setTestStarted(false)
+    console.log("request made for submit")
     const endTime = Date.now()
     const timeTaken = Math.floor((endTime - startTime) / 1000)
 
@@ -241,11 +243,11 @@ export const useSocketConnection = ({
           userId
         }),
       })
-
+      console.log("made the post request")
       if (!response.ok) {
         throw new Error("Failed to submit test")
       }
-
+      console.log("post request success")
       // The server will respond with results via the 'submit-questions' socket event
       // We don't need to do anything else here
     } catch (err) {
@@ -261,7 +263,9 @@ export const useSocketConnection = ({
     questionStatuses,
     negativeMarking,
     apiUrl,
+    markingScheme,
+    userId
   ])
 
-  return { socket, fetchQuestions, handleSubmitTest }
+  return { socket, handleSubmitTest }
 }

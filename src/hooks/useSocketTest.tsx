@@ -45,7 +45,6 @@ export function useSocketTest() {
   // Initialize socket connection
   const {
     // socket,
-    fetchQuestions,
     handleSubmitTest: socketSubmitTest,
   } = useSocketConnection({
     userId,
@@ -154,7 +153,7 @@ export function useSocketTest() {
           Authorization: `Bearer ${Cookies.get("token")}`,
         },
       })
-
+     
       if (!response.ok) {
         throw new Error("Failed to fetch questions")
       }
@@ -163,12 +162,12 @@ export function useSocketTest() {
 
       // Then fetch questions via socket
       setTestStarted(true)
-      fetchQuestions()
+      // fetchQuestions()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
       setLoading(false)
     }
-  }, [fetchQuestions, setNegativeMarking, setTestDuration])
+  }, [setNegativeMarking, setTestDuration])
 
   // Submit socket test - follows the workflow you described
   const submitSocketTest = useCallback(async () => {
@@ -176,6 +175,8 @@ export function useSocketTest() {
       console.log("Submitting test via socket")
       // This will make the POST request to /questions/submit
       // and then handle the socket response
+      setLoading(true)
+      console.log("request made for submit")
       await socketSubmitTest()
 
       // Add a small delay to ensure the socket response is processed
@@ -186,6 +187,7 @@ export function useSocketTest() {
       console.log("Test submitted successfully came out of SocketSubmitTest")
     } catch (error) {
       setError("Failed to submit test")
+      setLoading(false)
     }
   }, [socketSubmitTest, navigate, setError])
 

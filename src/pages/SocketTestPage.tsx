@@ -9,6 +9,7 @@ import NavigationButtons from "../components/testPortal/NavigationButtons"
 import FullScreenHeader from "../components/testPortal/FullScreenHeader"
 import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import { AlertTriangle } from "lucide-react"
+import { useSocket } from "../contexts/SocketContext"
 
 const SocketTestPage: React.FC = () => {
   const navigate = useNavigate()
@@ -18,24 +19,27 @@ const SocketTestPage: React.FC = () => {
     questionStatuses,
     selectedAnswers,
     isReviewMode,
+    setIsReviewMode,
     handleQuestionSelect,
     handleOptionSelect,
     handleConfirmAnswer,
     handleSaveForLater,
   } = useTestContext()
 
+  const { socket } = useSocket()
   const { loading, error: socketError, testDuration, testStarted, startSocketTest, submitSocketTest } = useSocketTest()
   const [remainingTime, setRemainingTime] = useState(testDuration)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
   // const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Start socket test when component mounts
-    if (!testStarted && !isReviewMode) {
-      startSocketTest()
+    if (socket && !testStarted && !isReviewMode && !isInitialized) {
+      setIsInitialized(true);
+      startSocketTest();
     }
-  }, [startSocketTest, testStarted, isReviewMode])
+  }, [socket, testStarted, isReviewMode, isInitialized, startSocketTest]);
 
   // Update remaining time when test duration changes
   useEffect(() => {
@@ -130,7 +134,8 @@ const SocketTestPage: React.FC = () => {
       // Force navigation after a short delay
       setTimeout(() => {
         console.log("Forcing navigation to submit page")
-        navigate("/submit", { replace: true })
+        setIsReviewMode(true)
+        // navigate("/submit", { replace: true })
       }, 1000)
     } catch (error) {
       console.error("Error submitting test:", error)
