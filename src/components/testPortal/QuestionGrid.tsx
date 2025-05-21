@@ -56,11 +56,11 @@ const QuestionGrid: React.FC<QuestionGridProps> = ({
     }
   }
 
-  const gridCols = compact ? "grid-cols-5" : "grid-cols-5 md:grid-cols-10"
-  const buttonSize = compact ? "w-8 h-8 text-xs" : "w-10 h-10"
+  const gridCols = compact ? "grid-cols-8 md:grid-cols-5 gap-1 md:gap-2" : "grid-cols-8 md:grid-cols-5 gap-2 md:gap-3"
+  const buttonSize = compact ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm"
 
   return (
-    <div className={`grid ${gridCols} gap-2`}>
+    <div className={`grid ${gridCols}`}>
       {questions.map((question, index) => {
         const isMultipleChoice = question.multipleCorrectType
 
