@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import TestPortal from './pages/TestPortal';
+import TestPortal from './pages/testPortal';
 import SubmitPage from './pages/SubmitPage';
 import { Category } from './pages/Category';
 import { HomeLayout } from './components/home/layout';
 import Dashboard from './pages/Dashboard';
 import Givetest from './pages/Givetest';
+import CalendarPage from './pages/Calendar';
 import LogIn from './pages/logIn';
 import { AuthProvider } from './contexts/AuthContext';
 import { TestProvider } from "./contexts/TestContext"
@@ -35,9 +36,10 @@ function App() {
                
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/submit" element={<SubmitPage />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/tests" element={<TestSelection />} />
-              <Route path="/create-test" element={<Category />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/tests" element={<TestSelection />} />
+                <Route path="/create-test" element={<Category />} />
               <Route path="/givetest" element={<Givetest />} />
               <Route path="/packages" element={<TestSelector />} />
             </Route>

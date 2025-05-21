@@ -10,9 +10,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.17",
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/react": "^6.1.17",
+    "@fullcalendar/timegrid": "^6.1.17",
     "@headlessui/react": "^2.2.3",
     "@heroicons/react": "^2.2.0",
+    "@radix-ui/react-select": "^2.2.4",
+    "@schedule-x/calendar": "^2.31.0",
+    "@schedule-x/drag-and-drop": "^2.31.0",
+    "@schedule-x/event-modal": "^2.31.0",
+    "@schedule-x/events-service": "^2.31.0",
+    "@schedule-x/react": "^2.31.0",
+    "@schedule-x/theme-default": "^2.31.0",
     "@tailwindcss/vite": "^4.1.6",
+    "antd": "^5.25.2",
+    "clsx": "^2.1.1",
+    "crypto-browserify": "^3.12.1",
+    "dayjs": "^1.11.13",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.509.0",
     "react": "^19.1.0",
@@ -21,7 +37,8 @@
     "recharts": "^2.15.3",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.3.0",
-    "tailwindcss": "^4.1.6"
+    "tailwindcss": "^4.1.6",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
