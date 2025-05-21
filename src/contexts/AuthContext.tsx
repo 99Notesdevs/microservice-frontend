@@ -342,6 +342,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const userData = await response.json();
             if (userData.success && userData.data) {
               setUser(userData.data);
+              console.log("User data:", userData.data);
             }
           } else {
             // Token is invalid or expired

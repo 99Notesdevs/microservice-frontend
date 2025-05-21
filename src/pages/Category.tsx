@@ -1,9 +1,28 @@
 // pages/Category.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { CategorySelection } from '../components/home/CategorySelection';
+import { env } from '../config/env';
+import Cookies from 'js-cookie';
 // import type { CategoryType } from '../components/home/CategorySelection';
+
+// Add this interface at the top of the file
+interface TestPattern {
+  id: string;
+  correctAttempted: number;
+  wrongAttempted: number;
+  notAttempted: number;
+  partialAttempted?: number;
+  partialNotAttempted?: number;
+  partialWrongAttempted?: number;
+  timeTaken: number;
+  questionsSingle: number;
+  questionsMultiple?: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+}
 
 interface TestStats {
   correctAttempted: number;
@@ -30,9 +49,50 @@ export const Category = () => {
     questionsSingle: 0,
     questionsMultiple: 0
   });
-
+  const [testPatterns, setTestPatterns] = useState<TestPattern[]>([]);
+const [selectedPattern, setSelectedPattern] = useState<string | null>(null);
+const [isLoading, setIsLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  // Add this effect to fetch test patterns
+  useEffect(() => {
+    const fetchTestPatterns = async () => {
+      try {
+      const response = await fetch(`${env.API}/test`,{
+        headers: {
+          Authorization: `Bearer ${Cookies.get('token')}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch test patterns');
+      }
+      const testPatternsData = await response.json();
+      setTestPatterns(testPatternsData.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load test patterns');
+      console.error('Error fetching test patterns:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  fetchTestPatterns();
+}, []);
+  // Add this handler to apply a test pattern
+const handleSelectPattern = (pattern: TestPattern) => {
+  setSelectedPattern(pattern.id);
+  setTestStats({
+    correctAttempted: pattern.correctAttempted,
+    wrongAttempted: pattern.wrongAttempted,
+    notAttempted: pattern.notAttempted,
+    partialAttempted: pattern.partialAttempted,
+    partialNotAttempted: pattern.partialNotAttempted,
+    partialWrongAttempted: pattern.partialWrongAttempted,
+    timeTaken: pattern.timeTaken,
+    questionsSingle: pattern.questionsSingle,
+    questionsMultiple: pattern.questionsMultiple,
+  });
+};
   const handleChange = (field: keyof TestStats, value: number) => {
     const clamped = Math.max(0, Math.min(field === 'timeTaken' ? 3600 : 1000, value));
     setTestStats(prev => ({ ...prev, [field]: clamped }));
@@ -55,6 +115,51 @@ export const Category = () => {
 
   return (
     <div className="min-h-screen  w-full w-max-2000px bg-gray-200 py-10 px-4 sm:px-6">
+      {isLoading ? (
+  <div className="text-center py-8">Loading test patterns...</div>
+) : error ? (
+  <div className="text-center py-8 text-red-500">{error}</div>
+) : testPatterns.length > 0 && (
+  <div className="max-w-7xl mx-auto mb-8">
+    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-6 border border-orange-100">
+      <h2 className="text-2xl font-bold text-orange-500 mb-4">Saved Test Patterns</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {testPatterns.map((pattern) => (
+          <div
+            key={pattern.id}
+            onClick={() => handleSelectPattern(pattern)}
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+              selectedPattern === pattern.id
+                ? 'border-orange-500 bg-orange-50'
+                : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
+            }`}
+          >
+            <h3 className="font-semibold text-lg text-gray-800">{pattern.name}</h3>
+            {pattern.description && (
+              <p className="text-sm text-gray-600 mt-1">{pattern.description}</p>
+            )}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                {pattern.questionsSingle} Single
+              </span>
+              {pattern.questionsMultiple && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  {pattern.questionsMultiple} Multiple
+                </span>
+              )}
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                {pattern.timeTaken}s
+              </span>
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Created: {new Date(pattern.createdAt).toLocaleDateString()}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 sm:p-12 border border-orange-100">
           <h1 className="text-3xl sm:text-4xl font-bold text-center text-orange-500 mb-12">
@@ -68,7 +173,7 @@ export const Category = () => {
                 Test Parameters
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {(['correctAttempted', 'wrongAttempted', 'notAttempted'] as (keyof TestStats)[]).map(field => (
+                {(['correctAttempted', 'wrongAttempted', 'notAttempted','questionsSingle', 'questionsMultiple'] as (keyof TestStats)[]).map(field => (
                   <div key={field} className="group transition-all duration-300 hover:transform hover:scale-102">
                     <label className="block text-sm font-medium text-yellow-700 mb-2 capitalize group-hover:text-orange-500">
                       {field.replace(/([A-Z])/g, ' $1')}

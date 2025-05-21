@@ -15,12 +15,14 @@ export function useSocketTest() {
     selectedAnswers,
     startTime,
     negativeMarking,
+    markingScheme,
     setQuestions,
     setQuestionStatuses,
     setSelectedAnswersFromSocket,
     setIsReviewMode,
     setTestResult,
     setNegativeMarking,
+    setMarkingScheme
   } = useTestContext()
 
   // State setters for socket hook compatibility
@@ -125,16 +127,28 @@ export function useSocketTest() {
       const limit = urlParams.get("limit") || "10"
       const timeLimit = urlParams.get("timeLimit") || "30"
       const negativeMarkingParam = urlParams.get("negativeMarking") === "true"
-
+      const correctAttempted = urlParams.get("correctAttempted") || "0"
+      const wrongAttempted = urlParams.get("wrongAttempted") || "0"
+      const notAttempted = urlParams.get("notAttempted") || "0"
+      const partialAttempted = urlParams.get("partialAttempted") || "0"
+      const partialNotAttempted = urlParams.get("partialNotAttempted") || "0"
+      const partialWrongAttempted = urlParams.get("partialWrongAttempted") || "0"
+      const markingScheme = {
+        correct: Number.parseInt(correctAttempted),
+        incorrect: Number.parseInt(wrongAttempted),
+        unattempted: Number.parseInt(notAttempted),
+        partial: Number.parseInt(partialAttempted),
+        partialWrong: Number.parseInt(partialNotAttempted),
+        partialUnattempted: Number.parseInt(partialWrongAttempted),
+      }
       if (!categoryIds) throw new Error("No categories selected")
 
       // Set test parameters
       setTestDuration(Number.parseInt(timeLimit) * 60)
       setNegativeMarking(negativeMarkingParam)
-
+      setMarkingScheme(markingScheme) 
       // First make the HTTP request to queue the questions
-      const apiUrl = env.API || "http://localhost:5000/api"
-      const response = await fetch(`${apiUrl}/questions/test?limit=${limit}&categoryIds=${categoryIds}`, {
+      const response = await fetch(`${env.API}/questions/test?limit=${limit}&categoryIds=${categoryIds}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${Cookies.get("token")}`,
@@ -165,10 +179,11 @@ export function useSocketTest() {
       await socketSubmitTest()
 
       // Add a small delay to ensure the socket response is processed
-      setTimeout(() => {
-        console.log("Navigating to submit page after test submission")
-        navigate("/submit")
-      }, 500)
+      // setTimeout(() => {
+      //   // console.log("Navigating to submit page after test submission")
+      //   // navigate("/submit")
+      // }, 500)
+      console.log("Test submitted successfully came out of SocketSubmitTest")
     } catch (error) {
       setError("Failed to submit test")
     }

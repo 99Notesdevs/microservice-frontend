@@ -5,7 +5,8 @@ import Cookies from "js-cookie"
 import type { QuestionStatus } from "../types/testTypes"
 import { useSocket } from "../contexts/SocketContext"
 import { env } from "../config/env"
-
+import { useTestContext } from "../contexts/TestContext"
+import  {useAuth}  from "../contexts/AuthContext"
 interface UseSocketConnectionProps {
   userId: string | null | undefined
   questions: any[]
@@ -26,7 +27,6 @@ interface UseSocketConnectionProps {
 }
 
 export const useSocketConnection = ({
-//   userId,
   questions,
   selectedAnswers,
   questionStatuses,
@@ -45,6 +45,9 @@ export const useSocketConnection = ({
 }: UseSocketConnectionProps) => {
   const { socket } = useSocket() // Use the shared socket from context
   const apiUrl = env.API || "http://localhost:5000/api"
+  const {markingScheme} = useTestContext()
+  const {user} = useAuth()
+  const userId = user?.id
 
   // Use refs to track if event listeners are already set up
 //   const fetchQuestionsListenerSet = useRef(false)
@@ -216,13 +219,13 @@ export const useSocketConnection = ({
         return {
           questionId: q.id,
           selectedOption: answer,
-          status: questionStatuses[index],
+          // status: questionStatuses[index],
         }
       })
       console.log("Sending test submission:", {
         submissions,
-        timeTaken,
-        negativeMarking,
+        markingScheme,
+        userId
       })
 
       // Send POST request to /questions/submit
@@ -234,8 +237,8 @@ export const useSocketConnection = ({
         },
         body: JSON.stringify({
           submissions,
-          timeTaken,
-          negativeMarking,
+          markingScheme,
+          userId
         }),
       })
 
