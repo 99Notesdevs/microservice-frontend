@@ -1,24 +1,31 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
+
+
+// import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
 // import { useAuth } from '../../contexts/AuthContext';
 import logo from '../../assets/logo.png';
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
   // const { isAuthenticated } = useAuth();
 
-  const links = [
-    { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
-    { name: "Calendar", icon: <CalendarDays size={20} />, path: "/calendar" },
-    { name: "Inbox", icon: <Mail size={20} />, path: "/inbox" },
-    { name: "My Course", icon: <BookOpenCheck size={20} />, path: "/course" },
-    { name: "My Purchase", icon: <ShoppingBag size={20} />, path: "/purchases" },
-    { name: "Test Selection", icon: <Pencil size={20} />, path: "/test-selection" },
-  ];
+  // const links = [
+  //   { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
+  //   { name: "Calendar", icon: <CalendarDays size={20} />, path: "/calendar" },
+  //   { name: "Inbox", icon: <Mail size={20} />, path: "/inbox" },
+  //   { name: "My Course", icon: <BookOpenCheck size={20} />, path: "/course" },
+  //   { name: "My Purchase", icon: <ShoppingBag size={20} />, path: "/purchases" },
+  //   { name: "Test Selection", icon: <Pencil size={20} />, path: "/test-selection" },
+  // ];
 
   return (
     <>
-    <div className="h-16 w-full" />
-    <nav className="fixed top-0 left-0 w-full bg-white shadow-md z-50 h-16 flex items-center justify-between px-8">
+    <div className="w-full" />
+    <nav className="sticky top-0 w-full bg-white shadow-md z-40 h-16 flex items-center justify-between px-8">
       {/* Left Section - Logo */}
       <Link to="/about">
         <div className="flex items-center gap-4">
@@ -32,7 +39,7 @@ const Navbar: React.FC = () => {
       {/* Center Section - Navigation Links */}
       <div className="flex items-center gap-6">
         {/* Left Links */}
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           {links.slice(0, 3).map((link) => (
             <NavLink
               key={link.path}
@@ -49,7 +56,7 @@ const Navbar: React.FC = () => {
               <span className="text-sm font-medium">{link.name}</span>
             </NavLink>
           ))}
-        </div>
+        </div> */}
 
         {/* Give Test Button with Professional Design */}
         <div className="relative">
@@ -72,7 +79,7 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Right Links */}
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           {links.slice(3).map((link) => (
             <NavLink
               key={link.path}
@@ -89,38 +96,40 @@ const Navbar: React.FC = () => {
               <span className="text-sm font-medium">{link.name}</span>
             </NavLink>
           ))}
-        </div>
+        </div> */}
       </div>
 
-      {/* Right Section - Profile/Settings */}
+      {/* Right Section - Hamburger Menu */}
       <div className="flex items-center gap-4">
-        <div className="relative">
-          <img 
-            src="https://via.placeholder.com/40" 
-            alt="Profile" 
-            className="w-10 h-10 rounded-full cursor-pointer"
-          />
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 hidden">
-            <NavLink 
-              to="/dashboard" 
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Dashboard
-            </NavLink>
-            <NavLink 
-              to="/profile" 
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Profile
-            </NavLink>
-            <hr className="border-t border-gray-200 my-1" />
-            <button 
-              className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 rounded-lg bg-orange-100 hover:bg-orange-200 shadow-md lg:hidden"
+          aria-label="Toggle menu"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {isSidebarOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
+          </svg>
+        </button>
       </div>
     </nav>
     </>
