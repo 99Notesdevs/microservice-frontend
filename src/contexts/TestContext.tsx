@@ -177,6 +177,11 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
 
         return newAnswers
       })
+
+      // Move to next question if not at last question
+      if (currentQuestionIndex < testData.questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1)
+      }
     }
   }
 

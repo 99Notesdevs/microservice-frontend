@@ -8,9 +8,13 @@ const links = [
   { name: "Inbox", icon: <Mail size={18} />, path: "/inbox" },
   { name: "My Course", icon: <BookOpenCheck size={18} />, path: "/course" },
   { name: "Givetest", icon: <Star size={18} />, path: "/category" },
-  { name: "My Tests", icon: <Pencil size={18} />, path: "/givetest" },
+  { name: "My Tests", icon: <Pencil size={18} />, path: "/mytest" },
   { name: "My Purchase", icon: <ShoppingBag size={18} />, path: "/purchases" },
-  { name: "Test Selection", icon: <Pencil size={18} />, path: "/test-selection" },
+  {
+    name: "Test Selection",
+    icon: <Pencil size={18} />,
+    path: "/test-selection",
+  },
 ];
 
 export default function Sidebar() {

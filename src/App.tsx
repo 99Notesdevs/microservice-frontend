@@ -4,7 +4,7 @@ import SubmitPage from './pages/SubmitPage';
 import { Category } from './pages/Category';
 import { HomeLayout } from './components/home/layout';
 import Dashboard from './pages/Dashboard';
-import Givetest from './pages/Givetest';
+import Mytest from './pages/Mytest';
 import CalendarPage from './pages/Calendar';
 import LogIn from './pages/logIn';
 import { AuthProvider } from './contexts/AuthContext';
@@ -40,7 +40,7 @@ function App() {
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/tests" element={<TestSelection />} />
                 <Route path="/create-test" element={<Category />} />
-              <Route path="/givetest" element={<Givetest />} />
+              <Route path="/mytest" element={<Mytest />} />
               <Route path="/packages" element={<TestSelector />} />
             </Route>
             <Route path="/login" element={<LogIn />} />
