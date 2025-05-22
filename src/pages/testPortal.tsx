@@ -196,27 +196,6 @@ const TestPortal: React.FC = () => {
                   handleQuestionSelect(currentQuestionIndex - 1)
                 }
               }}
-              onSaveAndNext={
-                !isReviewMode
-                  ? () => {
-                      handleConfirmAnswer()
-                      if (currentQuestionIndex < testData.questions.length - 1) {
-                        handleQuestionSelect(currentQuestionIndex + 1)
-                      }
-                    }
-                  : undefined
-              }
-              onMarkForReview={
-                !isReviewMode
-                  ? () => {
-                      handleSaveForLater()
-                      if (currentQuestionIndex < testData.questions.length - 1) {
-                        handleQuestionSelect(currentQuestionIndex + 1)
-                      }
-                    }
-                  : undefined
-              }
-              isReviewMode={isReviewMode}
             />
           </div>
         </div>
