@@ -1,17 +1,16 @@
 "use client"
 
-import React from "react"
-import type { Question, QuestionStatus } from "../../types/testTypes"
-import { cn } from "../../lib/utils"
+import type React from "react"
+import { type Question, QuestionStatus, type UserAnswer } from "../../types/testTypes"
 
-type QuestionGridProps = {
+interface QuestionGridProps {
   questions: Question[]
   statuses: QuestionStatus[]
   currentIndex: number
   onQuestionSelect: (index: number) => void
   isReviewMode?: boolean
-  correctAnswers?: Record<string, string[]>
-  selectedAnswers: string[]
+  answers?: UserAnswer[]
+  compact?: boolean
 }
 
 const QuestionGrid: React.FC<QuestionGridProps> = ({
@@ -20,79 +19,71 @@ const QuestionGrid: React.FC<QuestionGridProps> = ({
   currentIndex,
   onQuestionSelect,
   isReviewMode = false,
-  correctAnswers,
-  selectedAnswers,
+  answers = [],
+  compact = false,
 }) => {
-  const getStatusColor = (index: number, status: QuestionStatus, isActive: boolean) => {
-    if (isActive) return "ring-2 ring-blue-500 ring-offset-2"
+  // Function to determine button color based on status and review mode
+  const getButtonColor = (status: QuestionStatus, index: number, isActive: boolean) => {
+    const baseClasses = isActive ? "ring-2 ring-blue-500 ring-offset-1 " : ""
 
     if (isReviewMode) {
-      // Get the correct answer and selected answer for this question
-      const correctAnswer = correctAnswers?.[questions[index].id]
-      const selectedAnswer = selectedAnswers[index]
+      const answer = answers.find((a) => a.questionId === questions[index].id)
 
-      // Determine the status based on correctness
-      if (status === "NOT_VISITED") {
-        return "bg-gray-300"
-      } else if (status === "ANSWERED") {
-        if (selectedAnswer === null) {
-          return "bg-gray-300" // Not answered
-        } else if (Array.isArray(selectedAnswer) && Array.isArray(correctAnswer)) {
-          // Multiple answer case
-          const correctCount = selectedAnswer.filter(answer => correctAnswer.includes(answer.toString())).length
-          if (correctCount === correctAnswer.length) {
-            return "bg-green-500 text-white" // All correct
-          } else if (correctCount > 0) {
-            return "bg-yellow-500 text-white" // Partially correct
-          } else {
-            return "bg-red-500 text-white" // All wrong
-          }
-        } else {
-          // Single answer case
-          return selectedAnswer?.toString() === correctAnswer?.[0] 
-            ? "bg-green-500 text-white"
-            : "bg-red-500 text-white"
+      if (answer) {
+        if (answer.isCorrect) {
+          return baseClasses + "bg-green-500 hover:bg-green-600 text-white"
+        } else if (answer.isPartiallyCorrect) {
+          return baseClasses + "bg-yellow-500 hover:bg-yellow-600 text-white"
+        } else if (answer.selectedOptions.length > 0) {
+          return baseClasses + "bg-red-500 hover:bg-red-600 text-white"
         }
-      } else if (status === "SAVED_FOR_LATER") {
-        return "bg-yellow-500 text-white" // Saved for later
-      } else {
-        return "bg-blue-500 text-white" // Visited
       }
+
+      return baseClasses + "bg-gray-300 hover:bg-gray-400"
     }
 
-    // For normal mode, keep the existing colors
     switch (status) {
-      case "NOT_VISITED":
-        return "bg-gray-300"
-      case "VISITED":
-        return "bg-red-500 text-white"
-      case "SAVED_FOR_LATER":
-        return "bg-purple-500 text-white"
-      case "ANSWERED":
-        return "bg-green-500 text-white"
+      case QuestionStatus.NOT_VISITED:
+        return baseClasses + "bg-gray-300 hover:bg-gray-400"
+      case QuestionStatus.VISITED:
+        return baseClasses + "bg-red-500 hover:bg-red-600 text-white"
+      case QuestionStatus.SAVED_FOR_LATER:
+        return baseClasses + "bg-amber-500 hover:bg-amber-600 text-white"
+      case QuestionStatus.ANSWERED:
+        return baseClasses + "bg-green-500 hover:bg-green-600 text-white"
       default:
-        return "bg-gray-300"
+        return baseClasses + "bg-gray-300 hover:bg-gray-400"
     }
   }
 
+  const gridCols = compact ? "grid-cols-8 md:grid-cols-5 gap-1 md:gap-2" : "grid-cols-8 md:grid-cols-5 gap-2 md:gap-3"
+  const buttonSize = compact ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm"
+
   return (
-    <div className="grid grid-cols-5 gap-2">
-      {questions.map((_, index) => (
-        <button
-          key={index}
-          onClick={() => onQuestionSelect(index)}
-          className={cn(
-            "w-full aspect-square flex items-center justify-center rounded-md text-sm font-medium transition-all",
-            getStatusColor(index, statuses[index], index === currentIndex),
-          )}
-          aria-label={`Question ${index + 1}`}
-          aria-current={index === currentIndex ? "true" : "false"}
-        >
-          {index + 1}
-        </button>
-      ))}
+    <div className={`grid ${gridCols}`}>
+      {questions.map((question, index) => {
+        const isMultipleChoice = question.multipleCorrectType
+
+        return (
+          <button
+            key={index}
+            className={`${buttonSize} rounded-md font-medium transition-colors ${getButtonColor(
+              statuses[index],
+              index,
+              index === currentIndex,
+            )}`}
+            onClick={() => onQuestionSelect(index)}
+            aria-label={`Question ${index + 1}`}
+          >
+            <div className="flex items-center justify-center">
+              <span>{index + 1}</span>
+              {isMultipleChoice && <span className="text-[8px] ml-0.5">*</span>}
+            </div>
+          </button>
+        )
+      })}
     </div>
   )
 }
 
-export default React.memo(QuestionGrid)
+export default QuestionGrid

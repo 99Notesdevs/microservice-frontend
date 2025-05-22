@@ -1,32 +1,17 @@
-"use client"
-
 import type React from "react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTestContext } from "../contexts/TestContext"
+import { useSocketTest } from "../hooks/useSocketTest"
 import QuestionGrid from "../components/testPortal/QuestionGrid"
 import QuestionDisplay from "../components/testPortal/QuestionDisplay"
 import NavigationButtons from "../components/testPortal/NavigationButtons"
-import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import FullScreenHeader from "../components/testPortal/FullScreenHeader"
-import type { SubmitFunction } from "../types/testTypes"
+import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import { AlertTriangle } from "lucide-react"
+import { useSocket } from "../contexts/SocketContext"
 
-// Example submit functions (to be replaced with actual implementations)
-const submitTestSeries: SubmitFunction = async (result) => {
-  console.log("Submitting test series result:", result)
-  // Implementation for submitting test series results
-  // e.g., API call to save results
-}
-
-const submitTest: SubmitFunction = async (result) => {
-  console.log("Submitting test result:", result)
-  // Implementation for submitting individual test results
-}
-
-const TEST_DURATION = 30 * 60 // 30 minutes in seconds
-
-const TestPortal: React.FC = () => {
+const SocketTestPage: React.FC = () => {
   const navigate = useNavigate()
   const {
     testData,
@@ -34,33 +19,42 @@ const TestPortal: React.FC = () => {
     questionStatuses,
     selectedAnswers,
     isReviewMode,
+    setIsReviewMode,
     handleQuestionSelect,
     handleOptionSelect,
     handleConfirmAnswer,
     handleSaveForLater,
-    handleSubmitTest,
   } = useTestContext()
 
-  const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
+  const { socket } = useSocket()
+  const { loading, error: socketError, testDuration, testStarted, startSocketTest, submitSocketTest } = useSocketTest()
+  const [remainingTime, setRemainingTime] = useState(testDuration)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
+  // const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Redirect to home if no test data is available
-    if (!testData) {
-      navigate("/")
+    if (socket && !testStarted && !isReviewMode && !isInitialized) {
+      setIsInitialized(true);
+      startSocketTest();
     }
-  }, [testData, navigate])
+  }, [socket, testStarted, isReviewMode, isInitialized, startSocketTest]);
+
+  // Update remaining time when test duration changes
+  useEffect(() => {
+    setRemainingTime(testDuration)
+  }, [testDuration])
 
   // Timer effect
   useEffect(() => {
-    if (isReviewMode) return
+    if (isReviewMode || loading || !testStarted) return
 
     const timer = setInterval(() => {
       setRemainingTime((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          handleSubmit()
+          submitSocketTest()
           return 0
         }
         return prev - 1
@@ -68,7 +62,7 @@ const TestPortal: React.FC = () => {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [isReviewMode])
+  }, [isReviewMode, loading, testStarted, submitSocketTest])
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -94,24 +88,35 @@ const TestPortal: React.FC = () => {
     }
   }, [])
 
-  const handleSubmit = useCallback(() => {
-    // Choose the appropriate submit function based on test type
-    let submitFn: SubmitFunction | undefined
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-xl">Loading questions...</div>
+      </div>
+    )
+  }
 
-    if (testData?.type === "testSeries") {
-      submitFn = submitTestSeries
-    } else if (testData?.type === "test") {
-      submitFn = submitTest
-    }
-
-    handleSubmitTest(submitFn)
-    // navigate("/submit")
-  }, [testData, handleSubmitTest, navigate])
+  if (socketError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="max-w-md p-6 bg-white rounded-lg shadow-lg">
+          <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-700">{socketError}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            onClick={() => navigate("/")}
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (!testData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-xl">Loading test data...</div>
+        <div className="text-xl">No test data available</div>
       </div>
     )
   }
@@ -120,10 +125,28 @@ const TestPortal: React.FC = () => {
   const currentAnswer = selectedAnswers.find((a) => a.questionId === currentQuestion.id)
   const answeredCount = questionStatuses.filter((status) => status === "ANSWERED").length
 
+  const handleSubmit = async () => {
+    try {
+      setShowConfirmSubmit(false)
+      console.log("Submitting socket test...")
+      await submitSocketTest()
+
+      // Force navigation after a short delay
+      setTimeout(() => {
+        console.log("Forcing navigation to submit page")
+        setIsReviewMode(true)
+        // navigate("/submit", { replace: true })
+      }, 1000)
+    } catch (error) {
+      console.error("Error submitting test:", error)
+      // setError("Failed to submit test. Please try again.")
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <FullScreenHeader
-        testName={testData.name}
+        testName="Socket Test"
         remainingTime={remainingTime}
         questionCount={testData.questions.length}
         answeredCount={answeredCount}
@@ -196,6 +219,27 @@ const TestPortal: React.FC = () => {
                   handleQuestionSelect(currentQuestionIndex - 1)
                 }
               }}
+              onSaveAndNext={
+                !isReviewMode
+                  ? () => {
+                      handleConfirmAnswer()
+                      if (currentQuestionIndex < testData.questions.length - 1) {
+                        handleQuestionSelect(currentQuestionIndex + 1)
+                      }
+                    }
+                  : undefined
+              }
+              onMarkForReview={
+                !isReviewMode
+                  ? () => {
+                      handleSaveForLater()
+                      if (currentQuestionIndex < testData.questions.length - 1) {
+                        handleQuestionSelect(currentQuestionIndex + 1)
+                      }
+                    }
+                  : undefined
+              }
+              isReviewMode={isReviewMode}
             />
           </div>
         </div>
@@ -236,4 +280,4 @@ const TestPortal: React.FC = () => {
   )
 }
 
-export default TestPortal
+export default SocketTestPage

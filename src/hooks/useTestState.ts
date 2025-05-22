@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import type { QuestionStatus, Question, TestResults } from "../types/testTypes"
+import type { QuestionStatus, Question, TestResults, MarkingScheme } from "../types/testTypes"
 
 export function useTestState() {
   const [searchParams] = useSearchParams()
@@ -20,7 +20,7 @@ export function useTestState() {
   )
   const [isReviewMode, setIsReviewMode] = useState<boolean>(false)
   const [testResults, setTestResults] = useState<TestResults | null>(null)
-
+  const [markingScheme, setMarkingScheme] = useState<MarkingScheme | null>(null)
   return {
     currentQuestionIndex,
     testDuration,
@@ -32,6 +32,7 @@ export function useTestState() {
     negativeMarking,
     isReviewMode,
     testResults,
+    markingScheme,
     setCurrentQuestionIndex,
     setTestDuration,
     setQuestions,
@@ -42,5 +43,6 @@ export function useTestState() {
     setNegativeMarking,
     setIsReviewMode,
     setTestResults,
+    setMarkingScheme,
   }
 }

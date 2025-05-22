@@ -1,4 +1,3 @@
-import Sidebar from './sidebar';
 import Navbar from './Navbar';
 
 interface HomeLayoutProps {
@@ -9,17 +8,13 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
   children,
 }) => {
   return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
-      <Sidebar />
-
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <Navbar />
+      
       {/* Main Content */}
-      <div className="flex-1 overflow-auto relative">
-        {/* Navbar */}
-        <Navbar />
-        <div className="" style={{ paddingTop: 56 }}>
-          {children}
-        </div>
+      <div className="mx-auto">
+        {children}
       </div>
     </div>
   );
