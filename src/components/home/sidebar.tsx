@@ -1,4 +1,4 @@
-import { Home, CalendarDays, Pencil, ShoppingBag, PhoneCall, Star, Power} from "lucide-react";
+import { Home, CalendarDays, Pencil, ShoppingBag, PhoneCall, Star, Power, MessageSquare } from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
 
 interface SidebarProps {
@@ -8,67 +8,45 @@ interface SidebarProps {
 }
 
 const links = [
-  { name: "Dashboard", icon: <Home size={18} />, path: "/dashboard" },
-  { name: "Calendar", icon: <CalendarDays size={18} />, path: "/calendar" },
-  { name: "My Purchase", icon: <ShoppingBag size={18} />, path: "/purchases" },
-  { name: "Givetest", icon: <Star size={18} />, path: "/tests" },
-  { name: "My Tests", icon: <Pencil size={18} />, path: "/mytest" },
+  { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
+  { name: "Calendar", icon: <CalendarDays size={20} />, path: "/calendar" },
+  { name: "Purchases", icon: <ShoppingBag size={20} />, path: "/purchases" },
+  { name: "Mock Test", icon: <Star size={20} />, path: "/tests" },
+  { name: "My Tests", icon: <Pencil size={20} />, path: "/mytest" },
+  { name: "Inbox", icon: <MessageSquare size={20} />, path: "/messages" },
 ];
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   useLocation();
 
   return (
-    <div className={`fixed top-0 left-0 h-screen bg-[#e9ded7] flex flex-col justify-between z-[1200] transition-all duration-300 ${
+    <div className={`fixed top-0 left-0 h-screen flex flex-col justify-between z-[1200] transition-all duration-300 ${
       isMobile ? (isSidebarOpen ? 'w-70' : 'w-0') : 'w-70'
-    }`} style={{ overflow: 'auto' }}>
-      {/* Hamburger Menu Button (visible only on mobile) */}
-      {/* <button 
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-4 left-4 z-[1300] p-2 rounded-lg bg-orange-100 hover:bg-orange-200 lg:hidden shadow-md"
-        aria-label="Toggle menu"
-      >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {isSidebarOpen ? (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          ) : (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          )}
-        </svg>
-      </button> */}
+    }`} style={{ 
+      overflow: 'auto',
+      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
+    }}>
 
       {/* Sidebar Content */}
       <div className="flex flex-col justify-between min-h-screen">
         {/* Top Profile Section */}
-        <div className="p-4 flex items-center gap-3 border-b border-orange-200 pb-4">
-          <img src="../../assets/react.svg" alt="Avatar" className="w-14 h-14 rounded-full" />
-          <div className="flex-1 flex items-center justify-between">
-            <div className="text-left">
-              <p className="font-semibold text-sm">Ritik Gupta</p>
-              <p className="text-xs text-gray-700">+91 9026704436</p>
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-4">
+            <img 
+              src="../../assets/react.svg" 
+              alt="Avatar" 
+              className="w-16 h-16 rounded-full border-2 border-gray-200"
+            />
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-900">Ritik Gupta</h2>
+              <p className="text-sm text-gray-600">+91 902670XXXX</p>
             </div>
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              className="ml-2 p-1 rounded-full hover:bg-orange-100 lg:hidden"
+              className="p-1 rounded-full hover:bg-gray-200 lg:hidden"
               aria-label="Close sidebar"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -77,33 +55,46 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
 
         {/* Navigation Links */}
         <nav className="flex-1">
-          {links.map((link) => (
-            <NavLink
-              key={link.name}
-              to={link.path}
-              onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile when clicking a link
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-2 text-sm ${
-                  isActive
-                    ? "bg-orange-400 text-black font-semibold"
-                    : "hover:bg-orange-100 text-gray-700"
-                }`
-              }
-            >
-              {link.icon}
-              {link.name}
-            </NavLink>
-          ))}
+          <div className="space-y-1">
+            {links.map((link) => (
+              <NavLink
+                key={link.name}
+                to={link.path}
+                onClick={() => setIsSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
+                    isActive
+                      ? "bg-gray-100 text-gray-900"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`
+                }
+              >
+                {link.icon}
+                {link.name}
+              </NavLink>
+            ))}
+          </div>
         </nav>
 
-        {/* Bottom Buttons */}
-        <div className="bg-orange-400 text-white text-sm flex justify-around py-3">
-          <button className="flex items-center gap-1">
-            <PhoneCall size={16} /> Connect Us
-          </button>
-          <button className="flex items-center gap-1">
-            <Power size={16} /> Logout
-          </button>
+        {/* Bottom Section */}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex flex-col gap-3">
+            <button 
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 w-full"
+            >
+              <PhoneCall size={18} />
+              Contact Support
+            </button>
+            <button 
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full"
+              onClick={() => {
+                // Add logout functionality
+              }}
+            >
+              <Power size={18} />
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
     </div>
