@@ -9,15 +9,15 @@ interface HomeLayoutProps {
 export const HomeLayout: React.FC<HomeLayoutProps> = ({
   children,
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       const isMobileScreen = window.innerWidth < 1024;
       setIsMobile(isMobileScreen);
-      // Close sidebar on mobile, open on desktop
-      setIsSidebarOpen(!isMobileScreen);
+      // Keep sidebar closed by default on all screen sizes
+      // User can manually open it using the hamburger menu
     };
 
     handleResize(); // Initial check
@@ -26,22 +26,29 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex flex-col lg:flex-row">
-        <div className={`w-70 ${isMobile ? 'lg:block' : ''}`}>
-          <Sidebar 
-            isSidebarOpen={isSidebarOpen}
-            setIsSidebarOpen={setIsSidebarOpen}
-            isMobile={isMobile}
-          />
-        </div>
-        <div className={`flex-1 ${isMobile && !isSidebarOpen ? 'lg:w-full' : ''}`}>
-          <div className="lg:pl-0 transition-all duration-300">
-            <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-            <div>
-              {children}
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Blur Overlay */}
+      {isSidebarOpen && isMobile && (
+        <div 
+          className="fixed inset-0 bg-white/30 backdrop-blur-sm z-[1100] transition-all duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className="fixed left-0 top-0 h-full z-[1200]">
+        <Sidebar 
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          isMobile={isMobile}
+        />
+      </div>
+      
+      {/* Main Content */}
+      <div className="w-full min-h-screen transition-all duration-300">
+        <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+        <div className="w-full">
+          {children}
         </div>
       </div>
     </div>
