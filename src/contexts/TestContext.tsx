@@ -72,7 +72,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     if (testData) {
       // Initialize question statuses
       setQuestionStatuses(testData.questions.map(() => QuestionStatus.NOT_VISITED))
-
+      console.log("testResult",testResult)
       // Initialize selected answers
       setSelectedAnswers(
         testData.questions.map((question) => ({
@@ -217,27 +217,34 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     newStatuses[currentQuestionIndex] = QuestionStatus.SAVED_FOR_LATER
     setQuestionStatuses(newStatuses)
   }
-
-  const handleSubmitTest = (submitFn?: SubmitFunction) => {
+  const handleSubmitTest = async (submitFn?: SubmitFunction) => {
     if (!testData) return
-
+    console.log("Submitting test... using this path")
     const endTime = Date.now()
     const timeTaken = Math.floor((endTime - startTime) / 1000) // Time taken in seconds
-
+  
     // Count single and multiple choice questions
     const questionsSingle = testData.questions.filter((q) => !q.multipleCorrectType).length
     const questionsMultiple = testData.questions.filter((q) => q.multipleCorrectType).length
-
+  
     // Calculate statistics
     let correctAttempted = 0
     let wrongAttempted = 0
     let notAttempted = 0
     let partialAttempted = 0
-
+  
+    // Create answers object in the format expected by the backend
+    const answers: Record<string, string[]> = {}
+    const correctAnswers: Record<string, string[]> = {}
+  
     testData.questions.forEach((question, index) => {
       const status = questionStatuses[index]
       const answer = selectedAnswers.find((a) => a.questionId === question.id)
-
+      
+      // Initialize answers object for the question
+      answers[question.id] = answer?.selectedOptions?.map(String) || []
+      correctAnswers[question.id] = question.answer.split(',').map(a => a.trim())
+  
       if (status === QuestionStatus.ANSWERED && answer) {
         if (answer.isCorrect) {
           correctAttempted++
@@ -250,27 +257,36 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
         notAttempted++
       }
     })
-
-    // Create test result
-    const result: TestResult = {
+  
+    // Create test result in the new format
+    const result = {
       name: testData.name,
+      score: correctAttempted, // This will be updated by the server
+      totalQuestions: testData.questions.length,
+      negativeMarking,
+      timeTaken,
+      answers,
+      correctAnswers,
+      // Keep old format for backward compatibility
       correctAttempted,
       wrongAttempted,
       notAttempted,
       partialAttempted: partialAttempted || undefined,
-      timeTaken,
       questionsSingle,
       questionsMultiple: questionsMultiple || undefined,
-      answers: selectedAnswers,
-      negativeMarking,
     }
-
+  
     // Set the result in state
     setTestResult(result)
-
+  
     // Call the provided submit function if any
     if (submitFn) {
-      submitFn(result)
+      try {
+        await submitFn(result)
+      } catch (error) {
+        console.error('Error submitting test:', error)
+        // Handle error appropriately
+      }
     }
   }
 

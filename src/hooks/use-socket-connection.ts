@@ -1,12 +1,12 @@
-"use client"
-
-import { useEffect, useCallback } from "react"
+import { useEffect, useCallback, useRef } from "react"
 import Cookies from "js-cookie"
 import type { QuestionStatus } from "../types/testTypes"
 import { useSocket } from "../contexts/SocketContext"
 import { env } from "../config/env"
 import { useTestContext } from "../contexts/TestContext"
-import  {useAuth}  from "../contexts/AuthContext"
+import { useAuth } from "../contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
+
 interface UseSocketConnectionProps {
   userId: string | null | undefined
   questions: any[]
@@ -37,25 +37,23 @@ export const useSocketConnection = ({
   setSelectedAnswers,
   setLoading,
   setError,
-  setTestDuration,
-  setNegativeMarking,
   setTestStarted,
   setIsReviewMode,
-  setTestResults,
 }: UseSocketConnectionProps) => {
   const { socket } = useSocket() // Use the shared socket from context
-  const apiUrl = env.API || "http://localhost:5000/api"
-  const {markingScheme} = useTestContext()
-  const {user} = useAuth()
+  const apiUrl = env.API
+  const { markingScheme, testData, setTestResult } = useTestContext()
+  const { user } = useAuth()
   const userId = user?.id
-
-  // Use refs to track if event listeners are already set up
-//   const fetchQuestionsListenerSet = useRef(false)
-//   const submitQuestionsListenerSet = useRef(false)
-
-  // Replace the entire useEffect hook that sets up event listeners with this more stable version
-  // This will prevent the constant reconnections and event listener setup/teardown
-
+  const navigate = useNavigate()
+  const questionsRef = useRef(questions)  
+  const selectedAnswersRef = useRef(selectedAnswers)
+  useEffect(() => {
+    questionsRef.current = questions
+  }, [questions])
+  useEffect(() => {
+    selectedAnswersRef.current = selectedAnswers
+  }, [selectedAnswers])
   useEffect(() => {
     if (!socket) return
 
@@ -92,44 +90,86 @@ export const useSocketConnection = ({
     // Function to handle submit-questions event
     const handleSubmitQuestions = (data: any) => {
       console.log("Received test results:", data)
-      console.log("data.score", data.score)
-      console.log("data.result", data.result)
       if (data.status === "success") {
+        const currentQuestions = questionsRef.current
+        const currentSelectedAnswers = selectedAnswersRef.current
+        console.log("currentQuestions", currentQuestions)
+        console.log("currentSelectedAnswers", currentSelectedAnswers)
+        // Convert the results object into an array of questions
+        const resultsArray = Object.values(data.result)
+
         // Process results for review mode
-        const updatedQuestions = questions.map((q: any) => {
-          const result = data.result[q.id]
+        const updatedQuestions = currentQuestions.map((q: any) => {
+          const questionResult = data.result[q.id]
+          if (!questionResult) return q
+
           return {
             ...q,
-            explanation: result?.explanation,
-            answer: result?.answer,
+            explanation: questionResult.explaination || "",
+            answer: questionResult.answer || "",
+            isCorrect: questionResult.isCorrect,
           }
         })
 
         setQuestions(updatedQuestions)
+        console.log("updatedQuestions", updatedQuestions)
 
-        const correctAnswers = Object.entries(data.result).reduce<Record<string, string[]>>(
-          (acc, [questionId, result]) => {
-            const correctAnswer = (result as any).answer || ""
-            acc[questionId] = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer]
-            return acc
-          },
-          {},
-        )
+        // Prepare correct answers in the expected format
+        const correctAnswers: Record<string, string[]> = {}
+        const formattedSelectedAnswers: Record<string, string[]> = {}
 
-        // Calculate score using isCorrect values
-        const score = data.score
+        // Process each question to build the answers and correctAnswers objects
+        resultsArray.forEach((q: any) => {
+          if (q.id) {
+            const questionId = q.id.toString()
 
-        const results = {
-          score: Math.max(0, Math.round(score * 100) / 100),
+            // Get correct answers
+            if (q.answer) {
+              correctAnswers[questionId] = q.answer
+                .toString()
+                .split(",")
+                .map((a: string) => a.trim())
+            } else {
+              correctAnswers[questionId] = []
+            }
+
+            // Find the user's answer for this question
+            const questionIndex = currentQuestions.findIndex((question) => question.id === q.id)
+            if (questionIndex >= 0 && questionIndex < currentSelectedAnswers.length) {
+              const userAnswer = currentSelectedAnswers[questionIndex]
+              if (userAnswer !== null) {
+                formattedSelectedAnswers[questionId] = userAnswer.split(",").map((a) => a.trim())
+              } else {
+                formattedSelectedAnswers[questionId] = []
+              }
+            } else {
+              formattedSelectedAnswers[questionId] = []
+            }
+          }
+        })
+
+        // Create the final test result object
+        const testResult = {
+          score: Math.max(0, Math.round(data.score * 100) / 100),
           totalQuestions: questions.length,
           negativeMarking,
           timeTaken: Math.floor((Date.now() - startTime) / 1000),
-          answers: selectedAnswers,
+          answers: formattedSelectedAnswers,
           correctAnswers,
+          status: data.status,
+          userId: userId,
         }
-        console.log("results", results)
-        setTestResults(results)
+
+        console.log("Processed test result:", testResult)
+
+        // Set the test result in the context
+        setTestResult(testResult)
+
+        // Update the UI state
         setIsReviewMode(true)
+
+        // Navigate to the results page
+        navigate("/submit")
       } else {
         setError(data.message || "Failed to submit test")
       }
@@ -146,13 +186,11 @@ export const useSocketConnection = ({
       socket.off("fetch-questions", handleFetchQuestions)
       socket.off("submit-questions", handleSubmitQuestions)
     }
-  }, [socket]) // Only depend on socket, not on any other state variables
+  }, [socket])
 
   const handleSubmitTest = useCallback(async () => {
     setTestStarted(false)
     console.log("request made for submit")
-    const endTime = Date.now()
-    const timeTaken = Math.floor((endTime - startTime) / 1000)
 
     if (!socket) {
       setError("Socket connection not established")
@@ -161,6 +199,8 @@ export const useSocketConnection = ({
 
     try {
       // Prepare submissions for all questions
+      console.log("testData", testData)
+      console.log("questions", questions)
       const submissions = questions.map((q, index) => {
         // Get the answer if it's answered, otherwise use -1
         const answer = questionStatuses[index] === "ANSWERED" ? String(selectedAnswers[index]) : "-1"
@@ -173,7 +213,7 @@ export const useSocketConnection = ({
       console.log("Sending test submission:", {
         submissions,
         markingScheme,
-        userId
+        userId,
       })
 
       // Send POST request to /questions/submit
@@ -186,7 +226,7 @@ export const useSocketConnection = ({
         body: JSON.stringify({
           submissions,
           markingScheme,
-          userId
+          userId,
         }),
       })
       console.log("made the post request")
@@ -210,7 +250,8 @@ export const useSocketConnection = ({
     negativeMarking,
     apiUrl,
     markingScheme,
-    userId
+    userId,
+    testData,
   ])
 
   return { socket, handleSubmitTest }
