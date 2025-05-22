@@ -105,7 +105,7 @@ const TestPortal: React.FC = () => {
     }
 
     handleSubmitTest(submitFn)
-    navigate("/submit")
+    // navigate("/submit")
   }, [testData, handleSubmitTest, navigate])
 
   if (!testData) {

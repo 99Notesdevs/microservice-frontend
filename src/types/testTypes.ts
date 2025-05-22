@@ -29,21 +29,15 @@ export interface MarkingScheme {
   partialWrong: number
   partialUnattempted: number
 }
+
 export interface TestResult {
   id?: number
-  name: string
   score: number
-  correctAttempted: number
-  wrongAttempted: number
-  notAttempted: number
-  partialAttempted?: number
-  partialNotAttempted?: number
-  partialWrongAttempted?: number
+  totalQuestions: number
+  negativeMarking: boolean
   timeTaken: number
-  questionsSingle: number
-  questionsMultiple?: number
-  answers: UserAnswer[]
-  negativeMarking?: boolean
+  answers: Record<string, string[]> // questionId -> array of selected answers
+  correctAnswers: Record<string, string[]> // questionId -> array of correct answers
 }
 
 export interface UserAnswer {

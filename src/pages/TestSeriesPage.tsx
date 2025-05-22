@@ -12,119 +12,105 @@ import Cookies from "js-cookie"
 import {env} from "../config/env"
 import { useSocketTest } from "../hooks/useSocketTest"
 // API function to fetch test series data
-const fetchTestSeriesData = async (testSeriesId: string) => {
-  try {
-    const apiUrl = env.API || "http://localhost:5000/api"
-    const response = await fetch(`${apiUrl}/testSeries/${testSeriesId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${Cookies.get("token")}`,
-      },
-    })
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch test series data")
-    }
 
-    const data = await response.json()
-
-    // Extract questions from the response
-    if (data && data.data && data.data.questions) {
-      return {
-        id: Number.parseInt(testSeriesId),
-        name: data.data.name || `Test Series ${testSeriesId}`,
-        questions: data.data.questions.map((q: any) => ({
-          id: q.id,
-          question: q.question,
-          options: q.options || [],
-          answer: q.answer || "",
-          explaination: q.explanation || q.explaination || "",
-          multipleCorrectType: q.multipleCorrectType || false,
-          pyq: q.pyq || false,
-          year: q.year,
-          creatorName: q.creatorName,
-        })),
-      }
-    }   
-
-    throw new Error("Invalid test series data format")
-  } catch (error) {
-    console.error("Error fetching test series:", error)
-    throw error
-  }
-}
-
-// API function to submit test series results
-const submitTestSeriesResults = async (testSeriesId: string, result: any) => {
-  try {
-    const apiUrl = env.API || "http://localhost:5000/api"
-    const response = await fetch(`${apiUrl}/testSeries/${testSeriesId}/submit`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${Cookies.get("token")}`,
-      },
-      body: JSON.stringify(result),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to submit test series results")
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error submitting test series results:", error)
-    throw error
-  }
-}
-
-const TEST_DURATION = 30 * 60 // 30 minutes in seconds
-
-const TestSeriesPage: React.FC = () => {
-  const navigate = useNavigate()
-  const { testSeriesId } = useParams<{ testSeriesId: string }>()
-  const {submitSocketTest} = useSocketTest()
-  const {
-    testData,
-    currentQuestionIndex,
-    questionStatuses,
-    selectedAnswers,
-    isReviewMode,
-    handleQuestionSelect,
-    handleOptionSelect,
-    handleConfirmAnswer,
-    handleSaveForLater,
-    handleSubmitTest,
-    setTestData,
-  } = useTestContext()
-
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
-  const [isFullScreen, setIsFullScreen] = useState(false)
-  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
-
-  // Fetch test series data
-  useEffect(() => {
-    const loadTestSeriesData = async () => {
-      if (!testSeriesId) {
-        setError("No test series ID provided")
-        setLoading(false)
-        return
-      }
-
-      try {
-        const data = await fetchTestSeriesData(testSeriesId)
-        setTestData({
-          id: data.id,
-          name: data.name,
-          questions: data.questions,
-          type: "testSeries",
-        })
-        setLoading(false)
-      } catch (err) {
-        setError("Failed to load test series data")
-        setLoading(false)
+            const TEST_DURATION = 30 * 60 // 30 minutes in seconds
+            
+            const TestSeriesPage: React.FC = () => {
+              const navigate = useNavigate()
+              const { testSeriesId } = useParams<{ testSeriesId: string }>()
+              const {submitSocketTest} = useSocketTest()
+              const {
+                testData,
+                currentQuestionIndex,
+                questionStatuses,
+                selectedAnswers,
+                isReviewMode,
+                handleQuestionSelect,
+                handleOptionSelect,
+                handleConfirmAnswer,
+                handleSaveForLater,
+                setTestData,
+                setMarkingScheme,
+              } = useTestContext()
+              
+              const [loading, setLoading] = useState(true)
+              const [error, setError] = useState<string | null>(null)
+              const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
+              const [isFullScreen, setIsFullScreen] = useState(false)
+              const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
+              
+              // Fetch test series data
+              const fetchTestSeriesData = async (testSeriesId: string) => {
+                try {
+                  const apiUrl = env.API
+                  const response = await fetch(`${apiUrl}/testSeries/${testSeriesId}`, {
+                    method: "GET",
+                    headers: {
+                      Authorization: `Bearer ${Cookies.get("token")}`,
+                    },
+                  })
+              
+                  if (!response.ok) {
+                    throw new Error("Failed to fetch test series data")
+                  }
+              
+                  const data = await response.json()
+                  const markingScheme = {
+                    correct: data.data.correctAttempted,
+                    incorrect: data.data.wrongAttempted,
+                    unattempted: data.data.notAttempted,
+                    partial: data.data.partialAttempted,
+                    partialWrong: data.data.partialNotAttempted,
+                    partialUnattempted: data.data.partialWrongAttempted,
+                  }
+                  setMarkingScheme(markingScheme)
+                  console.log("Marking scheme:", markingScheme)
+                  // Extract questions from the response
+                  if (data && data.data && data.data.questions) {
+                    return {
+                      id: Number.parseInt(testSeriesId),
+                      name: data.data.name || `Test Series ${testSeriesId}`,
+                      questions: data.data.questions.map((q: any) => ({
+                        id: q.id,
+                        question: q.question,
+                        options: q.options || [],
+                        answer: q.answer || "",
+                        explaination: q.explanation || q.explaination || "",
+                        multipleCorrectType: q.multipleCorrectType || false,
+                        pyq: q.pyq || false,
+                        year: q.year,
+                        creatorName: q.creatorName,
+                      })),
+                    }
+                  }   
+                  
+                  throw new Error("Invalid test series data format")
+                } catch (error) {
+                  console.error("Error fetching test series:", error)
+                  throw error
+                }
+              }
+              useEffect(() => {
+                const loadTestSeriesData = async () => {
+                  if (!testSeriesId) {
+                    setError("No test series ID provided")
+                    setLoading(false)
+                    return
+                  }
+                  
+                  try {
+                    const data = await fetchTestSeriesData(testSeriesId)
+                    setTestData({
+                      id: data.id,
+                      name: data.name,
+                      questions: data.questions,
+                      type: "testSeries",
+                    })
+                    setLoading(false)
+                  } catch (err) {
+                    setError("Failed to load test series data")
+                    setLoading(false)
       }
     }
 
