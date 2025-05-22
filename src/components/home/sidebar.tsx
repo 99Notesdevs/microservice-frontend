@@ -1,30 +1,31 @@
-import { Home, CalendarDays, Mail, BookOpenCheck, Pencil, ShoppingBag, PhoneCall, Star, Power, Settings } from "lucide-react";
+import { Home, CalendarDays, Pencil, ShoppingBag, PhoneCall, Star, Power} from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
-import { useState } from 'react';
+
+interface SidebarProps {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isMobile: boolean;
+}
 
 const links = [
   { name: "Dashboard", icon: <Home size={18} />, path: "/dashboard" },
   { name: "Calendar", icon: <CalendarDays size={18} />, path: "/calendar" },
-  { name: "Inbox", icon: <Mail size={18} />, path: "/inbox" },
-  { name: "My Course", icon: <BookOpenCheck size={18} />, path: "/course" },
-  { name: "Givetest", icon: <Star size={18} />, path: "/category" },
-  { name: "My Tests", icon: <Pencil size={18} />, path: "/givetest" },
   { name: "My Purchase", icon: <ShoppingBag size={18} />, path: "/purchases" },
-  { name: "Test Selection", icon: <Pencil size={18} />, path: "/test-selection" },
+  { name: "Givetest", icon: <Star size={18} />, path: "/tests" },
+  { name: "My Tests", icon: <Pencil size={18} />, path: "/mytest" },
 ];
 
-export default function Sidebar() {
-  // Location is used internally by NavLink for active state
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   useLocation();
 
   return (
-    <>
+    <div className={`fixed top-0 left-0 h-screen bg-[#e9ded7] flex flex-col justify-between z-[1200] transition-all duration-300 ${
+      isMobile ? (isSidebarOpen ? 'w-70' : 'w-0') : 'w-70'
+    }`} style={{ overflow: 'auto' }}>
       {/* Hamburger Menu Button (visible only on mobile) */}
-      <button 
+      {/* <button 
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-4 right-4 z-[997] p-2 rounded-lg bg-orange-100 hover:bg-orange-200 md:hidden shadow-md"
-        style={{ position: 'fixed', top: '1rem', right: '1rem' }}
+        className="fixed top-4 left-4 z-[1300] p-2 rounded-lg bg-orange-100 hover:bg-orange-200 lg:hidden shadow-md"
         aria-label="Toggle menu"
       >
         <svg
@@ -38,34 +39,22 @@ export default function Sidebar() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth="2"
               d="M6 18L18 6M6 6l12 12"
             />
           ) : (
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth="2"
               d="M4 6h16M4 12h16M4 18h16"
             />
           )}
         </svg>
-      </button>
+      </button> */}
 
-      {/* Overlay (visible only on mobile when sidebar is open) */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-[998] md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div 
-        className={`fixed md:static inset-y-0 left-0 z-[1100] w-70 transform ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transition-transform duration-300 ease-in-out min-h-screen bg-[#e9ded7] flex flex-col justify-between`}
-      >
+      {/* Sidebar Content */}
+      <div className="flex flex-col justify-between min-h-screen">
         {/* Top Profile Section */}
         <div className="p-4 flex items-center gap-3 border-b border-orange-200 pb-4">
           <img src="../../assets/react.svg" alt="Avatar" className="w-14 h-14 rounded-full" />
@@ -74,9 +63,15 @@ export default function Sidebar() {
               <p className="font-semibold text-sm">Ritik Gupta</p>
               <p className="text-xs text-gray-700">+91 9026704436</p>
             </div>
-            <NavLink to="/profile/edit" className="ml-2 p-1 rounded-full hover:bg-orange-100">
-              <Settings size={20} />
-            </NavLink>
+            <button 
+              onClick={() => setIsSidebarOpen(false)}
+              className="ml-2 p-1 rounded-full hover:bg-orange-100 lg:hidden"
+              aria-label="Close sidebar"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -111,6 +106,6 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
