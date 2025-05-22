@@ -15,7 +15,6 @@ export function useSocketTest() {
     selectedAnswers,
     startTime,
     negativeMarking,
-    markingScheme,
     setQuestions,
     setQuestionStatuses,
     setSelectedAnswersFromSocket,
@@ -30,7 +29,7 @@ export function useSocketTest() {
   const [error, setError] = useState<string | null>(null)
   const [testDuration, setTestDuration] = useState(30 * 60) // 30 minutes default
   const [testStarted, setTestStarted] = useState(false)
-  const [socketTestResults, setSocketTestResults] = useState(null)
+
 
   // Get userId from cookies or localStorage
   const userId = Cookies.get("userId") || localStorage.getItem("userId")
@@ -75,42 +74,9 @@ export function useSocketTest() {
     setTestStarted,
     setIsReviewMode,
     setTestResults: (results) => {
+      console.log("Received test results:", results)
       if (!results) return
-
-      // Map socket results to our format
-      const mappedResult = {
-        name: testData?.name || "Socket Test",
-        correctAttempted: 0, // Calculate from results
-        wrongAttempted: 0,
-        notAttempted: results.totalQuestions - results.answers.filter((a: string | null) => a !== null).length,
-        timeTaken: results.timeTaken,
-        questionsSingle: socketQuestions.filter((q) => !q.multipleCorrectType).length,
-        questionsMultiple: socketQuestions.filter((q) => q.multipleCorrectType).length,
-        answers: selectedAnswers,
-        negativeMarking: results.negativeMarking,
-        score: results.score,
-      }
-
-      // Calculate correct and wrong answers
-      socketQuestions.forEach((question, index) => {
-        const userAnswer = results.answers[index]
-        const correctAnswer = results.correctAnswers[question.id]
-
-        if (!userAnswer) return // Not attempted
-
-        const isCorrect = Array.isArray(correctAnswer)
-          ? correctAnswer.includes(userAnswer)
-          : correctAnswer === userAnswer
-
-        if (isCorrect) {
-          mappedResult.correctAttempted++
-        } else {
-          mappedResult.wrongAttempted++
-        }
-      })
-
-      setTestResult(mappedResult)
-      setSocketTestResults(results)
+      setTestResult(results)
     },
   })
 
@@ -181,11 +147,6 @@ export function useSocketTest() {
       console.log("request made for submit")
       await socketSubmitTest()
 
-      // Add a small delay to ensure the socket response is processed
-      setTimeout(() => {
-        console.log("Navigating to submit page after test submission")
-        navigate("/submit")
-      }, 500)
       console.log("Test submitted successfully came out of SocketSubmitTest")
     } catch (error) {
       setError("Failed to submit test")
@@ -200,6 +161,6 @@ export function useSocketTest() {
     testStarted,
     startSocketTest,
     submitSocketTest,
-    socketTestResults,
+    
   }
 }
