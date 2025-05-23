@@ -364,7 +364,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [])
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const response = await fetch(`${env.API_MAIN}/user`, {
         method: "POST",
@@ -372,18 +372,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Login failed")
+        throw new Error("Login failed");
       }
 
-      const data = await response.json()
+      const data = await response.json();
       const token = data.data.split(' ')[1];
+      
       // Save token to cookies
-      Cookies.set("token", token, { expires: 7 }) // 7 days expiry
+      Cookies.set("token", token, { expires: 7 }); // 7 days expiry
 
-      // Save userId to localStorage for socket connection
+      // Fetch user data
       const userData = await fetch(`${env.API_MAIN}/user`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -393,35 +394,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const userDataJson = await userData.json();
-      const userId = userDataJson.data.id;
+      
+      if (!userDataJson.data) {
+        throw new Error('Invalid user data received');
+      }
 
-      // Store user ID in localStorage (more secure than cookies for this purpose)
-      localStorage.setItem('userId', userId);
-      navigate('/dashboard')
-      console.log("navigtion")
-      setUser(data.user)
-      setIsLoading(false)
+      const user = {
+        id: userDataJson.data.id,
+        email: userDataJson.data.email,
+        name: userDataJson.data.name
+      };
+
+      // Update user state before navigation
+      setUser(user);
+      localStorage.setItem('userId', user.id.toString());
+      
+      // Navigate to dashboard after successful login and state update
+      navigate('/dashboard', { replace: true });
+      
     } catch (error) {
-      setIsLoading(false)
-      throw error
+      console.error('Login error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
   }
 
   const logout = async () => {
-    const response = await fetch(`${env.API_MAIN}/user/logout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${Cookies.get("token")}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error("Logout failed")
+    try {
+      const response = await fetch(`${env.API_MAIN}/user/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Continue with logout even if the API call fails
+    } finally {
+      // Always clean up and redirect
+      Cookies.remove("token");
+      localStorage.removeItem("userId");
+      setUser(null);
+      navigate('/login');
     }
-    // Remove token and user data
-    Cookies.remove("token")
-    localStorage.removeItem("userId")
-    setUser(null)
   }
 
   return (
