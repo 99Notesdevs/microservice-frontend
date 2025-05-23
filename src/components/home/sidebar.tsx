@@ -1,5 +1,6 @@
 import { Home, CalendarDays, Pencil, ShoppingBag, PhoneCall, Star, Power, MessageSquare } from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -19,6 +20,7 @@ const links = [
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) {
   useLocation();
+  const {logout} = useAuth()
 
   return (
     <div 
@@ -94,7 +96,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }: SidebarProp
             <button 
               className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full"
               onClick={() => {
-                // Add logout functionality
+               logout()
               }}
             >
               <Power size={18} />
