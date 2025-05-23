@@ -16,6 +16,8 @@ import TestSeriesPage from "./pages/TestSeriesPage"
 import ReviewPage from "./pages/ReviewPage"
 import TestSelection from "./pages/testSelection"
 import About from "./pages/about"
+import {ProtectedRoute} from "./components/ProtectedRoute"
+import MytestSeries from "./pages/MytestSeries"
 // Layout wrapper component
 const LayoutWithSidebar = () => (
   <HomeLayout>
@@ -34,26 +36,27 @@ function App() {
               <Route element={<LayoutWithSidebar />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/submit" element={<SubmitPage />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/tests" element={<TestSelection />} />
-                <Route path="/create-test" element={<Category />} />
-              <Route path="/mytest" element={<Mytest />} />
-              <Route path="/packages" element={<TestSelector />} />
+              <Route path="/dashboard" element={<ProtectedRoute requirePaid={true}><Dashboard /></ProtectedRoute>} />
+              <Route path="/submit" element={<ProtectedRoute requirePaid={true}><SubmitPage /></ProtectedRoute>} />
+                <Route path="/about" element={<ProtectedRoute requirePaid={true}><About /></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute requirePaid={true}><CalendarPage /></ProtectedRoute>} />
+                <Route path="/tests" element={<ProtectedRoute requirePaid={true}><TestSelection /></ProtectedRoute>} />
+                <Route path="/create-test" element={<ProtectedRoute requirePaid={true}><Category /></ProtectedRoute>} />
+              <Route path="/mytest" element={<ProtectedRoute requirePaid={true}><Mytest /></ProtectedRoute>} />
+              <Route path="/packages" element={<ProtectedRoute requirePaid={true}><TestSelector /></ProtectedRoute>} />
+              <Route path="/mytestseries" element={<ProtectedRoute requirePaid={true}><MytestSeries /></ProtectedRoute>} />
             </Route>
             <Route path="/login" element={<LogIn />} />
         
           
           {/* Test Portal route without Layout */}
           
-              <Route path="/test" element={<TestPortal />} />
-              <Route path="/socket-test" element={<SocketTestPage />} />
-              <Route path="/test-series/:testSeriesId" element={<TestSeriesPage />} />
-              <Route path="/review/:testId" element={<ReviewPage />} />
-              <Route path="/submit" element={<SubmitPage />} />
-              <Route path="/testPortal" element={<TestPortal />} />
+              <Route path="/test" element={<ProtectedRoute requirePaid={true}><TestPortal /></ProtectedRoute>} />
+              <Route path="/socket-test" element={<ProtectedRoute requirePaid={true}><SocketTestPage /></ProtectedRoute>} />
+              <Route path="/test-series/:testSeriesId" element={<ProtectedRoute requirePaid={true}><TestSeriesPage /></ProtectedRoute>} />
+              <Route path="/review/:testId" element={<ProtectedRoute requirePaid={true}><ReviewPage /></ProtectedRoute>} />
+              <Route path="/submit" element={<ProtectedRoute requirePaid={true}><SubmitPage /></ProtectedRoute>} />
+              <Route path="/testPortal" element={<ProtectedRoute requirePaid={true}><TestPortal /></ProtectedRoute>} />
           
         </Routes>
       </TestProvider>
@@ -64,40 +67,3 @@ function App() {
 }
 
 export default App;
-// import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
-// import { TestProvider } from "./contexts/TestContext"
-// import { AuthProvider } from "./contexts/AuthContext"
-// import { SocketProvider } from "./contexts/SocketContext"
-// import TestPortal from "./pages/TestPortal"
-// import SubmitPage from "./pages/SubmitPage"
-// import TestSelector from "./pages/TestSelector"
-// import SocketTestPage from "./pages/SocketTestPage"
-// import TestSeriesPage from "./pages/TestSeriesPage"
-// import ReviewPage from "./pages/ReviewPage"
-// import Login from "./pages/logIn"
-// import PrivateRoute from "./components/testPortal/PrivateRoute"
-
-// function App() {
-//   return (
-//     <AuthProvider>
-//       <SocketProvider>
-//         <TestProvider>
-//           <Router>
-//             <Routes>
-//               <Route path="/login" element={<Login />} />
-//               <Route path="/" element={<PrivateRoute element={<TestSelector />} />} />
-//               <Route path="/test" element={<PrivateRoute element={<TestPortal />} />} />
-//               <Route path="/socket-test" element={<PrivateRoute element={<SocketTestPage />} />} />
-//               <Route path="/test-series/:testSeriesId" element={<PrivateRoute element={<TestSeriesPage />} />} />
-//               <Route path="/review/:testId" element={<PrivateRoute element={<ReviewPage />} />} />
-//               <Route path="/submit" element={<PrivateRoute element={<SubmitPage />} />} />
-//               <Route path="*" element={<Navigate to="/" replace />} />
-//             </Routes>
-//           </Router>
-//         </TestProvider>
-//       </SocketProvider>
-//     </AuthProvider>
-//   )
-// }
-
-// export default App

@@ -196,6 +196,7 @@ const TestPortal: React.FC = () => {
                   handleQuestionSelect(currentQuestionIndex - 1)
                 }
               }}
+              isReviewMode={isReviewMode}
             />
           </div>
         </div>

@@ -35,6 +35,7 @@ interface TestContextProps {
   setTestResult: (result: TestResult | null) => void
   setNegativeMarking: (value: boolean) => void
   setMarkingScheme: (scheme: MarkingScheme | null) => void
+  setSelectedAnswers: (answers: UserAnswer[]) => void
 
   // Socket integration
   setQuestions: (questions: Question[]) => void
@@ -69,10 +70,12 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
 
   // Initialize question statuses and selected answers when test data changes
   useEffect(() => {
-    if (testData) {
+    if (testData && !isReviewMode) {
+      // Only initialize if not in review mode (review mode sets its own data)
       // Initialize question statuses
       setQuestionStatuses(testData.questions.map(() => QuestionStatus.NOT_VISITED))
-      console.log("testResult",testResult)
+      console.log("testResult", testResult)
+
       // Initialize selected answers
       setSelectedAnswers(
         testData.questions.map((question) => ({
@@ -82,14 +85,14 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
         })),
       )
     }
-  }, [testData])
+  }, [testData, isReviewMode])
 
   const handleQuestionSelect = (index: number) => {
     // Update current question
     setCurrentQuestionIndex(index)
 
-    // Update status if not visited
-    if (questionStatuses[index] === QuestionStatus.NOT_VISITED) {
+    // Update status if not visited (and not in review mode)
+    if (!isReviewMode && questionStatuses[index] === QuestionStatus.NOT_VISITED) {
       const newStatuses = [...questionStatuses]
       newStatuses[index] = QuestionStatus.VISITED
       setQuestionStatuses(newStatuses)
@@ -97,7 +100,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
   }
 
   const handleOptionSelect = (questionId: number, optionIndex: number) => {
-    if (!testData) return
+    if (!testData || isReviewMode) return
 
     const questionIndex = testData.questions.findIndex((q) => q.id === questionId)
     if (questionIndex === -1) return
@@ -141,7 +144,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
   }
 
   const handleConfirmAnswer = () => {
-    if (!testData) return
+    if (!testData || isReviewMode) return
 
     const currentQuestion = testData.questions[currentQuestionIndex]
     const currentAnswer = selectedAnswers.find((a) => a.questionId === currentQuestion.id)
@@ -152,31 +155,33 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
       newStatuses[currentQuestionIndex] = QuestionStatus.ANSWERED
       setQuestionStatuses(newStatuses)
 
-      // Check if answer is correct
-      const correctAnswers = currentQuestion.answer.split(",").map(Number)
-      const isCorrect = checkAnswerCorrectness(
-        currentAnswer.selectedOptions,
-        correctAnswers,
-        currentQuestion.multipleCorrectType,
-      )
+      // Check if answer is correct (only if we have the correct answer)
+      if (currentQuestion.answer) {
+        const correctAnswers = currentQuestion.answer.split(",").map(Number)
+        const isCorrect = checkAnswerCorrectness(
+          currentAnswer.selectedOptions,
+          correctAnswers,
+          currentQuestion.multipleCorrectType,
+        )
 
-      // Update selected answers with correctness
-      setSelectedAnswers((prev) => {
-        const newAnswers = [...prev]
-        const answerIndex = newAnswers.findIndex((a) => a.questionId === currentQuestion.id)
+        // Update selected answers with correctness
+        setSelectedAnswers((prev) => {
+          const newAnswers = [...prev]
+          const answerIndex = newAnswers.findIndex((a) => a.questionId === currentQuestion.id)
 
-        if (answerIndex !== -1) {
-          newAnswers[answerIndex] = {
-            ...newAnswers[answerIndex],
-            isCorrect,
-            isPartiallyCorrect: currentQuestion.multipleCorrectType
-              ? checkPartialCorrectness(currentAnswer.selectedOptions, correctAnswers)
-              : undefined,
+          if (answerIndex !== -1) {
+            newAnswers[answerIndex] = {
+              ...newAnswers[answerIndex],
+              isCorrect,
+              isPartiallyCorrect: currentQuestion.multipleCorrectType
+                ? checkPartialCorrectness(currentAnswer.selectedOptions, correctAnswers)
+                : undefined,
+            }
           }
-        }
 
-        return newAnswers
-      })
+          return newAnswers
+        })
+      }
 
       // Move to next question if not at last question
       if (currentQuestionIndex < testData.questions.length - 1) {
@@ -213,38 +218,41 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
   }
 
   const handleSaveForLater = () => {
+    if (isReviewMode) return
+
     const newStatuses = [...questionStatuses]
     newStatuses[currentQuestionIndex] = QuestionStatus.SAVED_FOR_LATER
     setQuestionStatuses(newStatuses)
   }
+
   const handleSubmitTest = async (submitFn?: SubmitFunction) => {
     if (!testData) return
     console.log("Submitting test... using this path")
     const endTime = Date.now()
     const timeTaken = Math.floor((endTime - startTime) / 1000) // Time taken in seconds
-  
+
     // Count single and multiple choice questions
     const questionsSingle = testData.questions.filter((q) => !q.multipleCorrectType).length
     const questionsMultiple = testData.questions.filter((q) => q.multipleCorrectType).length
-  
+
     // Calculate statistics
     let correctAttempted = 0
     let wrongAttempted = 0
     let notAttempted = 0
     let partialAttempted = 0
-  
+
     // Create answers object in the format expected by the backend
     const answers: Record<string, string[]> = {}
     const correctAnswers: Record<string, string[]> = {}
-  
+
     testData.questions.forEach((question, index) => {
       const status = questionStatuses[index]
       const answer = selectedAnswers.find((a) => a.questionId === question.id)
-      
+
       // Initialize answers object for the question
       answers[question.id] = answer?.selectedOptions?.map(String) || []
-      correctAnswers[question.id] = question.answer.split(',').map(a => a.trim())
-  
+      correctAnswers[question.id] = question.answer ? question.answer.split(",").map((a) => a.trim()) : []
+
       if (status === QuestionStatus.ANSWERED && answer) {
         if (answer.isCorrect) {
           correctAttempted++
@@ -257,7 +265,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
         notAttempted++
       }
     })
-  
+
     // Create test result in the new format
     const result = {
       name: testData.name,
@@ -275,16 +283,16 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
       questionsSingle,
       questionsMultiple: questionsMultiple || undefined,
     }
-  
+
     // Set the result in state
     setTestResult(result)
-  
+
     // Call the provided submit function if any
     if (submitFn) {
       try {
         await submitFn(result)
       } catch (error) {
-        console.error('Error submitting test:', error)
+        console.error("Error submitting test:", error)
         // Handle error appropriately
       }
     }
@@ -352,6 +360,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     setIsReviewMode,
     setTestResult,
     setNegativeMarking,
+    setSelectedAnswers,
 
     // Socket integration
     setQuestions,

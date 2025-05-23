@@ -291,7 +291,7 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import Cookies from "js-cookie"
 import { env } from "../config/env"
-
+import { useNavigate } from "react-router-dom"
 interface User {
   id: string | number
   email: string
@@ -303,6 +303,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  
   login: (email: string, password: string) => Promise<void>
   logout: () => void
 }
@@ -324,7 +325,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-
+  const navigate = useNavigate();
   // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
@@ -348,6 +349,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
           } else {
             // Token is invalid or expired
+            navigate('/login')
             Cookies.remove("token")
             localStorage.removeItem("userId")
           }
@@ -382,8 +384,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       Cookies.set("token", token, { expires: 7 }) // 7 days expiry
 
       // Save userId to localStorage for socket connection
-      
+      const userData = await fetch(`${env.API_MAIN}/user`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
+      if (!userData.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+
+      const userDataJson = await userData.json();
+      const userId = userDataJson.data.id;
+
+      // Store user ID in localStorage (more secure than cookies for this purpose)
+      localStorage.setItem('userId', userId);
+      navigate('/dashboard')
+      console.log("navigtion")
       setUser(data.user)
       setIsLoading(false)
     } catch (error) {

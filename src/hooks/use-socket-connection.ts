@@ -215,7 +215,8 @@ export const useSocketConnection = ({
         markingScheme,
         userId,
       })
-
+      // we will also send the request to userData here
+      
       // Send POST request to /questions/submit
       const response = await fetch(`${apiUrl}/questions/submit`, {
         method: "POST",

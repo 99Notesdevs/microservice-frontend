@@ -2,42 +2,50 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { env } from '../config/env';
+import Cookies from 'js-cookie';
 
-interface Test {
+interface TestSeries {
   id: string;
   name: string;
   description?: string;
+  totalTests: number;
   totalQuestions: number;
   timeLimit: number;
 }
 
-const Mytest = () => {
-  const [tests, setTests] = useState<Test[]>([]);
+const MytestSeries = () => {
+  const [testSeries, setTestSeries] = useState<TestSeries[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTests = async () => {
+    const fetchTestSeries = async () => {
       try {
-        const response = await fetch(`${env.API}/user/tests`);
-        if (!response.ok) throw new Error('Failed to fetch tests');
+        const response = await fetch(`${env.API}/user/testSeries`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Cookies.get("token")}`,
+          },
+        });
+        if (!response.ok) throw new Error('Failed to fetch test series');
         const data = await response.json();
         if (data.success && data.data) {
-          setTests(data.data);
+          setTestSeries(data.data);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch tests');
+        setError(err instanceof Error ? err.message : 'Failed to fetch test series');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTests();
+    fetchTestSeries();
   }, []);
 
-  const handleTestClick = (testId: string) => {
-    navigate(`/review/${testId}`);
+  const handleTestSeriesClick = (seriesId: string) => {
+    navigate(`/review/${seriesId}`);
   };
 
   return (
@@ -54,7 +62,7 @@ const Mytest = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-3xl sm:text-4xl font-bold mb-6 text-orange-700 text-center tracking-tight"
         >
-          Your Tests
+          Your Test Series
         </motion.h1>
         
         {loading && (
@@ -64,7 +72,7 @@ const Mytest = () => {
               transition={{ duration: 1, repeat: Infinity }}
               className="text-gray-500"
             >
-              Loading tests...
+              Loading test series...
             </motion.div>
           </div>
         )}
@@ -75,26 +83,27 @@ const Mytest = () => {
           </div>
         )}
 
-        {tests.length > 0 && (
+        {testSeries.length > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             className="space-y-4"
           >
-            {tests.map((test) => (
+            {testSeries.map((series) => (
               <motion.div
-                key={test.id}
+                key={series.id}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="bg-orange-50 p-4 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
-                onClick={() => handleTestClick(test.id)}
+                onClick={() => handleTestSeriesClick(series.id)}
               >
-                <h3 className="text-lg font-semibold text-orange-700">{test.name}</h3>
-                {test.description && <p className="text-gray-600 mt-1">{test.description}</p>}
+                <h3 className="text-lg font-semibold text-orange-700">{series.name}</h3>
+                {series.description && <p className="text-gray-600 mt-1">{series.description}</p>}
                 <div className="mt-2 flex justify-between text-sm text-gray-500">
-                  <span>{test.totalQuestions} Questions</span>
-                  <span>{test.timeLimit} Minutes</span>
+                  <span>{series.totalTests} Tests</span>
+                  <span>{series.totalQuestions} Questions</span>
+                  <span>{series.timeLimit} Minutes</span>
                 </div>
               </motion.div>
             ))}
@@ -105,4 +114,4 @@ const Mytest = () => {
   );
 };
 
-export default Mytest;
+export default MytestSeries;

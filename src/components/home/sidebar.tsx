@@ -14,6 +14,7 @@ const links = [
   { name: "Mock Test", icon: <Star size={20} />, path: "/tests" },
   { name: "My Tests", icon: <Pencil size={20} />, path: "/mytest" },
   { name: "Inbox", icon: <MessageSquare size={20} />, path: "/messages" },
+  { name: "My Test Series", icon: <Pencil size={20} />, path: "/mytestseries" },
 ];
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) {
