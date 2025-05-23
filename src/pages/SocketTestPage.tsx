@@ -10,6 +10,8 @@ import FullScreenHeader from "../components/testPortal/FullScreenHeader"
 import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import { AlertTriangle } from "lucide-react"
 import { useSocket } from "../contexts/SocketContext"
+import { env } from "../config/env"
+import Cookies from "js-cookie"
 
 const SocketTestPage: React.FC = () => {
   const navigate = useNavigate()
@@ -129,6 +131,21 @@ const SocketTestPage: React.FC = () => {
     try {
       setShowConfirmSubmit(false)
       console.log("Submitting socket test...")
+      const requestBody = {
+        questionIds: testData.questions.map((q) => q.id),
+        response: selectedAnswers,
+        result: "result here"
+      };
+      console.log("Request Body:", requestBody);
+      const response = await fetch(`${env.API}/user/tests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Cookies.get("token")}`,
+        },
+        body:JSON.stringify(requestBody),
+      })
+      console.log(response)
       await submitSocketTest()
 
       // Force navigation after a short delay

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { env } from '../config/env';
+import Cookies from 'js-cookie';
 
 interface Test {
   id: string;
@@ -20,7 +21,13 @@ const Mytest = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const response = await fetch(`${env.API}/user/tests`);
+        const response = await fetch(`${env.API}/user/tests`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Cookies.get("token")}`,
+          },
+        });
         if (!response.ok) throw new Error('Failed to fetch tests');
         const data = await response.json();
         if (data.success && data.data) {
@@ -37,7 +44,7 @@ const Mytest = () => {
   }, []);
 
   const handleTestClick = (testId: string) => {
-    navigate(`/review/${testId}`);
+    navigate(`/review-socket/${testId}`);
   };
 
   return (
