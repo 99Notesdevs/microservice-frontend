@@ -51,14 +51,22 @@ const TestSelector: React.FC = () => {
   const renderTestSeriesCards = () => {
     if (loading) {
       return (
-        <div className="animate-pulse">
+        <div className="space-y-6">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="border rounded-lg p-4 mb-4 bg-gray-100"
-            >
-              <div className="h-4 bg-gray-300 rounded mb-2" style={{ width: "80%" }}></div>
-              <div className="h-3 bg-gray-300 rounded" style={{ width: "60%" }}></div>
+            <div key={i} className="animate-pulse bg-white rounded-lg shadow-md p-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div className="space-y-4 flex-1">
+                  <div className="h-7 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <div className="flex gap-4">
+                    <div className="h-6 bg-gray-200 rounded w-32"></div>
+                    <div className="h-6 bg-gray-200 rounded w-32"></div>
+                  </div>
+                </div>
+                <div className="mt-4 md:mt-0">
+                  <div className="h-10 bg-gray-200 rounded w-32"></div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -67,79 +75,76 @@ const TestSelector: React.FC = () => {
 
     if (error) {
       return (
-        <div className="text-center text-red-500 py-4">
-          {error}
+        <div className="text-center py-8">
+          <div className="text-red-500 text-lg">{error}</div>
         </div>
       )
     }
 
     if (testSeries.length === 0) {
       return (
-        <div className="text-center text-gray-500 py-4">
-          No test series available
+        <div className="text-center py-8">
+          <div className="text-gray-500 text-lg">No test series available</div>
         </div>
       )
     }
 
-    return testSeries.map((series) => (
-      <div
-        key={series.id}
-        className="border rounded-lg p-4 hover:bg-green-50 hover:border-green-300 cursor-pointer transition-colors mb-4"
-        onClick={() => navigate(`/test-series/${series.id}`)}
-      >
-        <h3 className="font-medium text-lg">{series.name}</h3>
-        <p className="text-gray-600 text-sm mt-1">{series.description}</p>
-        <div className="mt-2 text-sm flex items-center">
-          <span className="mr-2">{series.totalQuestions} Questions</span>
-          <span className="text-green-600">•</span>
-          <span className="ml-2">{series.timeLimit} Minutes</span>
-        </div>
-        <div className="mt-2 text-xs text-gray-500">
-          Created: {new Date(series.createdAt).toLocaleDateString()}
-        </div>
-      </div>
-    ))
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          <h1 className="text-3xl font-bold mb-6 text-center">Test Portal</h1>
-
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Test Options</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div
-                className="border rounded-lg p-4 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors"
-                onClick={() => navigate("/socket-test")}
-              >
-                <h3 className="font-medium text-lg">Socket Test</h3>
-                <p className="text-gray-600 text-sm mt-1">Take a test using socket connection</p>
+    return (
+      <div className="space-y-6">
+        {testSeries.map((series) => (
+          <div
+            key={series.id}
+            className="bg-gray-100 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer p-8 border border-gray-100"
+          >
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div className="space-y-4 flex-1">
+                <h3 className="font-semibold text-2xl text-gray-800">{series.name}</h3>
+                <p className="text-gray-600 md:pr-8">{series.description}</p>
+                <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span className="text-gray-700">{series.totalQuestions} Questions</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                    <span className="text-gray-700">{series.timeLimit} Minutes</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                    <span className="text-gray-700">
+                      Created: {new Date(series.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
               </div>
-
-              <div
-                className="border rounded-lg p-4 hover:bg-purple-50 hover:border-purple-300 cursor-pointer transition-colors"
-                onClick={() => navigate("/review/1")}
-              >
-                <h3 className="font-medium text-lg">Review Test</h3>
-                <p className="text-gray-600 text-sm mt-1">Review a completed test</p>
-              </div>
-
-              <div
-                className="border rounded-lg p-4 hover:bg-yellow-50 hover:border-yellow-300 cursor-pointer transition-colors"
-                onClick={() => navigate("/test")}
-              >
-                <h3 className="font-medium text-lg">Standard Test</h3>
-                <p className="text-gray-600 text-sm mt-1">Take a standard test</p>
+              <div className="mt-6 md:mt-0">
+                <button 
+                  onClick={() => navigate(`/test-series/${series.id}`)}
+                  className="w-full md:w-auto bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200"
+                >
+                  Start Test
+                </button>
               </div>
             </div>
           </div>
+        ))}
+      </div>
+    )
+  }
 
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Available Test Series</h2>
-            {renderTestSeriesCards()}
-          </div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Test Portal</h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Choose from a variety of test options to practice and improve your skills
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-8">Available Test Series</h2>
+          {renderTestSeriesCards()}
         </div>
       </div>
     </div>

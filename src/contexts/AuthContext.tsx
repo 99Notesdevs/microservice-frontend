@@ -407,7 +407,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    const response = await fetch(`${env.API_MAIN}/user/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Cookies.get("token")}`,
+      },
+    })
+    if (!response.ok) {
+      throw new Error("Logout failed")
+    }
     // Remove token and user data
     Cookies.remove("token")
     localStorage.removeItem("userId")

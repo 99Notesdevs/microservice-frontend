@@ -39,22 +39,48 @@ const SubmitPage: React.FC = () => {
   }
 
   // Calculate metrics from test results
-  const totalQuestions = testResult.totalQuestions || 0
+  const totalQuestions = testData.questions?.length || testResult.totalQuestions || 0
+  
+  // Default to 1 mark per question if not specified
+  const marksPerQuestion = 1
+  // Calculate total marks based on number of questions (1 mark per question by default)
+  const totalMarks = totalQuestions * marksPerQuestion
+  
+  // Use testResult.negativeMarking which is a boolean, convert to number (1 for true, 0 for false)
+  const negativeMarks = testResult.negativeMarking ? 0.25 : 0 // Default 0.25 negative marking if enabled
 
-  // Count correct answers
-  const correctAttempted = Object.keys(testResult.answers || {}).reduce((count, questionId) => {
-    const userAnswers = testResult.answers[questionId] || []
-    const correctAnswers = testResult.correctAnswers[questionId] || []
+  // Count correct and incorrect answers
+  let correctAttempted = 0
+  let marksObtained = 0
+  
+  const answers = testResult.answers || {}
+  const correctAnswers = testResult.correctAnswers || {}
+  
+  Object.keys(answers).forEach((questionId) => {
+    const userAnswers = answers[questionId] || []
+    const correctAns = correctAnswers[questionId] || []
+    
+    // All questions are worth 1 mark by default
+    const questionMarks = 1
 
-    // Skip if no answers
-    if (userAnswers.length === 0) return count
+    if (userAnswers.length === 0) return // Skip unanswered questions
 
-    // Check if answers match (order doesn't matter)
-    const isCorrect =
-      userAnswers.length === correctAnswers.length && userAnswers.every((answer) => correctAnswers.includes(answer))
+    // Check if answers are correct (order doesn't matter)
+    const isCorrect = userAnswers.length === correctAns.length && 
+                     userAnswers.every(answer => correctAns.includes(answer))
 
-    return isCorrect ? count + 1 : count
-  }, 0)
+    if (isCorrect) {
+      correctAttempted++
+      marksObtained += questionMarks
+    } else if (negativeMarks > 0) {
+      // Apply negative marking for wrong answers if enabled
+      marksObtained = Math.max(0, marksObtained - (questionMarks * negativeMarks))
+    }
+  })
+
+
+  // Ensure marks don't go below zero
+  marksObtained = Math.max(0, marksObtained)
 
   // Count attempted questions
   const attemptedQuestions = Object.values(testResult.answers || {}).filter(
@@ -64,9 +90,8 @@ const SubmitPage: React.FC = () => {
   // Calculate wrong answers
   const wrongAnswers = attemptedQuestions - correctAttempted
 
-  // Get score from result or calculate it
-  const score =
-    testResult.score !== undefined ? testResult.score : Math.round((correctAttempted / totalQuestions) * 100)
+  // Calculate score percentage
+  const score = totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100) : 0
 
   const handleReviewTest = () => {
     setIsReviewMode(true)
@@ -100,12 +125,6 @@ const SubmitPage: React.FC = () => {
                     <Clock className="w-4 h-4 mr-1" />
                     {formatTime(testResult.timeTaken || 0)} Duration
                   </p>
-                </div>
-                <div className="mt-4 md:mt-0">
-                  <div className="inline-flex items-center px-4 py-2 bg-white rounded-full shadow-sm">
-                    <span className="text-gray-500 mr-2">Score:</span>
-                    <span className="text-2xl font-bold text-blue-600">{score}%</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -154,27 +173,13 @@ const SubmitPage: React.FC = () => {
                 <div className="bg-gray-50 rounded-lg p-6">
                   <div className="flex flex-col md:flex-row">
                     <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                      <div className="relative w-48 h-48">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-5xl font-bold text-blue-600">{score}%</div>
-                            <div className="text-gray-500 mt-1">Score</div>
+                      <div className="relative w-48 h-48 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-5xl font-bold text-blue-600">
+                            {marksObtained}<span className="text-2xl text-gray-500">/{totalMarks}</span>
                           </div>
+                          <div className="text-gray-500 mt-2">Marks Obtained</div>
                         </div>
-                        <svg className="w-full h-full" viewBox="0 0 100 100">
-                          <circle cx="50" cy="50" r="45" fill="none" stroke="#e6e6e6" strokeWidth="10" />
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            fill="none"
-                            stroke="#3b82f6"
-                            strokeWidth="10"
-                            strokeDasharray={`${(score / 100) * 283} 283`}
-                            strokeDashoffset="0"
-                            transform="rotate(-90 50 50)"
-                          />
-                        </svg>
                       </div>
                     </div>
                     <div className="md:w-2/3 md:pl-6">
@@ -184,7 +189,11 @@ const SubmitPage: React.FC = () => {
                           <div className="space-y-2">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Total Questions:</span>
-                              <span className="font-medium">{totalQuestions}</span>
+                              <span className="font-medium">{totalQuestions} (Max Marks: {totalMarks})</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Marks Obtained:</span>
+                              <span className="font-medium">{marksObtained} / {totalMarks}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Attempted:</span>
@@ -196,9 +205,12 @@ const SubmitPage: React.FC = () => {
                             <div className="flex justify-between">
                               <span className="text-gray-600">Accuracy:</span>
                               <span className="font-medium">
-                                {attemptedQuestions > 0 ? Math.round((correctAttempted / attemptedQuestions) * 100) : 0}
-                                %
+                                {attemptedQuestions > 0 ? Math.round((correctAttempted / attemptedQuestions) * 100) : 0}%
                               </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Score:</span>
+                              <span className="font-medium">{score}%</span>
                             </div>
                             {testResult.negativeMarking && (
                               <div className="flex justify-between">
