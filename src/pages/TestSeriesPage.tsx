@@ -11,6 +11,7 @@ import { AlertTriangle } from "lucide-react"
 import Cookies from "js-cookie"
 import {env} from "../config/env"
 import { useSocketTest } from "../hooks/useSocketTest"
+import type { TestSeriesObject } from "@/types/testTypes"
 // import { useAuth } from "../contexts/AuthContext"
 // API function to fetch test series data
 
@@ -39,7 +40,7 @@ import { useSocketTest } from "../hooks/useSocketTest"
               const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
               const [isFullScreen, setIsFullScreen] = useState(false)
               const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
-              
+              const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
               // Fetch test series data
               const fetchTestSeriesData = async (testSeriesId: string) => {
                 try {
@@ -178,22 +179,12 @@ import { useSocketTest } from "../hooks/useSocketTest"
     try {
       setShowConfirmSubmit(false)
       console.log("Submitting socket test...")
-      const requestBody = {
-        testId: Number(testSeriesId),
-        response: selectedAnswers,
-        result: "result here"
-      };
-      console.log("Request Body:", requestBody);
-      const response = await fetch(`${env.API}/user/testSeries`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${Cookies.get("token")}`,
-        },
-        body:JSON.stringify(requestBody),
+      setTestSeriesObject({
+        testId: testSeriesId,
+        testSeriesName: testData?.name,
       })
-      console.log(response)
-      await submitSocketTest()
+      if (!testSeriesObject) return
+      await submitSocketTest(testSeriesObject)
 
       // Force navigation after a short delay
       // setTimeout(() => {
