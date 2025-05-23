@@ -398,6 +398,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Store user ID in localStorage (more secure than cookies for this purpose)
       localStorage.setItem('userId', userId);
       navigate('/dashboard')
+      console.log("navigtion")
       setUser(data.user)
       setIsLoading(false)
     } catch (error) {

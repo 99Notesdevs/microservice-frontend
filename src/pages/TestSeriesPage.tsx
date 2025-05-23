@@ -11,7 +11,7 @@ import { AlertTriangle } from "lucide-react"
 import Cookies from "js-cookie"
 import {env} from "../config/env"
 import { useSocketTest } from "../hooks/useSocketTest"
-import { useAuth } from "../contexts/AuthContext"
+// import { useAuth } from "../contexts/AuthContext"
 // API function to fetch test series data
 
 
@@ -34,7 +34,6 @@ import { useAuth } from "../contexts/AuthContext"
                 setTestData,
                 setMarkingScheme,
               } = useTestContext()
-              const {user} = useAuth()
               const [loading, setLoading] = useState(true)
               const [error, setError] = useState<string | null>(null)
               const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
@@ -180,7 +179,6 @@ import { useAuth } from "../contexts/AuthContext"
       setShowConfirmSubmit(false)
       console.log("Submitting socket test...")
       const requestBody = {
-        authUser: user?.id,
         testId: Number(testSeriesId),
         response: selectedAnswers,
         result: "result here"

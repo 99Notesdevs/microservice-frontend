@@ -11,7 +11,6 @@ import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import type { QuestionStatus } from "../types/testTypes"
 import Cookies from "js-cookie"
 import { env } from "../config/env"
-import { useAuth } from "../contexts/AuthContext"
 
 const ReviewPage: React.FC = () => {
   const navigate = useNavigate()
@@ -27,11 +26,9 @@ const ReviewPage: React.FC = () => {
     setQuestionStatuses,
     setSelectedAnswers,
   } = useTestContext()
-  const { user } = useAuth()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [remainingTime, setRemainingTime] = useState(0)
   const [isFullScreen, setIsFullScreen] = useState(false)
 
   // Fetch review data
@@ -45,26 +42,40 @@ const ReviewPage: React.FC = () => {
 
       try {
         // Fetch test data from API
-        const response = await fetch(`${env.API}/testSeries/${testId}/review`, {
+        
+        const userresponse = await fetch(`${env.API}/user/testSeries/${testId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Cookies.get("token")}`,
           },
         })
-
+        
+        const userdata = await userresponse.json()
+        console.log("User data: is ", userdata.data.id)
+        const response = await fetch(`${env.API}/testSeries/${userdata.data.testId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch review data")
         }
-
         const data = await response.json()
         console.log("Review data:", data)
+        console.log("User data:", userdata)
 
         if (!data || !data.data) {
           throw new Error("Invalid review data format")
         }
 
         const reviewData = data.data
+        const userResponseData = userdata.data
+        const userResponseSWE = JSON.parse(userResponseData.response)
+        const userResponse = JSON.parse(userResponseSWE.response)
+        console.log("User response:", userResponse)
 
         // Extract questions from the response
         const questions = reviewData.questions.map((q: any) => ({
@@ -81,34 +92,44 @@ const ReviewPage: React.FC = () => {
         }))
 
         // Extract user answers from the response
-        const userAnswers = reviewData.response.map((r: any) => {
+        const userAnswers = userResponse.map((r: any) => {
           // Find the corresponding question
-          const question = questions.find((q) => q.id === r.questionId)
-
-          // Parse selected options from string to array of numbers
-          let selectedOptions: number[] = []
-          if (r.selectedOption && r.selectedOption !== "-1") {
-            selectedOptions = r.selectedOption.split(",").map((opt: string) => Number.parseInt(opt.trim(), 10))
-          }
-
-          // Determine if the answer is correct
-          let isCorrect = false
-          let isPartiallyCorrect = false
-
-          if (question && question.answer && selectedOptions.length > 0) {
-            const correctOptions = question.answer.split(",").map((opt) => Number.parseInt(opt.trim(), 10))
-
-            if (question.multipleCorrectType) {
-              // For multiple choice: check if all selected options are correct and all correct options are selected
-              isCorrect =
-                selectedOptions.length === correctOptions.length &&
-                selectedOptions.every((opt) => correctOptions.includes(opt))
-
-              // Partially correct if some but not all correct options are selected
-              isPartiallyCorrect = !isCorrect && selectedOptions.some((opt) => correctOptions.includes(opt))
-            } else {
-              // For single choice: check if the selected option is correct
-              isCorrect = selectedOptions.length === 1 && correctOptions.includes(selectedOptions[0])
+          const question = questions.find((q: any) => q.id === r.questionId);
+          
+          // Use the selectedOptions directly from the response
+          const selectedOptions = Array.isArray(r.selectedOptions) 
+            ? r.selectedOptions 
+            : [];
+        
+          // Initialize flags
+          let isCorrect = false;
+          let isPartiallyCorrect = false;
+        
+          if (question) {
+            // Get correct answers from the question data
+            const correctAnswers = question.answer 
+              ? question.answer.split(',').map((a: string) => Number(a.trim()))
+              : [];
+        
+            if (correctAnswers.length > 0) {
+              if (question.multipleCorrectType) {
+                // For multiple correct answers
+                const allCorrectSelected = selectedOptions.length > 0 && 
+                  selectedOptions.every((opt: any) => correctAnswers.includes(opt)) &&
+                  selectedOptions.length === correctAnswers.length;
+                
+                isCorrect = allCorrectSelected;
+                
+                // Partially correct if some but not all correct options are selected
+                const someCorrectSelected = selectedOptions.some((opt: any) => 
+                  correctAnswers.includes(opt)
+                );
+                isPartiallyCorrect = !isCorrect && someCorrectSelected;
+              } else {
+                // For single correct answer
+                isCorrect = selectedOptions.length === 1 && 
+                           correctAnswers.includes(selectedOptions[0]);
+              }
             }
           }
 
@@ -121,8 +142,8 @@ const ReviewPage: React.FC = () => {
         })
 
         // Create question statuses based on user answers
-        const statuses = questions.map((q) => {
-          const answer = userAnswers.find((a) => a.questionId === q.id)
+        const statuses = questions.map((q: any) => {
+          const answer = userAnswers.find((a: any) => a.questionId === q.id)
           if (!answer || answer.selectedOptions.length === 0) {
             return "NOT_VISITED" as QuestionStatus
           }
@@ -216,7 +237,7 @@ const ReviewPage: React.FC = () => {
 
   const currentQuestion = testData.questions[currentQuestionIndex]
   const currentAnswer = selectedAnswers.find((a) => a.questionId === currentQuestion.id)
-  const answeredCount = questionStatuses.filter((status) => status === "ANSWERED").length
+  // const answeredCount = questionStatuses.filter((status) => status === "ANSWERED").length
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -229,6 +250,22 @@ const ReviewPage: React.FC = () => {
             </div>
           </div>
         </div>
+        <button
+          onClick={toggleFullScreen}
+          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+          title={isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          aria-label={isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          {isFullScreen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0-4h-4m4 0l-5-5" />
+            </svg>
+          )}
+        </button>
       </header>
 
       <div className="flex-1 p-4 overflow-auto">
