@@ -77,26 +77,91 @@ const MytestSeries = () => {
         }
         
         const responseData = await response.json();
-        console.log('API Response:', responseData);
+        console.log('API Response:', responseData.data);
         
         if (responseData.success && responseData.data) {
           // Transform the data to match our TestSeries interface
-          const transformedData = responseData.data.map((item: any) => ({
-            id: item._id || item.id,
-            name: item.testSeriesId?.name || item.name || 'Untitled Test Series',
-            description: item.testSeriesId?.description || item.description,
-            totalTests: item.testSeriesId?.totalTests || item.totalTests || 0,
-            totalQuestions: item.testSeriesId?.totalQuestions || item.totalQuestions || 0,
-            timeLimit: item.testSeriesId?.timeLimit || item.timeLimit || 0,
-            score: item.score,
-            totalMarks: item.testSeriesId?.totalMarks || item.totalMarks || 0,
-            attemptedOn: item.attemptedOn || item.createdAt,
-            status: item.status || 'not-attempted',
-            correctAnswers: item.correctAnswers,
-            wrongAnswers: item.wrongAnswers,
-            skipped: item.skipped
-          }));
+          const transformedData = responseData.data.map((item: any) => {
+            try {
+              // Initialize with default values
+              let responseData = { response: '[]' };
+              let resultData = { score: 0 };
+              let responses = [];
+              
+              // Safely parse response and result
+              try {
+                if (typeof item.response === 'string') {
+                  responseData = JSON.parse(item.response);
+                }
+                if (typeof item.result === 'string') {
+                  resultData = JSON.parse(item.result);
+                }
+              } catch (e) {
+                console.warn('Error parsing JSON:', e);
+              }
           
+              // Parse responses if they exist
+              if (responseData?.response && typeof responseData.response === 'string') {
+                try {
+                  responses = JSON.parse(responseData.response);
+                } catch (e) {
+                  console.warn('Error parsing responses:', e);
+                }
+              }
+          
+              // Calculate metrics with null checks
+              let correctAnswers = 0;
+              let wrongAnswers = 0;
+              let skipped = 0;
+          
+              if (Array.isArray(responses)) {
+                responses.forEach((r) => {
+                  if (r && typeof r === 'object') {
+                    if (Array.isArray(r.selectedOptions) && r.selectedOptions.length > 0) {
+                      r.isCorrect ? correctAnswers++ : wrongAnswers++;
+                    } else {
+                      skipped++;
+                    }
+                  }
+                });
+              }
+          
+              // Calculate score safely
+              const score = typeof resultData.score === 'number' ? resultData.score : correctAnswers;
+              const totalQuestions = Array.isArray(responses) ? responses.length : 0;
+          
+              return {
+                id: item.id?.toString() || '0',
+                name: item.test.name || `Test Series ${item.testId || '0'}`,
+                totalTests: 1,
+                totalQuestions,
+                timeLimit: 30, // Default value
+                score,
+                totalMarks: totalQuestions, // 1 mark per question
+                attemptedOn: item.createdAt || new Date().toISOString(),
+                status: 'completed',
+                correctAnswers,
+                wrongAnswers,
+                skipped
+              };
+            } catch (error) {
+              console.error('Error processing test series item:', error, item);
+              return {
+                id: '0',
+                name: 'Test Series',
+                totalTests: 1,
+                totalQuestions: 0,
+                timeLimit: 30,
+                score: 0,
+                totalMarks: 0,
+                attemptedOn: new Date().toISOString(),
+                status: 'not-attempted',
+                correctAnswers: 0,
+                wrongAnswers: 0,
+                skipped: 0
+              };
+            }
+          });
           console.log('Transformed Data:', transformedData);
           setTestSeries(transformedData);
         } else {

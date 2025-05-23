@@ -15,6 +15,10 @@ export interface Question {
   type?: "SINGLE" | "MULTIPLE" | "INTEGER" // For socket integration
 }
 
+export interface TestSeriesObject {
+  testId?: string
+  testSeriesName?: string
+}
 export interface TestData {
   id?: number
   name: string

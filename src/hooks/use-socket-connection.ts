@@ -1,12 +1,11 @@
-import { useEffect, useCallback, useRef } from "react"
+import { useEffect, useCallback, useRef, useState } from "react"
 import Cookies from "js-cookie"
-import type { QuestionStatus } from "../types/testTypes"
+import type { QuestionStatus, TestSeriesObject } from "../types/testTypes"
 import { useSocket } from "../contexts/SocketContext"
 import { env } from "../config/env"
 import { useTestContext } from "../contexts/TestContext"
 import { useAuth } from "../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
-
 interface UseSocketConnectionProps {
   userId: string | null | undefined
   questions: any[]
@@ -48,12 +47,17 @@ export const useSocketConnection = ({
   const navigate = useNavigate()
   const questionsRef = useRef(questions)  
   const selectedAnswersRef = useRef(selectedAnswers)
+  const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
+  const testSeriesIdRef = useRef<TestSeriesObject | null>(null)
   useEffect(() => {
     questionsRef.current = questions
   }, [questions])
   useEffect(() => {
     selectedAnswersRef.current = selectedAnswers
   }, [selectedAnswers])
+  useEffect(() => {
+    testSeriesIdRef.current = testSeriesObject
+  }, [testSeriesObject])
   useEffect(() => {
     if (!socket) return
 
@@ -88,7 +92,7 @@ export const useSocketConnection = ({
     }
 
     // Function to handle submit-questions event
-    const handleSubmitQuestions = (data: any) => {
+    const handleSubmitQuestions = async (data: any) => {
       console.log("Received test results:", data)
       if (data.status === "success") {
         const currentQuestions = questionsRef.current
@@ -117,22 +121,21 @@ export const useSocketConnection = ({
         // Prepare correct answers in the expected format
         const correctAnswers: Record<string, string[]> = {}
         const formattedSelectedAnswers: Record<string, string[]> = {}
-
         // Process each question to build the answers and correctAnswers objects
         resultsArray.forEach((q: any) => {
           if (q.id) {
             const questionId = q.id.toString()
-
+            
             // Get correct answers
             if (q.answer) {
               correctAnswers[questionId] = q.answer
-                .toString()
-                .split(",")
-                .map((a: string) => a.trim())
+              .toString()
+              .split(",")
+              .map((a: string) => a.trim())
             } else {
               correctAnswers[questionId] = []
             }
-
+            
             // Find the user's answer for this question
             const questionIndex = currentQuestions.findIndex((question) => question.id === q.id)
             if (questionIndex >= 0 && questionIndex < currentSelectedAnswers.length) {
@@ -147,24 +150,92 @@ export const useSocketConnection = ({
             }
           }
         })
-
+        
         // Create the final test result object
         const testResult = {
           score: Math.max(0, Math.round(data.score * 100) / 100),
-          totalQuestions: questions.length,
+          totalQuestions: questionsRef.current.length,
           negativeMarking,
           timeTaken: Math.floor((Date.now() - startTime) / 1000),
           answers: formattedSelectedAnswers,
           correctAnswers,
           status: data.status,
           userId: userId,
+          testSeriesName: testSeriesIdRef.current?.testSeriesName,
         }
-
+        
         console.log("Processed test result:", testResult)
-
+        
         // Set the test result in the context
         setTestResult(testResult)
+        const formattedResponse = selectedAnswersRef.current
+  .map((answer, index) => {
+    const question = questionsRef.current[index];
+    if (!question) return null;
+    
+    // Get correct answers from the question (assuming they're stored in question.answer)
+    const correctAnswers = question.answer 
+      ? question.answer.split(',').map((a: string) => parseInt(a.trim(), 10))
+      : [];
+    
+    // Get user's selected answers (convert to array of numbers)
+    const userAnswers = answer ? [parseInt(answer, 10)] : [];
+    
+    // Check if answers are correct
+    const isCorrect = arraysEqual(
+      userAnswers.sort((a: number, b: number) => a - b),
+      correctAnswers.sort((a: number, b: number) => a - b)
+    );
+    
+    return {
+      questionId: question.id,
+      selectedOptions: userAnswers,
+      isCorrect,
+      ...(question.multipleCorrectType && { isPartiallyCorrect: false }) // Add if needed
+    };
+  })
+  .filter(Boolean);
 
+// Helper function to compare arrays
+function arraysEqual(a: number[], b: number[]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((val, index) => val === sortedB[index]);
+}
+        if(testSeriesIdRef.current?.testId){
+          const requestBody = {
+            testId: Number(testSeriesIdRef.current.testId),
+            response: formattedResponse,
+            result: testResult
+          };
+          console.log("Request Body:", requestBody);
+          const response = await fetch(`${env.API}/user/testSeries`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Cookies.get("token")}`,
+            },
+            body:JSON.stringify(requestBody),
+          })
+          console.log("Response: send for this here hello", response)
+        }else{
+          const requestBody = {
+            questionIds: questionsRef.current.map((q) => q.id),
+            response: formattedResponse,
+            result: testResult
+          };
+          console.log("Request Body:", requestBody);
+          const response = await fetch(`${env.API}/user/tests`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Cookies.get("token")}`,
+            },
+            body:JSON.stringify(requestBody),
+          })
+          console.log("Response: send for this here hello", response)
+        }
         // Update the UI state
         setIsReviewMode(true)
 
@@ -188,7 +259,7 @@ export const useSocketConnection = ({
     }
   }, [socket])
 
-  const handleSubmitTest = useCallback(async () => {
+  const handleSubmitTest = useCallback(async (testSeriesObject?: TestSeriesObject) => {
     setTestStarted(false)
     console.log("request made for submit")
 
@@ -230,6 +301,10 @@ export const useSocketConnection = ({
           userId,
         }),
       })
+      if(testSeriesObject){
+        setTestSeriesObject(testSeriesObject)
+      }
+      console.log("testId set here", testSeriesObject)
       console.log("made the post request")
       if (!response.ok) {
         throw new Error("Failed to submit test")

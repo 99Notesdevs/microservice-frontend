@@ -6,6 +6,7 @@ import { useTestContext } from "../contexts/TestContext"
 import { useSocketConnection } from "./use-socket-connection"
 import Cookies from "js-cookie"
 import { env } from "../config/env"
+import type { TestSeriesObject } from "@/types/testTypes"
 
 export function useSocketTest() {
   const navigate = useNavigate()
@@ -138,7 +139,7 @@ export function useSocketTest() {
   }, [setNegativeMarking, setTestDuration])
 
   // Submit socket test - follows the workflow you described
-  const submitSocketTest = useCallback(async () => {
+  const submitSocketTest = useCallback(async (testSeriesObject?: TestSeriesObject) => {
     try {
       console.log("Submitting test via socket")
       // This will make the POST request to /questions/submit
@@ -146,7 +147,7 @@ export function useSocketTest() {
       setLoading(true)
       console.log("request made for submit")
       
-      await socketSubmitTest()
+      await socketSubmitTest(testSeriesObject)
 
       console.log("Test submitted successfully came out of SocketSubmitTest")
     } catch (error) {
