@@ -8,6 +8,9 @@ interface NavigationButtonsProps {
   totalQuestions: number
   onNext: () => void
   onPrevious: () => void
+  onSaveAndNext?: () => void
+  onMarkForReview?: () => void
+  isReviewMode: boolean
 }
 
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({

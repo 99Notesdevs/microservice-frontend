@@ -11,6 +11,7 @@ import { AlertTriangle } from "lucide-react"
 import Cookies from "js-cookie"
 import {env} from "../config/env"
 import { useSocketTest } from "../hooks/useSocketTest"
+import { useAuth } from "../contexts/AuthContext"
 // API function to fetch test series data
 
 
@@ -33,7 +34,7 @@ import { useSocketTest } from "../hooks/useSocketTest"
                 setTestData,
                 setMarkingScheme,
               } = useTestContext()
-              
+              const {user} = useAuth()
               const [loading, setLoading] = useState(true)
               const [error, setError] = useState<string | null>(null)
               const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
@@ -178,6 +179,22 @@ import { useSocketTest } from "../hooks/useSocketTest"
     try {
       setShowConfirmSubmit(false)
       console.log("Submitting socket test...")
+      const requestBody = {
+        authUser: user?.id,
+        testId: Number(testSeriesId),
+        response: selectedAnswers,
+        result: "result here"
+      };
+      console.log("Request Body:", requestBody);
+      const response = await fetch(`${env.API}/user/testSeries`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Cookies.get("token")}`,
+        },
+        body:JSON.stringify(requestBody),
+      })
+      console.log(response)
       await submitSocketTest()
 
       // Force navigation after a short delay

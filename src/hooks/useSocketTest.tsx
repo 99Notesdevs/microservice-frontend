@@ -145,6 +145,7 @@ export function useSocketTest() {
       // and then handle the socket response
       setLoading(true)
       console.log("request made for submit")
+      
       await socketSubmitTest()
 
       console.log("Test submitted successfully came out of SocketSubmitTest")
