@@ -56,7 +56,10 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       </div>
 
       <div className="mb-6">
-        <p className="text-gray-800 text-lg">{question.question}</p>
+      <p 
+  className="text-gray-800 text-lg" 
+  dangerouslySetInnerHTML={{ __html: question.question }} 
+/>
       </div>
 
       <div className="space-y-3 mb-6">
@@ -102,7 +105,10 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                   </div>
                 </div>
                 <div className="flex-1 pt-1">
-                  <span>{option}</span>
+                  <p 
+  className="text-gray-800 text-lg" 
+  dangerouslySetInnerHTML={{ __html: option }} 
+/>
                 </div>
                 {isReviewMode && (
                   <div className="flex-shrink-0 ml-3">
@@ -123,7 +129,10 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
             <HelpCircle className="w-5 h-5 mr-2 text-yellow-600" />
             Explanation
           </h3>
-          <p className="text-gray-800">{question.explaination || question.explanation}</p>
+          <p 
+            className="text-gray-800 text-lg" 
+            dangerouslySetInnerHTML={{ __html: question.explaination || question.explanation || "" }} 
+          />
         </div>
       )}
 
