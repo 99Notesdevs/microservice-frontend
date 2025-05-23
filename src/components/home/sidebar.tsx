@@ -16,19 +16,24 @@ const links = [
   { name: "Inbox", icon: <MessageSquare size={20} />, path: "/messages" },
 ];
 
-export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
+export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) {
   useLocation();
 
   return (
-    <div className={`fixed top-0 left-0 h-screen flex flex-col justify-between z-[1200] transition-all duration-300 ${
-      isMobile ? (isSidebarOpen ? 'w-70' : 'w-0') : 'w-70'
-    }`} style={{ 
-      overflow: 'auto',
-      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
-    }}>
+    <div 
+      className={`fixed top-0 left-0 h-screen flex flex-col justify-between z-[1200] transition-all duration-300 ease-in-out transform ${
+        isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-0'
+      }`} 
+      style={{ 
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+        borderRadius: '0 1rem 1rem 0',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+      }}
+    >
 
       {/* Sidebar Content */}
-      <div className="flex flex-col justify-between min-h-screen">
+      <div className="flex flex-col justify-between min-h-screen w-64">
         {/* Top Profile Section */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-4">
@@ -43,7 +48,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
             </div>
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              className="p-1 rounded-full hover:bg-gray-200 lg:hidden"
+              className="p-1 rounded-full hover:bg-gray-200"
               aria-label="Close sidebar"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
