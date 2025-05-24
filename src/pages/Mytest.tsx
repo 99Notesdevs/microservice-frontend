@@ -58,7 +58,7 @@ const Mytest = () => {
           className="text-center mb-12"
         >
           <motion.h1 
-            className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent"
+            className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -134,7 +134,7 @@ const Mytest = () => {
                   <div className="p-6 flex-1">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="text-xl font-bold text-gray-900">{test.name}</h3>
-                      <div className="bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">
+                      <div className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">
                         Test {index + 1}
                       </div>
                     </div>
@@ -145,11 +145,11 @@ const Mytest = () => {
                     
                     <div className="mt-6 space-y-3">
                       <div className="flex items-center text-gray-600">
-                        <FiBookOpen className="mr-2 text-orange-500" />
+                        <FiBookOpen className="mr-2 text-yellow-500" />
                         <span className="text-sm">{test.totalQuestions} Questions</span>
                       </div>
                       <div className="flex items-center text-gray-600">
-                        <FiClock className="mr-2 text-orange-500" />
+                        <FiClock className="mr-2 text-yellow-500" />
                         <span className="text-sm">{test.timeLimit} Minutes Duration</span>
                       </div>
                     </div>
@@ -159,8 +159,8 @@ const Mytest = () => {
                     className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleTestClick(test.id)}
                   >
-                    <span className="text-sm font-medium text-orange-600">View Details</span>
-                    <FiArrowRight className="text-orange-500" />
+                    <span className="text-sm font-medium text-yellow-600">View Details</span>
+                    <FiArrowRight className="text-yellow-500" />
                   </div>
                 </motion.div>
               ))}

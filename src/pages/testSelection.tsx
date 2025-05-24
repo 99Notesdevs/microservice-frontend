@@ -18,7 +18,7 @@ const TestSelection: React.FC = () => {
       {/* Header Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-5xl font-bold text-orange-600 mb-6 tracking-tight">
+          <h1 className="text-5xl font-bold text-yellow-600 mb-6 tracking-tight">
             Your Path to Success
           </h1>
           <p className="text-xl text-gray-600 mb-16 max-w-2xl mx-auto">
@@ -33,8 +33,8 @@ const TestSelection: React.FC = () => {
             onClick={handleCreateTest}
             className="group relative p-10 bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <div className="absolute -top-5 -left-5 w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center">
-              <BookOpen className="w-10 h-10 text-orange-600" />
+            <div className="absolute -top-5 -left-5 w-24 h-24 rounded-full bg-yellow-50 flex items-center justify-center">
+              <BookOpen className="w-10 h-10 text-yellow-600" />
             </div>
             <div className="relative">
               <h2 className="text-3xl font-semibold text-gray-900 mb-5">
@@ -43,7 +43,7 @@ const TestSelection: React.FC = () => {
               <p className="text-gray-600 mb-8 text-lg">
                 Craft your personalized test with questions tailored to your needs
               </p>
-              <div className="flex items-center gap-3 text-orange-600 group-hover:text-orange-700">
+              <div className="flex items-center gap-3 text-yellow-600 group-hover:text-yellow-700">
                 <span className="font-medium">Start Customizing</span>
                 <ArrowRight className="w-5 h-5" />
               </div>
@@ -55,8 +55,8 @@ const TestSelection: React.FC = () => {
             onClick={handleTakeTest}
             className="group relative p-10 bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <div className="absolute -top-5 -left-5 w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center">
-              <LayoutGrid className="w-10 h-10 text-orange-600" />
+            <div className="absolute -top-5 -left-5 w-24 h-24 rounded-full bg-yellow-50 flex items-center justify-center">
+              <LayoutGrid className="w-10 h-10 text-yellow-600" />
             </div>
             <div className="relative">
               <h2 className="text-3xl font-semibold text-gray-900 mb-5">
@@ -65,7 +65,7 @@ const TestSelection: React.FC = () => {
               <p className="text-gray-600 mb-8 text-lg">
                 Dive into our expert-curated test series for structured practice
               </p>
-              <div className="flex items-center gap-3 text-orange-600 group-hover:text-orange-700">
+              <div className="flex items-center gap-3 text-yellow-600 group-hover:text-yellow-700">
                 <span className="font-medium">Start Series</span>
                 <ArrowRight className="w-5 h-5" />
               </div>
@@ -81,7 +81,7 @@ const TestSelection: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <div className="flex items-center gap-4 mb-6">
-                <BookOpen className="w-12 h-12 text-orange-600" />
+                <BookOpen className="w-12 h-12 text-yellow-600" />
                 <h3 className="text-2xl font-semibold text-gray-900">Create Your Own Test</h3>
               </div>
               <p className="text-gray-600 mb-4">
@@ -100,7 +100,7 @@ const TestSelection: React.FC = () => {
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <div className="flex items-center gap-4 mb-6">
-                <LayoutGrid className="w-12 h-12 text-orange-600" />
+                <LayoutGrid className="w-12 h-12 text-yellow-600" />
                 <h3 className="text-2xl font-semibold text-gray-900">Take Test from Series</h3>
               </div>
               <p className="text-gray-600 mb-4">

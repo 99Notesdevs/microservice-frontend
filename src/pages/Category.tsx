@@ -1,5 +1,5 @@
 // pages/Category.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { CategorySelection } from '../components/home/CategorySelection';
@@ -38,6 +38,8 @@ interface TestStats {
 
 export const Category = () => {
   const navigate = useNavigate();
+  const categorySectionRef = useRef<HTMLDivElement>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [testStats, setTestStats] = useState<TestStats>({
     correctAttempted: 0,
     wrongAttempted: 0,
@@ -55,6 +57,8 @@ export const Category = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedSingleCategories, setSelectedSingleCategories] = useState<number[]>([]);
   const [selectedMultipleCategories, setSelectedMultipleCategories] = useState<number[]>([]);
+  const [showCategoryPrompt, setShowCategoryPrompt] = useState(false);
+
   // Add this effect to fetch test patterns
   useEffect(() => {
     const fetchTestPatterns = async () => {
@@ -79,6 +83,7 @@ export const Category = () => {
 
     fetchTestPatterns();
   }, []);
+
   // Add this handler to apply a test pattern
   const handleSelectPattern = (pattern: TestPattern) => {
     setSelectedPattern(pattern.id);
@@ -86,14 +91,21 @@ export const Category = () => {
       correctAttempted: pattern.correctAttempted,
       wrongAttempted: pattern.wrongAttempted,
       notAttempted: pattern.notAttempted,
-      partialAttempted: pattern.partialAttempted,
-      partialNotAttempted: pattern.partialNotAttempted,
-      partialWrongAttempted: pattern.partialWrongAttempted,
+      partialAttempted: pattern.partialAttempted || 0,
+      partialNotAttempted: pattern.partialNotAttempted || 0,
+      partialWrongAttempted: pattern.partialWrongAttempted || 0,
       timeTaken: pattern.timeTaken,
       questionsSingle: pattern.questionsSingle,
       questionsMultiple: pattern.questionsMultiple,
     });
+    setShowCategoryPrompt(true);
+    
+    // Scroll to category selection after a short delay to allow state to update
+    setTimeout(() => {
+      categorySectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
+
   const handleChange = (field: keyof TestStats, value: number) => {
     const clamped = Math.max(0, Math.min(field === 'timeTaken' ? 3600 : 1000, value));
     setTestStats(prev => ({ ...prev, [field]: clamped }));
@@ -120,15 +132,15 @@ export const Category = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 md:px-8">
+    <div className="min-h-screen w-full bg-gradient-to-b from-gray-100 to-gray2100 py-12 px-4 sm:px-6 md:px-8">
       {isLoading ? (
         <div className="text-center py-8">Loading test patterns...</div>
       ) : error ? (
         <div className="text-center py-8 text-red-500">{error}</div>
       ) : testPatterns.length > 0 && (
         <div className="max-w-7xl mx-auto mb-8">
-          <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-xl p-6 border border-orange-100/50">
-            <h2 className="text-2xl font-bold text-orange-600 mb-6">Saved Test Patterns</h2>
+          <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-xl p-6 border border-yellow-100/50">
+            <h2 className="text-2xl font-bold text-yellow-600 mb-6">Saved Test Patterns</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {testPatterns.map((pattern) => (
                 <div
@@ -180,139 +192,184 @@ export const Category = () => {
           </div>
         </div>
       )}
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto" ref={categorySectionRef}>
         <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 sm:p-12 border border-orange-100/50">
-          <h1 className="text-3xl sm:text-4xl font-bold text-center text-yellow-600 mb-12">
+          <h1 className="text-3xl sm:text-4xl font-bold text-center text-yellow-600 mb-4">
             Test Configuration
           </h1>
+          <h2 className="text-xl font-semibold text-center text-gray-700 mb-8">
+            Customize Your Test Parameters
+          </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            {/* Marks Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-gray-100 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                  <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  Test Parameters
-                </h2>
+            {/* Test Parameters Section */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <svg className="w-6 h-6 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Customize Your Test Parameters
+              </h2>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div 
+                className="px-6 py-5 bg-gray-100 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                      <svg 
+                        className={`w-5 h-5 mr-2 text-gray-600 transform transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      Test Parameters
+                    </h2>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {isExpanded ? 'Hide' : 'Show'} details
+                  </span>
+                </div>
                 <p className="text-sm text-gray-600 mt-1">Configure your test settings and metrics</p>
               </div>
 
-              <div className="p-6">
-                <div className="mb-8">
-                  <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-4 flex items-center">
-                    <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
-                    Question Statistics
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {(['correctAttempted', 'wrongAttempted', 'notAttempted'] as (keyof TestStats)[]).map(field => (
-                      <div key={field} className="group">
-                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
-                          {field.replace(/([A-Z])/g, ' $1').trim()}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            value={testStats[field] ?? ''}
-                            onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
-                            className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
-                            focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
-                            transition-all duration-200 shadow-sm"
-                          />
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <span className="text-gray-400 text-sm">Q</span>
+              {isExpanded && (
+                <div className="p-6 transition-all duration-300">
+                  <div className="mb-8">
+                    <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-4 flex items-center">
+                      <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
+                      Question Statistics
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {(['correctAttempted', 'wrongAttempted', 'notAttempted'] as (keyof TestStats)[]).map(field => (
+                        <div key={field} className="group">
+                          <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
+                            {field.replace(/([A-Z])/g, ' $1').trim()}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={testStats[field] ?? ''}
+                              onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
+                              className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
+                              focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
+                              transition-all duration-200 shadow-sm"
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <span className="text-gray-400 text-sm">Q</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div className="mb-8 pt-6 border-t border-gray-100">
-                  <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-4 flex items-center">
-                    <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
-                    Question Types
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {(['questionsSingle', 'questionsMultiple'] as (keyof TestStats)[]).map(field => (
-                      <div key={field} className="group">
-                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
-                          {field.replace(/([A-Z])/g, ' $1').replace('questions ', '')}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            value={testStats[field] ?? ''}
-                            onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
-                            className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
-                            focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
-                            transition-all duration-200 shadow-sm"
-                          />
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <span className="text-gray-400 text-sm">Q</span>
+                  <div className="mb-8 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-4 flex items-center">
+                      <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
+                      Question Types
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {(['questionsSingle', 'questionsMultiple'] as (keyof TestStats)[]).map(field => (
+                        <div key={field} className="group">
+                          <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
+                            {field.replace(/([A-Z])/g, ' $1').replace('questions ', '')}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={testStats[field] ?? ''}
+                              onChange={(e) => handleChange(field, parseInt(e.target.value) || 0)}
+                              className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
+                              focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
+                              transition-all duration-200 shadow-sm"
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <span className="text-gray-400 text-sm">Q</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div className="pt-6 border-t border-gray-100">
-                  <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-4 flex items-center">
-                    <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
-                    Partial Attempts
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {([
-                      { key: 'partialAttempted', label: 'Partial Attempted' },
-                      { key: 'partialNotAttempted', label: 'Partial Not Attempted' },
-                      { key: 'partialWrongAttempted', label: 'Partial Wrong Attempted' }
-                    ] as { key: keyof TestStats, label: string }[]).map(({ key, label }) => (
-                      <div key={key} className="group">
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5 whitespace-nowrap overflow-hidden overflow-ellipsis">
-                          {label}
+                  <div className="pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-4 flex items-center">
+                      <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
+                      Partial Attempts
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {([
+                        { key: 'partialAttempted', label: 'Partial Attempted' },
+                        { key: 'partialNotAttempted', label: 'Partial Not Attempted' },
+                        { key: 'partialWrongAttempted', label: 'Partial Wrong Attempted' }
+                      ] as { key: keyof TestStats, label: string }[]).map(({ key, label }) => (
+                        <div key={key} className="group">
+                          <label className="block text-xs font-medium text-gray-600 mb-1.5 whitespace-nowrap overflow-hidden overflow-ellipsis">
+                            {label}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={testStats[key] ?? ''}
+                              onChange={(e) => handleChange(key, parseInt(e.target.value) || 0)}
+                              className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
+                              focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
+                              transition-all duration-200 shadow-sm"
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <span className="text-gray-400 text-sm">Q</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="group">
+                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
+                          Time (seconds)
                         </label>
                         <div className="relative">
                           <input
                             type="number"
-                            value={testStats[key] ?? ''}
-                            onChange={(e) => handleChange(key, parseInt(e.target.value) || 0)}
+                            value={testStats.timeTaken}
+                            onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
                             className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
                             focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
                             transition-all duration-200 shadow-sm"
                           />
                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <span className="text-gray-400 text-sm">Q</span>
+                            <span className="text-gray-400 text-sm">sec</span>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="group">
-                      <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
-                        Time (seconds)
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={testStats.timeTaken}
-                          onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
-                          focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
-                          transition-all duration-200 shadow-sm"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <span className="text-gray-400 text-sm">sec</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
             </div>
 
             {/* Category Selector */}
             <div>
+              {showCategoryPrompt && (
+                <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-md">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">
+                         Please select your categories and click 'Start Test' to begin.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <CategorySelection onSingleSelectionChange={setSelectedSingleCategories} onMultipleSelectionChange={setSelectedMultipleCategories} />
               <div className="mt-12 text-center pt-6 border-t border-orange-100">
             <Button
