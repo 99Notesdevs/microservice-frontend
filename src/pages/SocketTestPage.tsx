@@ -10,6 +10,7 @@ import FullScreenHeader from "../components/testPortal/FullScreenHeader"
 import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import { AlertTriangle } from "lucide-react"
 import { useSocket } from "../contexts/SocketContext"
+import { usePreventTestExit } from '../hooks/usePreventTestExit';
 
 const SocketTestPage: React.FC = () => {
   const navigate = useNavigate()
@@ -40,6 +41,8 @@ const SocketTestPage: React.FC = () => {
       startSocketTest();
     }
   }, [socket, testStarted, isReviewMode, isInitialized, startSocketTest]);
+
+  usePreventTestExit(!isReviewMode && testStarted);
 
   // Update remaining time when test duration changes
   useEffect(() => {
@@ -92,6 +95,7 @@ const SocketTestPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-xl">Loading questions...</div>
+        <h1 className="text-xl">Please Refresh if it takes too long</h1>
       </div>
     )
   }
