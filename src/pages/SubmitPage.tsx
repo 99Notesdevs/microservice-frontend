@@ -4,11 +4,11 @@ import type React from "react"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTestContext } from "../contexts/TestContext"
-import { CheckCircle, XCircle, Clock, FileText, Home, RotateCcw, Eye } from "lucide-react"
+import { CheckCircle, XCircle, Clock, FileText, Home } from "lucide-react"
 
 const SubmitPage: React.FC = () => {
   const navigate = useNavigate()
-  const { testData, testResult, setIsReviewMode } = useTestContext()
+  const { testData, testResult } = useTestContext()
 
   useEffect(() => {
     // Log the test result for debugging
@@ -93,15 +93,6 @@ const SubmitPage: React.FC = () => {
   // Calculate score percentage
   const score = totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100) : 0
 
-  const handleReviewTest = () => {
-    setIsReviewMode(true)
-    navigate("/test")
-  }
-
-  const handleRetakeTest = () => {
-    setIsReviewMode(false)
-    navigate("/test")
-  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -227,20 +218,6 @@ const SubmitPage: React.FC = () => {
               </div>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={handleReviewTest}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <Eye className="w-5 h-5 mr-2" />
-                  Review Test
-                </button>
-                <button
-                  onClick={handleRetakeTest}
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <RotateCcw className="w-5 h-5 mr-2" />
-                  Retake Test
-                </button>
                 <button
                   onClick={() => navigate("/")}
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"

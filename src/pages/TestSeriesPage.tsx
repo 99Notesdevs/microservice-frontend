@@ -12,6 +12,7 @@ import Cookies from "js-cookie"
 import {env} from "../config/env"
 import { useSocketTest } from "../hooks/useSocketTest"
 import type { TestSeriesObject } from "@/types/testTypes"
+import { usePreventTestExit } from '../hooks/usePreventTestExit';
 // import { useAuth } from "../contexts/AuthContext"
 // API function to fetch test series data
 
@@ -29,6 +30,7 @@ import type { TestSeriesObject } from "@/types/testTypes"
                 selectedAnswers,
                 isReviewMode,
                 handleQuestionSelect,
+                setIsReviewMode,
                 handleOptionSelect,
                 handleConfirmAnswer,
                 handleSaveForLater,
@@ -36,14 +38,17 @@ import type { TestSeriesObject } from "@/types/testTypes"
                 setMarkingScheme,
               } = useTestContext()
               const [loading, setLoading] = useState(true)
+              const [testStarted, setTestStarted] = useState(false)
               const [error, setError] = useState<string | null>(null)
               const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
               const [isFullScreen, setIsFullScreen] = useState(false)
               const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
               const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
+              
               // Fetch test series data
               const fetchTestSeriesData = async (testSeriesId: string) => {
                 try {
+                  setTestStarted(true)
                   const apiUrl = env.API
                   const response = await fetch(`${apiUrl}/testSeries/${testSeriesId}`, {
                     method: "GET",
@@ -101,6 +106,7 @@ import type { TestSeriesObject } from "@/types/testTypes"
                   }
                   
                   try {
+                    setIsReviewMode(false)
                     const data = await fetchTestSeriesData(testSeriesId)
                     setTestData({
                       id: data.id,
@@ -159,24 +165,11 @@ import type { TestSeriesObject } from "@/types/testTypes"
       document.removeEventListener("fullscreenchange", handleFullScreenChange)
     }
   }, [])
-
-  // const handleSubmit = async () => {
-  //   if (!testSeriesId) return
-
-  //   // Custom submit function for test series
-  //   const submitFn = async (result: any) => {
-  //     try {
-  //       await submitTestSeriesResults(testSeriesId, result)
-  //     } catch (err) {
-  //       console.error("Failed to submit test series results:", err)
-  //     }
-  //   }
-
-  //   handleSubmitTest(submitFn)
-  //   navigate("/submit")
-  // }
+  usePreventTestExit(!isReviewMode && testStarted);
   const handleSubmit = async () => {
     try {
+      setTestStarted(false)
+      
       setShowConfirmSubmit(false)
       console.log("Submitting socket test...")
       setTestSeriesObject({
@@ -185,15 +178,8 @@ import type { TestSeriesObject } from "@/types/testTypes"
       })
       if (!testSeriesObject) return
       await submitSocketTest(testSeriesObject)
-
-      // Force navigation after a short delay
-      // setTimeout(() => {
-      //   console.log("Forcing navigation to submit page")
-      //   navigate("/submit", { replace: true })
-      // }, 1000)
     } catch (error) {
       console.error("Error submitting test:", error)
-      // setError("Failed to submit test. Please try again.")
     }
   }
   if (loading) {
