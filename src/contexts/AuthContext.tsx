@@ -299,6 +299,12 @@ interface User {
   // Add other user properties as needed
 }
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
@@ -306,6 +312,7 @@ interface AuthContextType {
   
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  GoogleOneTap: () => JSX.Element | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -361,7 +368,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     checkAuth()
-  }, [])
+  }, []);
+
+  const GoogleOneTap = () => {
+    useEffect(() => {
+      if (!window.google || !env.REACT_APP_GOOGLE_CLIENT_ID) return;
+
+      window.google.accounts.id.initialize({
+        client_id: env.REACT_APP_GOOGLE_CLIENT_ID,
+        callback: async (response: any) => {
+          const res = await fetch(`${env.API_MAIN}/user/google`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ credential: response.credential }),
+          });
+
+          const data = await res.json();
+          console.log(data);
+          if (data.token) {
+            Cookies.set("token", data.token.split(" ")[1]);
+            const userData = await fetch(`${env.API_MAIN}/user`, {
+              headers: { Authorization: `${data.token}` },
+            });
+
+            if (!userData.ok) {
+              throw new Error("Failed to fetch user data");
+            }
+
+            const userDataJson = await userData.json();
+
+            if (!userDataJson.data) {
+              throw new Error("Invalid user data received");
+            }
+
+            const user = {
+              id: userDataJson.data.id,
+              email: userDataJson.data.email,
+              name: userDataJson.data.name,
+            };
+
+            // Update user state before navigation
+            setUser(user);
+            localStorage.setItem("userId", user.id.toString());
+
+            // Navigate to dashboard after successful login and state update
+            navigate("/dashboard", { replace: true });
+          }
+        },
+        auto_select: true,
+        cancel_on_tap_outside: false,
+      });
+
+      window.google.accounts.id.prompt();
+    });
+
+    return null;
+  };
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -453,6 +515,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         logout,
+        GoogleOneTap
       }}
     >
       {children}
