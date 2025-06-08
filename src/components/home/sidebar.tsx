@@ -20,7 +20,7 @@ const links = [
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) {
   useLocation();
-  const {logout} = useAuth()
+  const { user, logout } = useAuth()
 
   return (
     <div 
@@ -40,15 +40,25 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }: SidebarProp
         {/* Top Profile Section */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-4">
-            <img 
-              src="../../assets/react.svg" 
-              alt="Avatar" 
-              className="w-16 h-16 rounded-full border-2 border-gray-200"
-            />
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">Ritik Gupta</h2>
-              <p className="text-sm text-gray-600">+91 902670XXXX</p>
-            </div>
+            <NavLink 
+              to="/user" 
+              className="flex items-center gap-4 flex-1"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <img 
+                src={"/default-avatar.png"} 
+                alt="User Avatar" 
+                className="w-16 h-16 rounded-full border-2 border-gray-200 object-cover"
+              />
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {user?.name || 'User'}
+                </h2>
+                <p className="text-sm text-gray-600 truncate">
+                  {user?.email || ''}
+                </p>
+              </div>
+            </NavLink>
             <button 
               onClick={() => setIsSidebarOpen(false)}
               className="p-1 rounded-full hover:bg-gray-200"

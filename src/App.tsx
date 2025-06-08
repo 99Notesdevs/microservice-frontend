@@ -18,6 +18,7 @@ import TestSelection from "./pages/testSelection"
 import About from "./pages/about"
 import {ProtectedRoute} from "./components/ProtectedRoute"
 import MytestSeries from "./pages/MytestSeries"
+import UserDashboard from "./pages/UserDashboard"
 import ReviewSocketPage from "./pages/ReviewSocketPage"
 // Layout wrapper component
 const LayoutWithSidebar = () => (
@@ -46,6 +47,7 @@ function App() {
               <Route path="/mytest" element={<ProtectedRoute requirePaid={true}><Mytest /></ProtectedRoute>} />
               <Route path="/packages" element={<ProtectedRoute requirePaid={true}><TestSelector /></ProtectedRoute>} />
               <Route path="/mytestseries" element={<ProtectedRoute requirePaid={true}><MytestSeries /></ProtectedRoute>} />
+              <Route path="/user" element={<ProtectedRoute requirePaid={true}><UserDashboard /></ProtectedRoute>} />
             </Route>
             <Route path="/login" element={<LogIn />} />
         
