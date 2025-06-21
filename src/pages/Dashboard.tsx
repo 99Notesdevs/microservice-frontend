@@ -20,6 +20,12 @@ interface TestScore {
   score3: number;
 }
 
+interface RadarDataPoint {
+  subject: string;
+  rating: number;
+  fullMark: number;
+}
+
 export default function Dashboard() {
   // MOCK DATA USAGE
   const mockBarData: TestScore[] = [
@@ -39,7 +45,10 @@ export default function Dashboard() {
     { categoryId: 7, rating: 390, categoryName: 'Economics' },
     { categoryId: 8, rating: 250, categoryName: 'Arts' },
   ];
-
+  const progressConstraints = {
+    min: 100,
+    max: 500,
+  }
   const [data, setData] = useState<RatingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
@@ -47,6 +56,11 @@ export default function Dashboard() {
   const [progressData, setProgressData] = useState<any[]>([]);
   const [progressLoading, setProgressLoading] = useState(true);
   const [progressError, setProgressError] = useState<any>(null);
+  const [last5tests, setLast5tests] = useState<any[]>([]);
+  const [userData, setUserData] = useState<any>(null);
+  const [radarData, setRadarData] = useState<RadarDataPoint[]>([]);
+  const [minRating, setMinRating] = useState(0);
+  const [maxRating, setMaxRating] = useState(10);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,64 +84,92 @@ export default function Dashboard() {
           });
           setCategories(categoryMap);
         }
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchProgress = async () => {
-      try {
-        const userId = localStorage.getItem('userId');
-        if (!userId) return;
-        const response = await fetch(`${env.API}/progress/${userId}`, {
+        
+        const responseB = await fetch(`${env.API}/progress/${userId}`, {
           headers: {
             Authorization: `Bearer ${Cookies.get('token')}`,
           },
         });
-        const result = await response.json();
-        if (result.success) {
-          // Assuming result.data is an array of progress objects with { date, progressMin, progressMax }
-          setProgressData(result.data.map((item: any) => ({
-            date: item.date,
-            progress: item.progressMax, // or any logic you want
-          })));
+        const resultB = await responseB.json();
+        if (resultB.success) {
+          // Parse dates and ensure numbers for the chart
+          const formattedData = resultB.data.map((item: any) => ({
+            date: new Date(item.date).toLocaleDateString(),
+            progressMax: Number(item.progressMax),
+            progressMin: Number(item.progressMin),
+          }));
+          
+          // Sort by date to ensure chronological order
+          formattedData.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          
+          setProgressData(formattedData);
         } else {
           setProgressError('Failed to fetch progress');
+        }
+        const responseP = await fetch(`${env.API_MAIN}/user`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get('token')}`,
+          },
+        });
+        const resultP = await responseP.json();
+        if (resultP.success) {
+          // Assuming result.data is an array of progress objects with { date, progressMin, progressMax }
+          console.log("resultP.data",resultP.data);
+          setUserData(resultP.data);
+        } else {
+          console.log(resultP.error);
+        }
+        const responseL = await fetch(`${env.API}/user/testSeries/data`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get('token')}`,
+          },
+        });
+        const resultL = await responseL.json();
+        if (resultL.success) {
+          console.log("resultL.data",resultL.data);
+          setLast5tests(resultL.data);
+        } else {
+          console.log(resultL.error);
         }
       } catch (err) {
         setProgressError(err);
       } finally {
+        setLoading(false);
         setProgressLoading(false);
       }
     };
-    fetchProgress();
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    // This would come from your API
+    const mockData = {
+      categories: ["Polity", "Security", "Governance", "Economy", "Agriculture", "Environment"],
+      ratings: [8, 4, 5, 7, 6, 7],
+      minRating: 2,  // Fixed min rating of 2
+      maxRating: 9   // Fixed max rating of 9
+    };
+
+    const formattedData = mockData.categories.map((category, index) => ({
+      subject: category,
+      rating: mockData.ratings[index],
+      fullMark: 10  // Max possible rating
+    }));
+
+    setRadarData(formattedData);
+    setMinRating(mockData.minRating);
+    setMaxRating(mockData.maxRating);
   }, []);
 
   // Use mock data for logic
   // const data = mockRatingData;
-  // const barData = mockBarData;
+  const barData = mockBarData;
   // const loading = false;
   // const error = null;
   // const categories = mockRatingData.reduce((acc, item) => {
   //   acc[item.categoryId] = item.categoryName || `Category ${item.categoryId}`;
   //   return acc;
   // }, {} as Record<number, string>);
-
-  // Radar chart data
-  const radarData = useMemo(() => {
-    return data.map(item => ({
-      subject: categories[item.categoryId] || `Category ${item.categoryId}`,
-      A: item.rating,
-      fullMark: 500,
-      categoryId: item.categoryId,
-    }));
-  }, [data, categories]);
 
   // Stats
   const stats = useMemo(() => {
@@ -169,34 +211,130 @@ export default function Dashboard() {
 
         {/* 2. Radar Chart Section */}
         <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center w-full overflow-x-auto">
-          <div className="w-full flex justify-center">
-            <ResponsiveContainer width="100%" height={200}>
-              <RadarChart outerRadius={60} data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarRadiusAxis angle={30} domain={[0, 500]} />
-                <Radar name="Score" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.5} />
+          <p className="text-center font-semibold mb-4">Subject-wise Rating</p>
+          <div className="w-full" style={{ height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart 
+                cx="50%" 
+                cy="50%" 
+                outerRadius={150}
+                data={radarData}
+                margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+              >
+                <PolarGrid stroke="#e5e7eb" />
+                <PolarAngleAxis 
+                  dataKey="subject" 
+                  tick={{ fontSize: 10, fill: '#4b5563' }}
+                />
+                <PolarRadiusAxis 
+                  angle={30} 
+                  domain={[0, 10]}
+                  tickCount={6}
+                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                />
+
+                {/* Green Max Circle */}
+                <Radar
+                  name="Max Threshold"
+                  dataKey={() => maxRating}
+                  stroke="#10B981"
+                  fill="#10B981"
+                  fillOpacity={0.1}
+                  isAnimationActive={false}
+                />
+
+                {/* Red Min Circle */}
+                <Radar
+                  name="Min Threshold"
+                  dataKey={() => minRating}
+                  stroke="#EF4444"
+                  fill="#EF4444"
+                  fillOpacity={0.1}
+                  isAnimationActive={false}
+                />
+
+                {/* Main Rating Polygon */}
+                <Radar
+                  name="Rating"
+                  dataKey="rating"
+                  stroke="#3B82F6"
+                  fill="#3B82F6"
+                  fillOpacity={0.4}
+                  strokeWidth={2}
+                  dot={{ fill: '#3B82F6', strokeWidth: 1, r: 4 }}
+                />
+
                 <Legend />
-                <Tooltip />
+                <Tooltip 
+                  formatter={(value) => [`${value}/10`, 'Rating']}
+                  labelFormatter={(label) => `Subject: ${label}`}
+                />
               </RadarChart>
             </ResponsiveContainer>
           </div>
+          
+          {/* Legend */}
+          <div className="flex justify-center gap-4 mt-2">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
+              <span className="text-xs text-gray-600">Your Rating</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+              <span className="text-xs text-gray-600">Max: {maxRating}/10</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
+              <span className="text-xs text-gray-600">Min: {minRating}/10</span>
+            </div>
+          </div>
         </div>
-
+        {/* 3. Bar Graph - Series 1 */}
+      <div className="bg-white rounded-lg p-4 shadow">
+        <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
+        <BarChart width={330} height={200} data={barData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="score1" fill="#f59e0b" />
+          <Bar dataKey="score2" fill="#3b82f6" />
+          <Bar dataKey="score3" fill="#10b981" />
+        </BarChart>
+      </div>
         {/* 4. Progress Line Graph from backend */}
         <div className="bg-white rounded-lg p-4 shadow">
-          <p className="text-center font-semibold mb-2">My progress</p>
+          <p className="text-center font-semibold mb-2">My Rating Progress</p>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart
               data={progressData}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(date) => new Date(date).toLocaleDateString()}
+              />
               <YAxis domain={[0, 500]} />
-              <Tooltip />
+              <Tooltip 
+                labelFormatter={(value) => `Date: ${new Date(value).toLocaleDateString()}`}
+                formatter={(value, name) => [value, name === 'progressMax' ? 'Max Rating' : 'Min Rating']}
+              />
               <Legend />
-              <Line type="monotone" dataKey="progress" stroke="#3b82f6" name="Progress" />
+              <Line 
+                type="monotone" 
+                dataKey="progressMax" 
+                stroke="#10b981" 
+                name="Max Rating" 
+                activeDot={{ r: 6 }} 
+              />
+              <Line 
+                type="monotone" 
+                dataKey="progressMin" 
+                stroke="#ef4444" 
+                name="Min Rating" 
+                activeDot={{ r: 6 }} 
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
