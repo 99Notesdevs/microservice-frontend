@@ -75,7 +75,20 @@ export default function Dashboard() {
         const result = await response.json();
         if (result.success) {
           setData(result.data);
-  
+          
+          // Process data for radar chart
+          const formattedData = result.data.map((item: any) => ({
+            subject: item.categoryName || `Category ${item.categoryId}`,
+            rating: (item.rating / 100) * 10, // Convert 0-500 to 0-10 scale
+            fullMark: 10
+          }));
+          
+          setRadarData(formattedData);
+          
+          // Set min and max ratings from progressConstraints
+          setMinRating((progressConstraints.min / 100) * 2); // 100 -> 2/10
+          setMaxRating((progressConstraints.max / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
+          
           const categoryMap: Record<number, string> = {};
           result.data.forEach((item: any) => {
             if (item.categoryName && item.categoryId) {
@@ -140,36 +153,6 @@ export default function Dashboard() {
     };
     fetchData();
   }, []);
-
-  useEffect(() => {
-    // This would come from your API
-    const mockData = {
-      categories: ["Polity", "Security", "Governance", "Economy", "Agriculture", "Environment"],
-      ratings: [8, 4, 5, 7, 6, 7],
-      minRating: 2,  // Fixed min rating of 2
-      maxRating: 9   // Fixed max rating of 9
-    };
-
-    const formattedData = mockData.categories.map((category, index) => ({
-      subject: category,
-      rating: mockData.ratings[index],
-      fullMark: 10  // Max possible rating
-    }));
-
-    setRadarData(formattedData);
-    setMinRating(mockData.minRating);
-    setMaxRating(mockData.maxRating);
-  }, []);
-
-  // Use mock data for logic
-  // const data = mockRatingData;
-  const barData = mockBarData;
-  // const loading = false;
-  // const error = null;
-  // const categories = mockRatingData.reduce((acc, item) => {
-  //   acc[item.categoryId] = item.categoryName || `Category ${item.categoryId}`;
-  //   return acc;
-  // }, {} as Record<number, string>);
 
   // Stats
   const stats = useMemo(() => {
@@ -292,7 +275,7 @@ export default function Dashboard() {
         {/* 3. Bar Graph - Series 1 */}
       <div className="bg-white rounded-lg p-4 shadow">
         <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
-        <BarChart width={330} height={200} data={barData}>
+        <BarChart width={330} height={200} data={mockBarData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis />
