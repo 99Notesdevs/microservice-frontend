@@ -35,16 +35,6 @@ export default function Dashboard() {
     { name: 'Test 4', score1: 550, score2: 450, score3: 350 },
     { name: 'Test 5', score1: 600, score2: 500, score3: 400 },
   ];
-  const mockRatingData: RatingData[] = [
-    { categoryId: 1, rating: 420, categoryName: 'Math' },
-    { categoryId: 2, rating: 350, categoryName: 'Science' },
-    { categoryId: 3, rating: 280, categoryName: 'English' },
-    { categoryId: 4, rating: 490, categoryName: 'History' },
-    { categoryId: 5, rating: 320, categoryName: 'Geography' },
-    { categoryId: 6, rating: 410, categoryName: 'Computer' },
-    { categoryId: 7, rating: 390, categoryName: 'Economics' },
-    { categoryId: 8, rating: 250, categoryName: 'Arts' },
-  ];
   const progressConstraints = {
     weakLimit: 250,
     strongLimit: 450,
@@ -194,6 +184,40 @@ export default function Dashboard() {
   const maxRatingLevel = progressConstraints.xp_status[progressConstraints.xp_status.length - 1].rating;
   const progressPercentage = Math.min(100, (userRating / maxRatingLevel) * 100);
 
+  // Helper: Map rating (0-500) to radar chart value (0-10)
+  const mapRatingToRadar = (rating: number) => (rating / 500) * 10;
+
+  // Helper: Find strengths (top 3) and weakness (lowest 1)
+  const strengths = useMemo(() => {
+    if (!data.length) return [];
+    const sorted = [...data].sort((a, b) => b.rating - a.rating);
+    return sorted.slice(0, 3).map(d => d.categoryName || `Category ${d.categoryId}`);
+  }, [data]);
+  const weakness = useMemo(() => {
+    if (!data.length) return [];
+    const sorted = [...data].sort((a, b) => a.rating - b.rating);
+    return sorted.slice(0, 1).map(d => d.categoryName || `Category ${d.categoryId}`);
+  }, [data]);
+
+  // Radar chart data for user polygon
+  const userRadarData = useMemo(() => {
+    return data.map(item => ({
+      subject: item.categoryName || `Category ${item.categoryId}`,
+      value: mapRatingToRadar(item.rating),
+      raw: item.rating,
+    }));
+  }, [data]);
+
+  // Reference circles: inner (0-200), outer (100-500)
+  const referenceRadarData = useMemo(() => {
+    // Use same subjects as userRadarData
+    return (userRadarData.length ? userRadarData : radarData).map(item => ({
+      subject: item.subject,
+      inner: mapRatingToRadar(200), // 200/500*10 = 4
+      outer: mapRatingToRadar(500), // 10
+    }));
+  }, [userRadarData, radarData]);
+
   if (loading || progressLoading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   if (error || progressError) return <div className="text-red-500 p-4">Error loading data</div>;
   if (data.length === 0) return <div className="p-4">No rating data available</div>;
@@ -217,98 +241,113 @@ export default function Dashboard() {
         </div>
 
         {/* 2. Radar Chart Section */}
-        <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center w-full overflow-x-auto">
-          <p className="text-center font-semibold mb-4">Subject-wise Rating</p>
-          <div className="w-full" style={{ height: '400px' }}>
+        <div className="bg-white rounded-lg p-4 shadow flex flex-col md:flex-row items-center w-full overflow-x-auto">
+          {/* Strength/Weakness boxes */}
+          <div className="flex flex-col items-start justify-center mr-6 min-w-[180px]">
+            <p className="text-lg font-semibold mb-2 underline">Subjectwise Rating</p>
+            <div className="mb-3">
+              <span className="bg-green-500 text-black px-3 py-1 rounded-lg flex items-center mb-1">
+                <span className="bg-white border border-green-700 px-2 py-0.5 rounded font-bold text-lg mr-2">Strength</span>
+                <span className="ml-1">{strengths.join(', ')}</span>
+              </span>
+            </div>
+            <div>
+              <span className="bg-yellow-400 text-black px-3 py-1 rounded-lg flex items-center">
+                <span className="bg-white border border-yellow-700 px-2 py-0.5 rounded font-bold text-lg mr-2">Weakness</span>
+                <span className="ml-1">{weakness.join(', ')}</span>
+              </span>
+            </div>
+          </div>
+          {/* Radar Chart */}
+          <div className="w-full" style={{ height: '320px', minWidth: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart 
                 cx="50%" 
                 cy="50%" 
-                outerRadius={150}
-                data={radarData}
+                outerRadius={120}
+                data={referenceRadarData}
                 margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
               >
-                <PolarGrid stroke="#e5e7eb" />
+                {/* Outer reference circle (100-500, blue) */}
+                <Radar
+                  name="Outer"
+                  dataKey="outer"
+                  stroke="#3b82f6"
+                  fill="#3b82f6"
+                  fillOpacity={0.35}
+                  isAnimationActive={false}
+                  dot={false}
+                />
+                {/* Inner reference circle (0-200, pure red, more visible) */}
+                <Radar
+                  name="Inner"
+                  dataKey="inner"
+                  stroke="#ff0000"
+                  fill="#ff0000"
+                  fillOpacity={0.7}
+                  isAnimationActive={false}
+                  dot={false}
+                />
+                {/* User polygon: yellow fill, black border, no dots */}
+                <Radar
+                  name="You"
+                  dataKey={(d: any) => {
+                    const found = userRadarData.find(u => u.subject === d.subject);
+                    return found ? found.value : 0;
+                  }}
+                  stroke="#111"
+                  fill="#fde68a"
+                  fillOpacity={0.7}
+                  isAnimationActive={false}
+                  dot={false}
+                />
+                {/* Custom PolarGrid for black axes */}
+                <PolarGrid
+                  stroke="#111"
+                  radialLines
+                  polarRadius={[]}
+                />
                 <PolarAngleAxis 
                   dataKey="subject" 
-                  tick={{ fontSize: 10, fill: '#4b5563' }}
+                  tick={{ fontSize: 13, fill: '#222', fontWeight: 500 }}
+                  stroke="#111"
                 />
                 <PolarRadiusAxis 
                   angle={30} 
                   domain={[0, 10]}
                   tickCount={6}
-                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                  tick={{ fontSize: 10, fill: '#444' }}
+                  stroke="#111"
                 />
-
-                {/* Green Max Circle */}
-                <Radar
-                  name="Max Threshold"
-                  dataKey={() => maxRating}
-                  stroke="#10B981"
-                  fill="#10B981"
-                  fillOpacity={0.1}
-                  isAnimationActive={false}
-                />
-
-                {/* Red Min Circle */}
-                <Radar
-                  name="Min Threshold"
-                  dataKey={() => minRating}
-                  stroke="#EF4444"
-                  fill="#EF4444"
-                  fillOpacity={0.1}
-                  isAnimationActive={false}
-                />
-
-                {/* Main Rating Polygon */}
-                <Radar
-                  name="Rating"
-                  dataKey="rating"
-                  stroke="#3B82F6"
-                  fill="#3B82F6"
-                  fillOpacity={0.4}
-                  strokeWidth={2}
-                  dot={{ fill: '#3B82F6', strokeWidth: 1, r: 4 }}
-                />
-
-                <Legend />
                 <Tooltip 
-                  formatter={(value) => [`${value}/10`, 'Rating']}
-                  labelFormatter={(label) => `Subject: ${label}`}
+                  formatter={(value: any, name: string, props: any) => {
+                    if (name === "You") {
+                      const subj = props.payload.subject;
+                      const found = data.find(d => (d.categoryName || `Category ${d.categoryId}`) === subj);
+                      return [`${found?.rating ?? 0}/500`, "Your Rating"];
+                    }
+                    if (name === "Outer") return ["100-500", "Reference"];
+                    if (name === "Inner") return ["0-200", "Reference"];
+                    return [value, name];
+                  }}
                 />
               </RadarChart>
             </ResponsiveContainer>
           </div>
-          
-          {/* Legend */}
-          <div className="flex justify-center gap-4 mt-2">
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
-              <span className="text-xs text-gray-600">Your Rating</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
-              <span className="text-xs text-gray-600">Max: {maxRating}/10</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
-              <span className="text-xs text-gray-600">Min: {minRating}/10</span>
-            </div>
-          </div>
         </div>
         {/* 3. Bar Graph - Series 1 */}
-      <div className="bg-white rounded-lg p-4 shadow">
-        <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
-        <BarChart width={330} height={200} data={mockBarData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="score1" fill="#f59e0b" />
-          <Bar dataKey="score2" fill="#3b82f6" />
-          <Bar dataKey="score3" fill="#10b981" />
-        </BarChart>
-      </div>
+        <div className="bg-white rounded-lg p-4 shadow">
+          <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
+          <BarChart width={330} height={200} data={mockBarData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="score1" fill="#f59e0b" />
+            <Bar dataKey="score2" fill="#3b82f6" />
+            <Bar dataKey="score3" fill="#10b981" />
+          </BarChart>
+        </div>
         {/* 4. Progress Line Graph from backend */}
         <div className="bg-white rounded-lg p-4 shadow">
           <p className="text-center font-semibold mb-2">My Rating Progress</p>
