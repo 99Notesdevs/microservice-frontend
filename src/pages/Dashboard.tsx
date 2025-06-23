@@ -46,8 +46,15 @@ export default function Dashboard() {
     { categoryId: 8, rating: 250, categoryName: 'Arts' },
   ];
   const progressConstraints = {
-    min: 100,
-    max: 500,
+    weakLimit: 250,
+    strongLimit: 450,
+    xp_status: [
+      {rating: 250, status: "Weak",xp: 100},
+      {rating: 300, status: "Strong",xp: 200},
+      {rating: 350, status: "Strong",xp: 300},
+      {rating: 400, status: "Strong",xp: 400},
+      {rating: 450, status: "Strong",xp: 500},
+    ]
   }
   const [data, setData] = useState<RatingData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,8 +93,8 @@ export default function Dashboard() {
           setRadarData(formattedData);
           
           // Set min and max ratings from progressConstraints
-          setMinRating((progressConstraints.min / 100) * 2); // 100 -> 2/10
-          setMaxRating((progressConstraints.max / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
+          setMinRating((progressConstraints.weakLimit / 100) * 2); // 100 -> 2/10
+          setMaxRating((progressConstraints.strongLimit / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
           
           const categoryMap: Record<number, string> = {};
           result.data.forEach((item: any) => {
@@ -173,6 +180,20 @@ export default function Dashboard() {
     };
   }, [data]);
 
+  const getExperienceAndStatus = (rating: number) => {
+    const { xp_status } = progressConstraints;
+    const currentLevel = [...xp_status].reverse().find(level => rating >= level.rating) || xp_status[0];
+    return {
+      experience: currentLevel.xp,
+      status: currentLevel.status
+    };
+  };
+
+  const userRating = userData?.userData.rating || 0;
+  const { experience, status } = getExperienceAndStatus(userRating);
+  const maxRatingLevel = progressConstraints.xp_status[progressConstraints.xp_status.length - 1].rating;
+  const progressPercentage = Math.min(100, (userRating / maxRatingLevel) * 100);
+
   if (loading || progressLoading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   if (error || progressError) return <div className="text-red-500 p-4">Error loading data</div>;
   if (data.length === 0) return <div className="p-4">No rating data available</div>;
@@ -183,13 +204,16 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* 1. Student Stats */}
         <div className="bg-white rounded-lg p-4 shadow mb-4 md:mb-0">
-          <p className="text-xs sm:text-sm text-gray-700 mb-2">Global Rating — <span className="font-semibold">{stats?.averageRating || 0}</span></p>
-          <p className="text-xs sm:text-sm text-gray-700 mb-2">Experience Level — <span className="font-semibold">{stats?.maxRating || 0}</span></p>
+          <p className="text-xs sm:text-sm text-gray-700 mb-2">Global Rating — <span className="font-semibold">{userRating}</span></p>
+          <p className="text-xs sm:text-sm text-gray-700 mb-2">Experience Level — <span className="font-semibold">{experience} XP</span></p>
           <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
-            <div className="bg-green-500 h-2 rounded-full" style={{ width: `${stats?.completionPercentage || 0}%` }}></div>
+            <div 
+              className="bg-green-500 h-2 rounded-full" 
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
           </div>
-          <p className="text-xs sm:text-sm text-gray-700 mb-2">Test Attempted — <span className="font-semibold">{`${stats?.completedCategories}/${stats?.totalCategories}`}</span></p>
-          <p className="text-xs sm:text-sm text-gray-700">Status — <span className="font-semibold">Student</span></p>
+          <p className="text-xs sm:text-sm text-gray-700 mb-2">Test Attempted — <span className="font-semibold">{`${stats?.completedCategories || 0}/${stats?.totalCategories || 0}`}</span></p>
+          <p className="text-xs sm:text-sm text-gray-700">Status — <span className="font-semibold">{status}</span></p>
         </div>
 
         {/* 2. Radar Chart Section */}
