@@ -166,6 +166,11 @@ import { usePreventTestExit } from '../hooks/usePreventTestExit';
     }
   }, [])
   usePreventTestExit(!isReviewMode && testStarted);
+  useEffect(() => {
+    if (testSeriesObject) {
+      submitSocketTest(testSeriesObject);
+    }
+  }, [testSeriesObject]);
   const handleSubmit = async () => {
     try {
       setTestStarted(false)
@@ -176,6 +181,7 @@ import { usePreventTestExit } from '../hooks/usePreventTestExit';
         testId: testSeriesId,
         testSeriesName: testData?.name,
       })
+      console.log("Test series object:", testSeriesObject)
       if (!testSeriesObject) return
       await submitSocketTest(testSeriesObject)
     } catch (error) {
