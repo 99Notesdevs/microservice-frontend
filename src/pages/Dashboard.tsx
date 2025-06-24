@@ -27,6 +27,39 @@ interface RadarDataPoint {
   fullMark: number;
 }
 
+interface TestSeriesData {
+  testId: number;
+  score: number;
+  averageScore: number;
+  bestScore: number;
+}
+
+const TestSeriesBarChart = ({ data }: { data: TestSeriesData[] }) => {
+  const chartData = useMemo(() => {
+    return data.map((item, index) => ({
+      name: `Test ${index + 1}`,
+      score: item.score,
+      average: item.averageScore,
+      best: item.bestScore
+    }));
+  }, [data]);
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="score" name="Your Score" fill="#8884d8" />
+        <Bar dataKey="average" name="Average Score" fill="#82ca9d" />
+        <Bar dataKey="best" name="Best Score" fill="#ffc658" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
 export default function Dashboard() {
   // MOCK DATA USAGE
   const mockBarData: TestScore[] = [
@@ -59,6 +92,7 @@ export default function Dashboard() {
   const [radarData, setRadarData] = useState<RadarDataPoint[]>([]);
   const [minRating, setMinRating] = useState(0);
   const [maxRating, setMaxRating] = useState(10);
+  const [testSeriesData, setTestSeriesData] = useState<TestSeriesData[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -139,6 +173,7 @@ export default function Dashboard() {
         if (resultL.success) {
           console.log("resultL.data",resultL.data);
           setLast5tests(resultL.data);
+          setTestSeriesData(resultL.data);
         } else {
           console.log(resultL.error);
         }
@@ -226,7 +261,7 @@ export default function Dashboard() {
   return (
     <div className="p-4 sm:p-6 bg-gray-200 min-h-screen">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 h-[calc(100vh-12rem)]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="space-y-4">
           {/* Student Stats */}
@@ -244,6 +279,14 @@ export default function Dashboard() {
           </div>
 
           <RadarChartComponent />
+        </div>
+
+        {/* Middle Column */}
+        <div className="space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4">Test Series Progress</h2>
+            <TestSeriesBarChart data={testSeriesData} />
+          </div>
         </div>
 
         {/* Right Column */}
@@ -285,7 +328,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart */}
+          {/* Bar Chart
           <div className="bg-white rounded-lg p-4 shadow">
             <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
             <BarChart width={330} height={200} data={mockBarData}>
@@ -297,7 +340,7 @@ export default function Dashboard() {
               <Bar dataKey="score2" fill="#3b82f6" />
               <Bar dataKey="score3" fill="#10b981" />
             </BarChart>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

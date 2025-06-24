@@ -288,7 +288,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode, type JSX } from "react"
 import Cookies from "js-cookie"
 import { env } from "../config/env"
 import { useNavigate } from "react-router-dom"
