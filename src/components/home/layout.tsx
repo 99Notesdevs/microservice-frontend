@@ -9,7 +9,7 @@ interface HomeLayoutProps {
 export const HomeLayout: React.FC<HomeLayoutProps> = ({
   children,
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -45,7 +45,11 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       </div>
       
       {/* Main Content */}
-      <div className="w-full min-h-screen transition-all duration-300">
+      <div 
+        className={`min-h-screen transition-all duration-300 ${
+          isSidebarOpen ? 'ml-64' : 'ml-0'
+        }`}
+      >
         <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
         <div className="w-full">
           {children}
