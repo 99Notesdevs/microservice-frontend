@@ -1,6 +1,7 @@
 // pages/Category.tsx
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '../components/ui/button';
+import { Alert, AlertDescription } from '../components/ui/alert';
 import { useNavigate } from 'react-router-dom';
 import { CategorySelection } from '../components/home/CategorySelection';
 import { env } from '../config/env';
@@ -58,6 +59,8 @@ export const Category = () => {
   const [selectedSingleCategories, setSelectedSingleCategories] = useState<number[]>([]);
   const [selectedMultipleCategories, setSelectedMultipleCategories] = useState<number[]>([]);
   const [showCategoryPrompt, setShowCategoryPrompt] = useState(false);
+  const [alert, setAlert] = useState<{message: string; variant: 'default' | 'destructive'} | null>(null);
+  const alertTimeoutRef = useRef<NodeJS.Timeout|null>(null);
 
   // Add this effect to fetch test patterns
   useEffect(() => {
@@ -111,9 +114,36 @@ export const Category = () => {
     setTestStats(prev => ({ ...prev, [field]: clamped }));
   };
 
+  const showAlert = (message: string, variant: 'default' | 'destructive' = 'destructive') => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
+    setAlert({ message, variant });
+    alertTimeoutRef.current = setTimeout(() => {
+      setAlert(null);
+    }, 5000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleStartTest = () => {
     if (selectedSingleCategories.length === 0 && selectedMultipleCategories.length === 0) {
-      alert('Please select at least one category!');
+      showAlert('Please select at least one category!');
+      return;
+    }
+
+    // Check if timeTaken or at least one question type has a non-zero value
+    const hasValidTime = testStats.timeTaken > 0;
+    const hasValidQuestions = (testStats.questionsSingle || 0) > 0 || (testStats.questionsMultiple || 0) > 0;
+    
+    if (!hasValidTime && !hasValidQuestions) {
+      showAlert('Please enter a valid time (greater than 0) or at least one question type with a count greater than 0');
       return;
     }
   
@@ -238,7 +268,25 @@ export const Category = () => {
               </div>
 
               {isExpanded && (
-                <div className="p-6 transition-all duration-300">
+                <div className="p-4 transition-all duration-300">
+                  <div className="group">
+                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
+                          Time (minutes)
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={testStats.timeTaken}
+                            onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
+                            className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
+                            focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
+                            transition-all duration-200 shadow-sm"
+                          />
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <span className="text-gray-400 text-sm">min</span>
+                          </div>
+                        </div>
+                      </div>
                   <div className="mb-8">
                     <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-4 flex items-center">
                       <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
@@ -277,7 +325,7 @@ export const Category = () => {
                       {(['questionsSingle', 'questionsMultiple'] as (keyof TestStats)[]).map(field => (
                         <div key={field} className="group">
                           <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
-                            {field.replace(/([A-Z])/g, ' $1').replace('questions ', '')}
+                            {field.replace(/([A-Z])/g, ' $1')}
                           </label>
                           <div className="relative">
                             <input
@@ -327,24 +375,6 @@ export const Category = () => {
                           </div>
                         </div>
                       ))}
-                      <div className="group">
-                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">
-                          Time (seconds)
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            value={testStats.timeTaken}
-                            onChange={(e) => handleChange('timeTaken', parseInt(e.target.value) || 0)}
-                            className="w-full px-4 py-2.5 text-gray-800 bg-white border border-gray-200 rounded-lg 
-                            focus:ring-2 focus:ring-amber-200 focus:border-amber-400 focus:outline-none
-                            transition-all duration-200 shadow-sm"
-                          />
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <span className="text-gray-400 text-sm">sec</span>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -398,6 +428,15 @@ export const Category = () => {
          
         </div>
       </div>
+      
+      {/* Alert Notification */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full">
+          <Alert variant={alert.variant}>
+            <AlertDescription>{alert.message}</AlertDescription>
+          </Alert>
+        </div>
+      )}
     </div>
   );
 };

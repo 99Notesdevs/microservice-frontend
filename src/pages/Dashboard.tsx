@@ -1,6 +1,6 @@
 // ritik's code // implementation of the Dashboard component with mock data you can uncomment the api part below to take data from backend
 import {
-  RadarChart, LineChart, Line,PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  LineChart, Line,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { useEffect, useState, useMemo } from 'react';
@@ -14,11 +14,11 @@ interface RatingData {
   categoryName?: string;
 }
 
-interface TestScore {
+interface TestSeriesData {
   name: string;
-  score1: number;
-  score2: number;
-  score3: number;
+  score: number;
+  averageScore: number;
+  bestScore: number;
 }
 
 interface RadarDataPoint {
@@ -62,13 +62,6 @@ const TestSeriesBarChart = ({ data }: { data: TestSeriesData[] }) => {
 
 export default function Dashboard() {
   // MOCK DATA USAGE
-  const mockBarData: TestScore[] = [
-    { name: 'Test 1', score1: 400, score2: 300, score3: 200 },
-    { name: 'Test 2', score1: 450, score2: 350, score3: 250 },
-    { name: 'Test 3', score1: 500, score2: 400, score3: 300 },
-    { name: 'Test 4', score1: 550, score2: 450, score3: 350 },
-    { name: 'Test 5', score1: 600, score2: 500, score3: 400 },
-  ];
   const progressConstraints = {
     weakLimit: 250,
     strongLimit: 450,
@@ -265,20 +258,46 @@ export default function Dashboard() {
         {/* Left Column */}
         <div className="space-y-4">
           {/* Student Stats */}
-          <div className="bg-white rounded-lg p-4 shadow">
-            <p className="text-xs sm:text-sm text-gray-700 mb-2">Global Rating — <span className="font-semibold">{userRating}</span></p>
-            <p className="text-xs sm:text-sm text-gray-700 mb-2">Experience Level — <span className="font-semibold">{experience} XP</span></p>
-            <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
-              <div 
-                className="bg-green-500 h-2 rounded-full" 
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
+          <div className="bg-gray-50 rounded-xl p-4 shadow flex flex-col gap-2">
+            <div className="grid grid-cols-3 items-center py-1">
+              <span className="col-span-1 text-gray-500 text-sm">Global Rating</span>
+              <span className="col-span-1 text-center text-gray-400">—</span>
+              <span className="col-span-1 text-right text-gray-800 font-semibold">{userRating}</span>
             </div>
-            <p className="text-xs sm:text-sm text-gray-700 mb-2">Test Attempted — <span className="font-semibold">{`${stats?.completedCategories || 0}/${stats?.totalCategories || 0}`}</span></p>
-            <p className="text-xs sm:text-sm text-gray-700">Status — <span className="font-semibold">{status}</span></p>
+            <div className="grid grid-cols-3 items-center py-1">
+              <span className="col-span-1 text-gray-500 text-sm">Experience Level</span>
+              <span className="col-span-1 text-center text-gray-400">—</span>
+              <span className="col-span-1 flex items-center justify-end gap-2">
+                <span className="text-gray-800 font-semibold text-base">{experience}</span>
+                <div className="relative w-24 h-3 bg-gray-200 rounded-full mx-2">
+                  <div
+                    className="absolute left-0 top-0 h-3 bg-green-500 rounded-full"
+                    style={{ width: `${progressPercentage}%`, minWidth: '0.5rem' }}
+                  ></div>
+                </div>
+                <span className="text-gray-400 text-xs font-semibold">{progressConstraints.xp_status[progressConstraints.xp_status.length-1].xp}</span>
+              </span>
+            </div>
+            <div className="grid grid-cols-3 items-center py-1">
+              <span className="col-span-1 text-gray-500 text-sm">Test Attempted</span>
+              <span className="col-span-1 text-center text-gray-400">—</span>
+              <span className="col-span-1 text-right text-gray-800 font-semibold">{`${stats?.completedCategories || 0}`}</span>
+            </div>
+            <div className="grid grid-cols-3 items-center py-1">
+              <span className="col-span-1 text-gray-500 text-sm">Status</span>
+              <span className="col-span-1 text-center text-gray-400">—</span>
+              <span className="col-span-1 text-right text-gray-800 font-semibold">{status}</span>
+            </div>
           </div>
 
-          <RadarChartComponent />
+          <RadarChartComponent 
+            userRadarData={userRadarData}
+            referenceRadarData={referenceRadarData}
+            minRating={minRating}
+            maxRating={maxRating}
+            strengths={strengths}
+            weakness={weakness}
+          />
         </div>
 
         {/* Middle Column */}
@@ -293,7 +312,8 @@ export default function Dashboard() {
         <div className="space-y-4">
           {/* Line Chart */}
           <div className="bg-white rounded-lg p-4 shadow">
-            <p className="text-center font-semibold mb-2">My Rating Progress</p>
+
+            <p className="text-center font-semibold mb-2">My Progress</p>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart
                 data={progressData}

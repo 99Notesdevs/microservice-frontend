@@ -10,174 +10,151 @@ import {
   type TooltipProps,
 } from "recharts";
 
-interface SubjectRating {
+interface RadarDataPoint {
   subject: string;
-  rating: number;
+  value: number;
+  fullMark?: number;
+  raw?: number;
 }
 
-interface ChartDataPoint {
+interface ReferenceRadarData {
   subject: string;
-  score: number;
+  inner: number;
+  outer: number;
 }
 
 interface RatingRadarChartProps {
-  data: SubjectRating[];
+  userRadarData: RadarDataPoint[];
+  referenceRadarData: ReferenceRadarData[];
+  minRating: number;
+  maxRating: number;
+  strengths: string[];
+  weakness: string[];
 }
 
 const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
+    const data = payload[0].payload;
     return (
-      <div className="bg-white p-2 border border-gray-200 rounded shadow-lg">
-        <p className="font-medium">{payload[0].payload.subject}</p>
-        <p className="text-sm">
-          Score: <span className="font-medium">{payload[0].value}</span>/500
+      <div className="bg-white p-3 border border-gray-200 rounded shadow-lg text-sm">
+        <p className="font-semibold">{data.subject}</p>
+        <p className="text-gray-700">
+          Rating: <span className="font-medium">{data.raw || data.value * 50}</span>/500
+        </p>
+        <p className="text-gray-600 text-xs">
+          {data.raw >= 400 ? 'Excellent' : data.raw >= 200 ? 'Good' : 'Needs Improvement'}
         </p>
       </div>
     );
   }
   return null;
 };
+        
+const outerRadius = 90;
+const midRadius = 72;
+const innerRadius = 36;
 
-const RatingRadarChart: React.FC<RatingRadarChartProps> = ({ data }) => {
-  const maxScore = 500;
-  const goodThreshold = 400;
-  const badThreshold = 200;
-
-  const formattedData: ChartDataPoint[] = data.map((item) => ({
-    subject: item.subject,
-    score: item.rating
-  }));
+const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
+  userRadarData,
+  referenceRadarData,
+  strengths,
+  weakness,
+}) => {
+  // Custom tick to show subject and rating value at each axis
+  const CustomAngleTick = (props: any) => {
+    const { payload, x, y, textAnchor } = props;
+    const subject = payload.value;
+    const userPoint = userRadarData.find((d: any) => d.subject === subject);
+    const rating = userPoint ? userPoint.raw ?? Math.round(userPoint.value * 50) : '';
+    return (
+      <g>
+        <text x={x} y={y - 8} textAnchor={textAnchor} fontSize={13} fill="#222" fontWeight={500}>
+          {subject}
+        </text>
+        {rating !== '' && (
+          <text x={x} y={y + 12} textAnchor={textAnchor} fontSize={13} fill="#fde047" fontWeight={700} stroke="#222" strokeWidth={0.7}>
+            {rating}
+          </text>
+        )}
+      </g>
+    );
+  };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-md">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">Subject Performance Analysis</h2>
-      
-      <div className="flex flex-col md:flex-row gap-8 items-center">
-        <div className="w-full md:w-1/3 space-y-4">
-          <div className="space-y-2">
-            <h3 className="font-medium text-gray-700">Rating Scale</h3>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded-full bg-red-400"></div>
-              <span className="text-sm text-gray-600">0 - 200: Needs Improvement</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded-full bg-yellow-400"></div>
-              <span className="text-sm text-gray-600">201 - 400: Average</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded-full bg-green-400"></div>
-              <span className="text-sm text-gray-600">401 - 500: Excellent</span>
-            </div>
+    <div className="bg-white rounded-xl p-4 flex flex-col md:flex-row items-center" style={{ minHeight: 300 }}>
+      {/* Left: Subjectwise Rating, Strength, Weakness */}
+      <div className="flex flex-col items-start justify-center min-w-[270px] mr-2">
+        <div className="w-full md:w-1/2 mt-4 md:mt-0 md:pl-4">
+          <div className="text-2xl font-serif font-semibold text-gray-900 mb-2 underline underline-offset-4">
+            Subjectwise Rating
           </div>
-          
-          <div className="space-y-2 mt-6">
-            <h3 className="font-medium text-gray-700">Performance Summary</h3>
-            {formattedData.map((item) => (
-              <div key={item.subject} className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">{item.subject}</span>
-                <span className={`font-medium ${
-                  item.score >= goodThreshold ? 'text-green-600' : 
-                  item.score > badThreshold ? 'text-yellow-600' : 'text-red-600'
-                }`}>
-                  {item.score}
-                </span>
+        </div>
+        <div className="mb-8 w-full relative">
+          <div className="relative">
+            <span className="bg-white border-2 border-green-600 px-4 py-0.5 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-4 shadow-sm">Strength</span>
+            <div className="w-full min-h-11 bg-green-500 rounded-2xl opacity-80 flex items-center justify-center py-2 px-4">
+              <div className="text-lg font-serif text-black text-center">
+                {strengths.join(', ')}
               </div>
-            ))}
+            </div>
           </div>
         </div>
-
-        <div className="w-full md:w-2/3 h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <RechartsRadarChart
-              cx="50%"
-              cy="50%"
-              outerRadius="80%"
-              data={formattedData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-            >
-              {/* Background circles */}
-              <circle cx="50%" cy="50%" r="40%" fill="#fecaca" fillOpacity={0.3} />
-              <circle cx="50%" cy="50%" r="80%" fill="#bbf7d0" fillOpacity={0.3} />
-              
-              <PolarGrid 
-                gridType="circle" 
-                stroke="#e5e7eb"
-                strokeWidth={0.5}
-              />
-              
-              <PolarAngleAxis
-                dataKey="subject"
-                stroke="#4b5563"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              
-              <PolarRadiusAxis
-                angle={30}
-                domain={[0, maxScore]}
-                tickCount={6}
-                tickFormatter={(value) => value.toString()}
-                stroke="transparent"
-                tick={{ fontSize: 0 }}
-              />
-
-              {/* Custom axis labels */}
-              <text
-                x="50%"
-                y="50%"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fill="#ef4444"
-                fontSize={10}
-                style={{ fontWeight: 'bold' }}
-              >
-                Needs Improvement
-              </text>
-              
-              <text
-                x="50%"
-                y="10%"
-                textAnchor="middle"
-                fill="#22c55e"
-                fontSize={10}
-                style={{ fontWeight: 'bold' }}
-              >
-                Excellent
-              </text>
-
-              <Radar
-                name="Rating"
-                dataKey="score"
-                stroke="#3b82f6"
-                fill="#3b82f6"
-                fillOpacity={0.6}
-                strokeWidth={2}
-                dot={{ fill: "#1d4ed8", stroke: "#fff", strokeWidth: 2, r: 4 }}
-              />
-              
-              <Tooltip content={<CustomTooltip />} />
-            </RechartsRadarChart>
-          </ResponsiveContainer>
+        <div className="w-full relative">
+          <div className="relative">
+            <span className="bg-white border-2 border-yellow-500 px-4 py-0.5 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-4 shadow-sm">Weakness</span>
+            <div className="w-full min-h-11 bg-yellow-400 rounded-2xl opacity-80 flex items-center justify-center py-2 px-4">
+              <div className="text-lg font-serif text-black text-center">
+                {weakness.join(', ')}
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+      {/* Radar Chart */}
+      <div className="w-full md:w-1/2 h-72 relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <RechartsRadarChart
+            cx="50%"
+            cy="50%"
+            outerRadius="70%"
+            data={referenceRadarData}
+            margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+          >
+            <PolarGrid gridType="circle" stroke="#222" />
+            <svg width="100%" height="100%" style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
+              <circle cx="50%" cy="50%" r={outerRadius} fill="#22c55e" fillOpacity={0.7} />
+              <circle cx="50%" cy="50%" r={midRadius} fill="#3b82f6" fillOpacity={0.7} />
+              <circle cx="50%" cy="50%" r={innerRadius} fill="#ef4444" fillOpacity={0.7} />
+            </svg>
+            <PolarAngleAxis
+              dataKey="subject"
+              tick={(props) => <CustomAngleTick {...props} userRadarData={userRadarData} />}
+              stroke="#111"
+              tickLine={false}
+            />
+            <PolarRadiusAxis
+              angle={30}
+              domain={[0, 10]}
+              tick={false}
+              axisLine={false}
+              stroke="#111"
+            />
+            <Radar
+              name="Your Rating"
+              dataKey="value"
+              stroke="#222"
+              fill="#fde68a"
+              fillOpacity={0.7}
+              strokeWidth={2}
+              dot={true}
+            />
+            <Tooltip content={<CustomTooltip />} />
+          </RechartsRadarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
 };
 
-// Example data
-const mockData: SubjectRating[] = [
-  { subject: "Math", rating: 450 },
-  { subject: "English", rating: 320 },
-  { subject: "Physics", rating: 280 },
-  { subject: "Chemistry", rating: 150 },
-  { subject: "Biology", rating: 370 },
-  { subject: "Computer", rating: 490 }
-];
 
-// Example usage
-const App: React.FC = () => {
-  return <RatingRadarChart data={mockData} />;
-};
-
-export default App;
+export default RatingRadarChart;
