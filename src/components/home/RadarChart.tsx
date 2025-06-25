@@ -49,7 +49,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
   }
   return null;
 };
-
+        
 const outerRadius = 90;
 const midRadius = 72;
 const innerRadius = 36;
@@ -155,5 +155,6 @@ const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
     </div>
   );
 };
+
 
 export default RatingRadarChart;

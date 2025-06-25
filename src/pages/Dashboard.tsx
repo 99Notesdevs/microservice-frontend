@@ -312,6 +312,7 @@ export default function Dashboard() {
         <div className="space-y-4">
           {/* Line Chart */}
           <div className="bg-white rounded-lg p-4 shadow">
+
             <p className="text-center font-semibold mb-2">My Progress</p>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart
