@@ -169,45 +169,47 @@ export const useSocketConnection = ({
         // Set the test result in the context
         setTestResult(testResult)
         const formattedResponse = selectedAnswersRef.current
-  .map((answer, index) => {
-    const question = questionsRef.current[index];
-    if (!question) return null;
-    
-    // Get correct answers from the question (assuming they're stored in question.answer)
-    const correctAnswers = question.answer 
-      ? question.answer.split(',').map((a: string) => parseInt(a.trim(), 10))
-      : [];
-    
-    // Get user's selected answers (convert to array of numbers)
-    const userAnswers = answer ? [parseInt(answer, 10)] : [];
-    
-    // Check if answers are correct
-    const isCorrect = arraysEqual(
-      userAnswers.sort((a: number, b: number) => a - b),
-      correctAnswers.sort((a: number, b: number) => a - b)
-    );
-    
-    return {
-      questionId: question.id,
-      selectedOptions: userAnswers,
-      isCorrect,
-      ...(question.multipleCorrectType && { isPartiallyCorrect: false }) // Add if needed
-    };
-  })
-  .filter(Boolean);
+          .map((answer, index) => {
+            const question = questionsRef.current[index];
+            if (!question) return null;
+            
+            // Get correct answers from the question (assuming they're stored in question.answer)
+            const correctAnswers = question.answer 
+              ? question.answer.split(',').map((a: string) => parseInt(a.trim(), 10))
+              : [];
+            
+            // Get user's selected answers (convert to array of numbers)
+            const userAnswers = answer ? [parseInt(answer, 10)] : [];
+            
+            // Check if answers are correct
+            const isCorrect = arraysEqual(
+              userAnswers.sort((a: number, b: number) => a - b),
+              correctAnswers.sort((a: number, b: number) => a - b)
+            );
+            
+            return {
+              questionId: question.id,
+              selectedOptions: userAnswers,
+              isCorrect,
+              ...(question.multipleCorrectType && { isPartiallyCorrect: false }) // Add if needed
+            };
+          })
+          .filter(Boolean);
 
-// Helper function to compare arrays
-function arraysEqual(a: number[], b: number[]): boolean {
-  if (a.length !== b.length) return false;
-  const sortedA = [...a].sort();
-  const sortedB = [...b].sort();
-  return sortedA.every((val, index) => val === sortedB[index]);
-}
+          // Helper function to compare arrays
+          function arraysEqual(a: number[], b: number[]): boolean {
+            if (a.length !== b.length) return false;
+            const sortedA = [...a].sort();
+            const sortedB = [...b].sort();
+            return sortedA.every((val, index) => val === sortedB[index]);
+          }
+        console.log(testSeriesIdRef.current?.testId,"testSeriesIdRef.current?.testId")
         if(testSeriesIdRef.current?.testId){
           const requestBody = {
             testId: Number(testSeriesIdRef.current.testId),
             response: formattedResponse,
-            result: testResult
+            result: testResult,
+            score: testResult.score,
           };
           console.log("Request Body:", requestBody);
           const response = await fetch(`${env.API}/user/testSeries`, {
@@ -288,6 +290,10 @@ function arraysEqual(a: number[], b: number[]): boolean {
       })
       // we will also send the request to userData here
       
+      if(testSeriesObject){
+        console.log("testSeriesObject", testSeriesObject)
+        setTestSeriesObject(testSeriesObject)
+      }
       // Send POST request to /questions/submit
       const response = await fetch(`${apiUrl}/questions/submit`, {
         method: "POST",
@@ -301,9 +307,6 @@ function arraysEqual(a: number[], b: number[]): boolean {
           userId,
         }),
       })
-      if(testSeriesObject){
-        setTestSeriesObject(testSeriesObject)
-      }
       console.log("testId set here", testSeriesObject)
       console.log("made the post request")
       if (!response.ok) {

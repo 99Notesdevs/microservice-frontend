@@ -6,6 +6,7 @@ import {
 import { useEffect, useState, useMemo } from 'react';
 import { env } from '@/config/env';
 import Cookies from 'js-cookie';
+import RadarChartComponent from '@/components/home/RadarChart';
 
 interface RatingData {
   categoryId: number;
@@ -25,6 +26,39 @@ interface RadarDataPoint {
   rating: number;
   fullMark: number;
 }
+
+interface TestSeriesData {
+  testId: number;
+  score: number;
+  averageScore: number;
+  bestScore: number;
+}
+
+const TestSeriesBarChart = ({ data }: { data: TestSeriesData[] }) => {
+  const chartData = useMemo(() => {
+    return data.map((item, index) => ({
+      name: `Test ${index + 1}`,
+      score: item.score,
+      average: item.averageScore,
+      best: item.bestScore
+    }));
+  }, [data]);
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="score" name="Your Score" fill="#8884d8" />
+        <Bar dataKey="average" name="Average Score" fill="#82ca9d" />
+        <Bar dataKey="best" name="Best Score" fill="#ffc658" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
 
 export default function Dashboard() {
   // MOCK DATA USAGE
@@ -58,6 +92,7 @@ export default function Dashboard() {
   const [radarData, setRadarData] = useState<RadarDataPoint[]>([]);
   const [minRating, setMinRating] = useState(0);
   const [maxRating, setMaxRating] = useState(10);
+  const [testSeriesData, setTestSeriesData] = useState<TestSeriesData[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,6 +173,7 @@ export default function Dashboard() {
         if (resultL.success) {
           console.log("resultL.data",resultL.data);
           setLast5tests(resultL.data);
+          setTestSeriesData(resultL.data);
         } else {
           console.log(resultL.error);
         }
@@ -225,164 +261,86 @@ export default function Dashboard() {
   return (
     <div className="p-4 sm:p-6 bg-gray-200 min-h-screen">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {/* 1. Student Stats */}
-        <div className="bg-white rounded-lg p-4 shadow mb-4 md:mb-0">
-          <p className="text-xs sm:text-sm text-gray-700 mb-2">Global Rating — <span className="font-semibold">{userRating}</span></p>
-          <p className="text-xs sm:text-sm text-gray-700 mb-2">Experience Level — <span className="font-semibold">{experience} XP</span></p>
-          <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
-            <div 
-              className="bg-green-500 h-2 rounded-full" 
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Left Column */}
+        <div className="space-y-4">
+          {/* Student Stats */}
+          <div className="bg-white rounded-lg p-4 shadow">
+            <p className="text-xs sm:text-sm text-gray-700 mb-2">Global Rating — <span className="font-semibold">{userRating}</span></p>
+            <p className="text-xs sm:text-sm text-gray-700 mb-2">Experience Level — <span className="font-semibold">{experience} XP</span></p>
+            <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
+              <div 
+                className="bg-green-500 h-2 rounded-full" 
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-700 mb-2">Test Attempted — <span className="font-semibold">{`${stats?.completedCategories || 0}/${stats?.totalCategories || 0}`}</span></p>
+            <p className="text-xs sm:text-sm text-gray-700">Status — <span className="font-semibold">{status}</span></p>
           </div>
-          <p className="text-xs sm:text-sm text-gray-700 mb-2">Test Attempted — <span className="font-semibold">{`${stats?.completedCategories || 0}/${stats?.totalCategories || 0}`}</span></p>
-          <p className="text-xs sm:text-sm text-gray-700">Status — <span className="font-semibold">{status}</span></p>
+
+          <RadarChartComponent />
         </div>
 
-        {/* 2. Radar Chart Section */}
-        <div className="bg-white rounded-lg p-4 shadow flex flex-col md:flex-row items-center w-full overflow-x-auto">
-          {/* Strength/Weakness boxes */}
-          <div className="flex flex-col items-start justify-center mr-6 min-w-[180px]">
-            <p className="text-lg font-semibold mb-2 underline">Subjectwise Rating</p>
-            <div className="mb-3">
-              <span className="bg-green-500 text-black px-3 py-1 rounded-lg flex items-center mb-1">
-                <span className="bg-white border border-green-700 px-2 py-0.5 rounded font-bold text-lg mr-2">Strength</span>
-                <span className="ml-1">{strengths.join(', ')}</span>
-              </span>
-            </div>
-            <div>
-              <span className="bg-yellow-400 text-black px-3 py-1 rounded-lg flex items-center">
-                <span className="bg-white border border-yellow-700 px-2 py-0.5 rounded font-bold text-lg mr-2">Weakness</span>
-                <span className="ml-1">{weakness.join(', ')}</span>
-              </span>
-            </div>
+        {/* Middle Column */}
+        <div className="space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4">Test Series Progress</h2>
+            <TestSeriesBarChart data={testSeriesData} />
           </div>
-          {/* Radar Chart */}
-          <div className="w-full" style={{ height: '320px', minWidth: 320 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart 
-                cx="50%" 
-                cy="50%" 
-                outerRadius={120}
-                data={referenceRadarData}
-                margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-4">
+          {/* Line Chart */}
+          <div className="bg-white rounded-lg p-4 shadow">
+            <p className="text-center font-semibold mb-2">My Rating Progress</p>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart
+                data={progressData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                {/* Outer reference circle (100-500, blue) */}
-                <Radar
-                  name="Outer"
-                  dataKey="outer"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.35}
-                  isAnimationActive={false}
-                  dot={false}
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(date) => new Date(date).toLocaleDateString()}
                 />
-                {/* Inner reference circle (0-200, pure red, more visible) */}
-                <Radar
-                  name="Inner"
-                  dataKey="inner"
-                  stroke="#ff0000"
-                  fill="#ff0000"
-                  fillOpacity={0.7}
-                  isAnimationActive={false}
-                  dot={false}
-                />
-                {/* User polygon: yellow fill, black border, no dots */}
-                <Radar
-                  name="You"
-                  dataKey={(d: any) => {
-                    const found = userRadarData.find(u => u.subject === d.subject);
-                    return found ? found.value : 0;
-                  }}
-                  stroke="#111"
-                  fill="#fde68a"
-                  fillOpacity={0.7}
-                  isAnimationActive={false}
-                  dot={false}
-                />
-                {/* Custom PolarGrid for black axes */}
-                <PolarGrid
-                  stroke="#111"
-                  radialLines
-                  polarRadius={[]}
-                />
-                <PolarAngleAxis 
-                  dataKey="subject" 
-                  tick={{ fontSize: 13, fill: '#222', fontWeight: 500 }}
-                  stroke="#111"
-                />
-                <PolarRadiusAxis 
-                  angle={30} 
-                  domain={[0, 10]}
-                  tickCount={6}
-                  tick={{ fontSize: 10, fill: '#444' }}
-                  stroke="#111"
-                />
+                <YAxis domain={[0, 500]} />
                 <Tooltip 
-                  formatter={(value: any, name: string, props: any) => {
-                    if (name === "You") {
-                      const subj = props.payload.subject;
-                      const found = data.find(d => (d.categoryName || `Category ${d.categoryId}`) === subj);
-                      return [`${found?.rating ?? 0}/500`, "Your Rating"];
-                    }
-                    if (name === "Outer") return ["100-500", "Reference"];
-                    if (name === "Inner") return ["0-200", "Reference"];
-                    return [value, name];
-                  }}
+                  labelFormatter={(value) => `Date: ${new Date(value).toLocaleDateString()}`}
+                  formatter={(value, name) => [value, name === 'progressMax' ? 'Max Rating' : 'Min Rating']}
                 />
-              </RadarChart>
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="progressMax" 
+                  stroke="#10b981" 
+                  name="Max Rating" 
+                  activeDot={{ r: 6 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="progressMin" 
+                  stroke="#ef4444" 
+                  name="Min Rating" 
+                  activeDot={{ r: 6 }} 
+                />
+              </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
-        {/* 3. Bar Graph - Series 1 */}
-        <div className="bg-white rounded-lg p-4 shadow">
-          <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
-          <BarChart width={330} height={200} data={mockBarData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="score1" fill="#f59e0b" />
-            <Bar dataKey="score2" fill="#3b82f6" />
-            <Bar dataKey="score3" fill="#10b981" />
-          </BarChart>
-        </div>
-        {/* 4. Progress Line Graph from backend */}
-        <div className="bg-white rounded-lg p-4 shadow">
-          <p className="text-center font-semibold mb-2">My Rating Progress</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart
-              data={progressData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
+
+          {/* Bar Chart
+          <div className="bg-white rounded-lg p-4 shadow">
+            <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
+            <BarChart width={330} height={200} data={mockBarData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tickFormatter={(date) => new Date(date).toLocaleDateString()}
-              />
-              <YAxis domain={[0, 500]} />
-              <Tooltip 
-                labelFormatter={(value) => `Date: ${new Date(value).toLocaleDateString()}`}
-                formatter={(value, name) => [value, name === 'progressMax' ? 'Max Rating' : 'Min Rating']}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="progressMax" 
-                stroke="#10b981" 
-                name="Max Rating" 
-                activeDot={{ r: 6 }} 
-              />
-              <Line 
-                type="monotone" 
-                dataKey="progressMin" 
-                stroke="#ef4444" 
-                name="Min Rating" 
-                activeDot={{ r: 6 }} 
-              />
-            </LineChart>
-          </ResponsiveContainer>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="score1" fill="#f59e0b" />
+              <Bar dataKey="score2" fill="#3b82f6" />
+              <Bar dataKey="score3" fill="#10b981" />
+            </BarChart>
+          </div> */}
         </div>
       </div>
     </div>
