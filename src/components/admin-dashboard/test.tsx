@@ -1,6 +1,3 @@
-"use client"
-
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { SimpleTestForm } from '@/components/testUtils/testForm'
 import { env } from "@/config/env"
@@ -20,57 +17,9 @@ interface TestFormData {
   id?: number
 }
 
-interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  message: string
-  type: 'success' | 'error'
-}
-
-const Modal = ({ isOpen, onClose, message, type }: ModalProps) => {
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-w-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            {type === 'success' ? (
-              <svg className="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-            <h2 className={`text-lg font-semibold ${type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-              {type === 'success' ? 'Success' : 'Error'}
-            </h2>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <p className="text-gray-600 text-center mb-4">{message}</p>
-        <button
-          onClick={onClose}
-          className={`w-full py-2 px-4 rounded-lg ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'} hover:opacity-90 transition-opacity`}
-        >
-          {type === 'success' ? 'Continue' : 'Close'}
-        </button>
-      </div>
-    </div>
-  )
-}
 
 export default function AddTest() {
   const navigate = useNavigate()
-  const [showModal, setShowModal] = useState(false)
-  const [modalMessage, setModalMessage] = useState('')
-  const [modalType, setModalType] = useState<'success' | 'error'>('error')
 
   const handleSubmit = async (data: TestFormData) => {
     try {
@@ -86,29 +35,17 @@ export default function AddTest() {
 
       if (!response.ok) throw new Error('Failed to create test')
       
-      setModalMessage('Test created successfully!')
-      setModalType('success')
-      setShowModal(true)
+      
       
       // Navigate after modal is closed
-      const timer = setTimeout(() => {
+      setTimeout(() => {
         navigate('/dashboard/testForms')
       }, 2000)
       
       return Promise.resolve()
     } catch (error) {
       console.error('Error:', error)
-      setModalMessage('Failed to create test')
-      setModalType('error')
-      setShowModal(true)
       return Promise.reject(error)
-    }
-  }
-
-  const closeModal = () => {
-    setShowModal(false)
-    if (modalType === 'success') {
-      navigate('/dashboard/testForms')
     }
   }
 
@@ -140,7 +77,6 @@ export default function AddTest() {
           </div>
         </div>
       </div>
-      <Modal isOpen={showModal} onClose={closeModal} message={modalMessage} type={modalType} />
     </div>
   )
 }

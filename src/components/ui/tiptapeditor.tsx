@@ -1,5 +1,3 @@
-"use client";
-
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -25,8 +23,6 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Undo,
-  Redo,
   Table as TableIcon,
   RowsIcon,
   ColumnsIcon,
@@ -802,13 +798,13 @@ interface TiptapEditorProps {
   onChange: (html: string) => void;
 }
 
-const FONT_SIZES = {
-  Small: "12px",
-  Normal: "16px",
-  Large: "20px",
-  "Extra Large": "24px",
-  Huge: "32px",
-};
+// const FONT_SIZES = {
+//   Small: "12px",
+//   Normal: "16px",
+//   Large: "20px",
+//   "Extra Large": "24px",
+//   Huge: "32px",
+// };
 
 const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -819,7 +815,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
   });
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
-  const [currentSize, setCurrentSize] = useState("Normal");
+  // const [_currentSize, _setCurrentSize] = useState("Normal");
   const imageInputRef = React.useRef<HTMLInputElement>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [imageSrc, setImageSrc] = useState<string>('');
@@ -1003,6 +999,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
     editorProps: {
       handleDOMEvents: {
         // Prevent default image dragging behavior
+        //@ts-ignore
         dragstart: (view: any, event: Event) => {
           const target = event.target as HTMLElement;
           if (target?.closest('.resizable-image-container')) {
@@ -1081,7 +1078,6 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       const { from, to } = editor.state.selection;
       setTiptapSelection({ from, to });
       // Map Tiptap selection to HTML cursor
-      const plainText = editor.getText();
       const htmlPos = findHtmlPosForTextOffset(processedContent, from);
       setTimeout(() => {
         setHtmlCursor(htmlPos);
@@ -1099,7 +1095,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       }, 0);
       const contentWithPreservedStyles = htmlContent.replace(
         /<table[^>]*style="([^"]*)"[^>]*>/g,
-        (match, style) => {
+        (match) => {
           // Preserve custom styles while switching back
           return match;
         }
@@ -1129,39 +1125,39 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
     }
   }, [isHtmlMode, tiptapSelection, editor]);
 
-  const setFontSize = (sizeName: string) => {
-    if (!editor) return;
-    const size = FONT_SIZES[sizeName as keyof typeof FONT_SIZES];
-    editor
-      ?.chain()
-      .focus()
-      .unsetMark("fontSize")
-      .setMark("fontSize", { size })
-      .run();
-    setCurrentSize(sizeName);
-  };
+  // const setFontSize = (sizeName: string) => {
+  //   if (!editor) return;
+  //   const size = FONT_SIZES[sizeName as keyof typeof FONT_SIZES];
+  //   editor
+  //     ?.chain()
+  //     .focus()
+  //     .unsetMark("fontSize")
+  //     .setMark("fontSize", { size })
+  //     .run();
+  //   setCurrentSize(sizeName);
+  // };
 
-  const setIframe = () => {
-    if (!editor) return;
+  // const setIframe = () => {
+  //   if (!editor) return;
 
-    const src = window.prompt("Enter iframe URL");
-    if (src) {
-      editor
-        .chain()
-        .focus()
-        .insertContent({
-          type: "iframe",
-          attrs: {
-            src,
-            width: "100%",
-            height: "300",
-            frameborder: "0",
-            allowfullscreen: true,
-          },
-        })
-        .run();
-    }
-  };
+  //   const src = window.prompt("Enter iframe URL");
+  //   if (src) {
+  //     editor
+  //       .chain()
+  //       .focus()
+  //       .insertContent({
+  //         type: "iframe",
+  //         attrs: {
+  //           src,
+  //           width: "100%",
+  //           height: "300",
+  //           frameborder: "0",
+  //           allowfullscreen: true,
+  //         },
+  //       })
+  //       .run();
+  //   }
+  // };
 
   const setHeading = (level: number) => {
     if (!editor) return;

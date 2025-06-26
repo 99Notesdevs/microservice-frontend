@@ -1,9 +1,6 @@
 "use client"
 
 import { useState } from 'react'
-import { env } from "@/config/env";
-import Cookies from "js-cookie";
-import CategorySelect from './CategorySelect';
 
 interface TestSeriesData {
   name: string

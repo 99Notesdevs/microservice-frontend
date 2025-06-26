@@ -11,7 +11,7 @@ import { AlertTriangle } from "lucide-react"
 import Cookies from "js-cookie"
 import {env} from "../config/env"
 import { useSocketTest } from "../hooks/useSocketTest"
-import type { TestSeriesObject } from "@/types/testTypes"
+// import type { TestSeriesObject } from "@/types/testTypes"
 import { usePreventTestExit } from '../hooks/usePreventTestExit';
 // import { useAuth } from "../contexts/AuthContext"
 // API function to fetch test series data
@@ -43,7 +43,7 @@ import { usePreventTestExit } from '../hooks/usePreventTestExit';
               const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
               const [isFullScreen, setIsFullScreen] = useState(false)
               const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
-              const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
+              //const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
               
               // Fetch test series data
               const fetchTestSeriesData = async (testSeriesId: string) => {
@@ -176,7 +176,7 @@ import { usePreventTestExit } from '../hooks/usePreventTestExit';
         testId: testSeriesId,
         testSeriesName: testData?.name,
       })
-      setTestSeriesObject(newtestSeriesObject);
+      // setTestSeriesObject(newtestSeriesObject);
       console.log("Test series object:", newtestSeriesObject)
       if (!newtestSeriesObject) return
       await submitSocketTest(newtestSeriesObject)

@@ -1,4 +1,3 @@
-"use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +6,6 @@ import Cookies from "js-cookie";
 import CategorySelect from "@/components/testUtils/CategorySelect";
 import TiptapEditor from "@/components/ui/tiptapeditor";
 import { uploadImageToS3 } from "@/config/imageUploadS3";
-interface Category {
-  id: number;
-  name: string;
-}
 
 interface Question {
   id: string;
@@ -31,7 +26,6 @@ import { useRef } from "react";
 export default function AddQuestionsPage() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [creatorName, setCreatorName] = useState<string>("");
   // At the top of your component with other hooks
@@ -92,13 +86,13 @@ const formRef = useRef<HTMLDivElement>(null);
       }
     };
     fetchQuestions();
-  }, [selectedCategory, page]);
+  }, [selectedCategory]);
 
   // Fetch user name
   useEffect(() => {
     const fetchUserName = async () => {
       const token = Cookies.get("token");
-      const admin = await fetch(`${env.API}/admin/`, {
+      const admin = await fetch(`${env.API_MAIN}/admin/`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

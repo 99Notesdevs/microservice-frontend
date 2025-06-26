@@ -46,7 +46,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen }: SidebarProp
               onClick={() => setIsSidebarOpen(false)}
             >
               <img 
-                src={"/default-avatar.png"} 
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=random`}
                 alt="User Avatar" 
                 className="w-16 h-16 rounded-full border-2 border-gray-200 object-cover"
               />

@@ -1,7 +1,4 @@
-"use client"
-
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
 import { env } from "@/config/env";
 import Cookies from "js-cookie";
 import { Link } from 'react-router-dom';
@@ -22,59 +19,9 @@ interface TestFormData {
   updatedAt: string
 }
 
-interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  message: string
-  type: 'success' | 'error'
-}
-
-const Modal = ({ isOpen, onClose, message, type }: ModalProps) => {
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-w-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            {type === 'success' ? (
-              <svg className="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-            <h2 className={`text-lg font-semibold ${type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-              {type === 'success' ? 'Success' : 'Error'}
-            </h2>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <p className="text-gray-600 text-center mb-4">{message}</p>
-        <button
-          onClick={onClose}
-          className={`w-full py-2 px-4 rounded-lg ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'} hover:opacity-90 transition-opacity`}
-        >
-          {type === 'success' ? 'Continue' : 'Close'}
-        </button>
-      </div>
-    </div>
-  )
-}
-
 export default function TestForms() {
-  const navigate = useNavigate()
   const [tests, setTests] = useState<TestFormData[]>([])
   const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
-  const [modalMessage, setModalMessage] = useState('')
-  const [modalType, setModalType] = useState<'success' | 'error'>('error')
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -98,9 +45,6 @@ export default function TestForms() {
         }
       } catch (error) {
         console.error('Error:', error)
-        setModalMessage('Failed to fetch tests')
-        setModalType('error')
-        setShowModal(true)
       } finally {
         setLoading(false)
       }
@@ -125,19 +69,9 @@ export default function TestForms() {
       if (!response.ok) throw new Error('Failed to delete test')
       
       setTests(tests.filter(test => test.id !== id))
-      setModalMessage('Test deleted successfully')
-      setModalType('success')
-      setShowModal(true)
     } catch (error) {
       console.error('Error:', error)
-      setModalMessage('Failed to delete test')
-      setModalType('error')
-      setShowModal(true)
     }
-  }
-
-  const closeModal = () => {
-    setShowModal(false)
   }
 
   if (loading) {
@@ -162,7 +96,7 @@ export default function TestForms() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Test Forms</h1>
             <Link
-              to="/dashboard/addtest"
+              to="/admin/addtest"
               className="bg-slate-600 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors"
             >
               Add New Test
@@ -218,7 +152,7 @@ export default function TestForms() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link
-                          to={`/dashboard/addtest/${test.id}`}
+                          to={`/admin/addtest/${test.id}`}
                           className="text-blue-600 hover:text-blue-900 mr-4"
                         >
                           Edit
@@ -238,7 +172,6 @@ export default function TestForms() {
           )}
         </div>
       </div>
-      <Modal isOpen={showModal} onClose={closeModal} message={modalMessage} type={modalType} />
     </div>
   )
 }

@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { env } from "@/config/env";
@@ -84,7 +82,7 @@ export default function TestSeriesPage() {
             <p className="text-gray-600">Manage and create your test series</p>
           </div>
           <button
-            onClick={() => navigate('/dashboard/addtestSeries')}
+            onClick={() => navigate('/admin/addtestSeries')}
             className="w-full sm:w-auto px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -121,7 +119,7 @@ export default function TestSeriesPage() {
             <div className="mt-6">
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/addtestSeries')}
+                onClick={() => navigate('/admin/add-testSeries')}
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -140,7 +138,7 @@ export default function TestSeriesPage() {
                     <h3 className="text-lg leading-6 font-medium text-gray-900 truncate">{testSeries.name}</h3>
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => navigate(`/dashboard/addtestSeries/${testSeries.id}`)}
+                        onClick={() => navigate(`/admin/edit-testSeries/${testSeries.id}`)}
                         className="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50"
                         title="Edit"
                       >

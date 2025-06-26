@@ -1,8 +1,6 @@
-"use client"
-
-import { useState, useEffect } from 'react'
 import Cookies from "js-cookie";
 import { env } from "@/config/env";
+import { useEffect } from "react";
 
 interface Question {
   id: number;
@@ -35,6 +33,9 @@ export default function GetQuestions({
   error = null,
   onLoadMore,
 }: GetQuestionsProps) {
+  useEffect(() => {
+    fetchQuestions();
+  }, [categoryId, testSeriesId]);
   const fetchQuestions = async () => {
     try {
       const token = Cookies.get("token");

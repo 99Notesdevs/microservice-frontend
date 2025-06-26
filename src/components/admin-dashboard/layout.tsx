@@ -7,11 +7,11 @@ const Sidebar = () => {
     {
       category: 'Test Management',
       items: [
-        { icon: FaPlus, text: 'Add Questions', path: '/add-questions' },
-        { icon: FaPlus, text: 'Add Test Series', path: '/add-test-series' },
-        { icon: FaClipboardList, text: 'Test Forms', path: '/test-forms' },
-        { icon: FaEdit, text: 'Test Series', path: '/test-series' },
-        { icon: FaPlus, text: 'Add Test', path: '/add-test' },
+        { icon: FaPlus, text: 'Add Questions', path: '/admin/add-question' },
+        { icon: FaPlus, text: 'Add Test Series', path: 'admin/addtestseries' },
+        { icon: FaClipboardList, text: 'Test Forms', path: 'admin/test-form' },
+        { icon: FaEdit, text: 'Test Series', path: 'admin/testseries' },
+        { icon: FaPlus, text: 'Add Test', path: 'admin/add-test' },
       ],
     },
   ];

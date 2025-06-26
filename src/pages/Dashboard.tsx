@@ -76,11 +76,11 @@ export default function Dashboard() {
   const [data, setData] = useState<RatingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
-  const [categories, setCategories] = useState<Record<number, string>>({});
+  // const [categories, setCategories] = useState<Record<number, string>>({});
   const [progressData, setProgressData] = useState<any[]>([]);
   const [progressLoading, setProgressLoading] = useState(true);
   const [progressError, setProgressError] = useState<any>(null);
-  const [last5tests, setLast5tests] = useState<any[]>([]);
+  // const [last5tests, setLast5tests] = useState<any[]>([]);
   const [userData, setUserData] = useState<any>(null);
   const [radarData, setRadarData] = useState<RadarDataPoint[]>([]);
   const [minRating, setMinRating] = useState(0);
@@ -120,7 +120,7 @@ export default function Dashboard() {
               categoryMap[item.categoryId] = item.categoryName;
             }
           });
-          setCategories(categoryMap);
+          // setCategories(categoryMap);
         }
         
         const responseB = await fetch(`${env.API}/progress/${userId}`, {
@@ -165,9 +165,10 @@ export default function Dashboard() {
         const resultL = await responseL.json();
         if (resultL.success) {
           console.log("resultL.data",resultL.data);
-          setLast5tests(resultL.data);
+          // setLast5tests(resultL.data);
           setTestSeriesData(resultL.data);
         } else {
+          setError('Failed to fetch last 5 tests');
           console.log(resultL.error);
         }
       } catch (err) {
