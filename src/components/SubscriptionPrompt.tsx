@@ -1,10 +1,11 @@
+import { env } from '@/config/env';
 import { Button } from './ui/button';
 
-interface SubscriptionPromptProps {
-  onSubscribe: () => void;
-}
 
-export const SubscriptionPrompt: React.FC<SubscriptionPromptProps> = ({ onSubscribe }) => {
+export const SubscriptionPrompt: React.FC = () => {
+  const handleSubscribe = () => {
+    window.location.href = `${env.API}/subscription`;
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
@@ -29,7 +30,7 @@ export const SubscriptionPrompt: React.FC<SubscriptionPromptProps> = ({ onSubscr
         </p>
         <div className="space-y-3">
           <Button
-            onClick={onSubscribe}
+            onClick={handleSubscribe}
             className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
           >
             Subscribe Now

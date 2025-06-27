@@ -2,8 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { env } from '../config/env';
-import { SubscriptionPrompt } from './SubscriptionPrompt';
-import Cookies from 'js-cookie'; // Add this line to import Cookies
+import Cookies from 'js-cookie';
 
 export const ProtectedRoute = ({ 
   requirePaid = false, 
@@ -85,10 +84,6 @@ export const ProtectedRoute = ({
     }
   };
 
-  const handleSubscribe = () => {
-    window.location.href = `${env.MAIN_PORTAL_API}/subscription`;
-  };
-
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -100,7 +95,7 @@ export const ProtectedRoute = ({
 
   // For non-admin routes, check authentication
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   // Check if user has required role for non-admin routes
@@ -110,7 +105,7 @@ export const ProtectedRoute = ({
 
   // If route requires paid access and user hasn't paid, show subscription prompt
   if (requirePaid && isPaid === false) {
-    return <SubscriptionPrompt onSubscribe={handleSubscribe} />;
+    return <Navigate to="/subscription" />;
   }
 
   return (

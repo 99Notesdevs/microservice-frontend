@@ -1,7 +1,14 @@
 import Navbar from './Navbar';
 import Sidebar from './sidebar';
 import { useState, useEffect } from 'react';
-
+import { useAuth } from '../../contexts/AuthContext';
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
+}
 interface HomeLayoutProps {
   children: React.ReactNode;
 }
@@ -11,7 +18,7 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-
+  const { user } = useAuth();
   useEffect(() => {
     const handleResize = () => {
       const isMobileScreen = window.innerWidth < 1024;
@@ -50,7 +57,7 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
           isSidebarOpen ? 'ml-67' : 'ml-0'
         }`}
       >
-        <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+        <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} user={user as User} />
         <div className="w-full">
           {children}
         </div>

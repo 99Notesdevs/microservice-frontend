@@ -29,6 +29,8 @@ interface AuthContextType {
   logout: () => void;
   GoogleOneTap: () => JSX.Element | null;
   checkAdmin: () => Promise<boolean>;
+  fetchUserData: (token: string) => Promise<User | null>;
+  fetchUserDetails: (token: string) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -100,6 +102,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserData = async (token: string) => {
     try {
+      const response = await fetch(`${env.API_MAIN}/user`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.data || null;
+      }
+      return null;
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      return null;
+    }
+  };
+  const fetchUserDetails = async (token: string) => {
+    try {
       const response = await fetch(`${env.API_MAIN}/user/validate`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -114,7 +132,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return null;
     }
   };
-
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -142,6 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       setUser(userData);
       localStorage.setItem("userId", userData.id.toString());
+      console.log("login successfull!!!");
       navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Login error:", error);
@@ -271,6 +289,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logout,
         GoogleOneTap,
         checkAdmin,
+        fetchUserData,
+        fetchUserDetails,
       }}
     >
       {children}
