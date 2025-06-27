@@ -7,7 +7,8 @@ import logo from '../../assets/logo.png';
 
 interface User {
   _id?: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   // Add other user properties as needed
 }
@@ -87,12 +88,12 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
           <div className="relative group">
             <div className="flex items-center gap-2 focus:outline-none cursor-pointer py-2 px-1 rounded-md hover:bg-gray-100">
               <img 
-                src={`https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=random`}
+                src={`https://ui-avatars.com/api/?name=${user?.firstName+" "+user?.lastName || 'User'}&background=random`}
                 alt="User Avatar" 
                 className="w-8 h-8 rounded-full border-2 border-gray-200 object-cover"
               />
               <span className="hidden md:inline text-sm font-medium text-gray-700">
-                {user?.name || 'User'}
+                {user?.firstName+" "+user?.lastName || 'User'}
               </span>
               <svg 
                 className="w-4 h-4 text-gray-500" 

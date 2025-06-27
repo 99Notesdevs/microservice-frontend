@@ -259,10 +259,10 @@ function Calendar() {
   };
 
   // Convert backend date format to JavaScript Date object
-  const getDateFromBackendFormat = (event: CalendarEvent) => {
-    // Note: month is 1-12 in backend, but 0-11 in JavaScript Date
-    return new Date(event.year, event.month - 1, event.date);
-  };
+  // const getDateFromBackendFormat = (event: CalendarEvent) => {
+  //   // Note: month is 1-12 in backend, but 0-11 in JavaScript Date
+  //   return new Date(event.year, event.month - 1, event.date);
+  // };
 
   // Format date for display
   const formatDateForDisplay = (date: Date) => {
@@ -364,39 +364,39 @@ function Calendar() {
   });
 
   // Custom event component with checkbox
-  const CustomEvent = ({ event }: { event: any }) => {
-    const eventData = events.find(e => e.id.toString() === event.id);
+  // const CustomEvent = ({ event }: { event: any }) => {
+  //   const eventData = events.find(e => e.id.toString() === event.id);
     
-    if (!eventData) return null;
+  //   if (!eventData) return null;
     
-    return (
-      <div className="flex items-start w-full">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            if (eventData) {
-              toggleTodoStatus(eventData);
-            }
-          }}
-          className="mt-0.5 mr-1 flex-shrink-0"
-          aria-label={eventData.status === 'completed' ? 'Mark as pending' : 'Mark as completed'}
-        >
-          <div className={`w-4 h-4 rounded border ${eventData.status === 'completed' 
-            ? 'bg-green-500 border-green-500 flex items-center justify-center' 
-            : 'border-gray-300'}`}>
-            {eventData.status === 'completed' && (
-              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
-        </button>
-        <span className={`truncate text-sm ${eventData.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-          {event.title}
-        </span>
-      </div>
-    );
-  };
+  //   return (
+  //     <div className="flex items-start w-full">
+  //       <button 
+  //         onClick={(e) => {
+  //           e.stopPropagation();
+  //           if (eventData) {
+  //             toggleTodoStatus(eventData);
+  //           }
+  //         }}
+  //         className="mt-0.5 mr-1 flex-shrink-0"
+  //         aria-label={eventData.status === 'completed' ? 'Mark as pending' : 'Mark as completed'}
+  //       >
+  //         <div className={`w-4 h-4 rounded border ${eventData.status === 'completed' 
+  //           ? 'bg-green-500 border-green-500 flex items-center justify-center' 
+  //           : 'border-gray-300'}`}>
+  //           {eventData.status === 'completed' && (
+  //             <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+  //             </svg>
+  //           )}
+  //         </div>
+  //       </button>
+  //       <span className={`truncate text-sm ${eventData.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+  //         {event.title}
+  //       </span>
+  //     </div>
+  //   );
+  // };
 
   // Initialize calendar with valid events
   const calendar = useCalendarApp({

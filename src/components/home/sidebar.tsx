@@ -12,7 +12,8 @@ interface SidebarProps {
 
 interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   avatar?: string;
   // Add other user properties as needed
@@ -31,7 +32,7 @@ const links = [
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth() as { user: User | null; logout: () => void };
-  const userName = user?.name || 'User';
+  const userName = user?.firstName+" "+user?.lastName || 'User';
   const userInitial = userName.charAt(0).toUpperCase();
 
   // Close sidebar when route changes on mobile
@@ -122,6 +123,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
           {/* Navigation Links */}
           <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
           <NavLink 
+              to="/"
               onClick={() => setIsSidebarOpen(false)}
             >
               <ul className="space-y-1 px-2">

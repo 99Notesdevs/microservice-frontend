@@ -62,30 +62,69 @@ const TestSeriesBarChart = ({ data }: { data: TestSeriesData[] }) => {
 
 export default function Dashboard() {
   // MOCK DATA USAGE
-  const progressConstraints = {
-    weakLimit: 250,
-    strongLimit: 450,
-    xp_status: [
-      {rating: 250, status: "Weak",xp: 100},
-      {rating: 300, status: "Strong",xp: 200},
-      {rating: 350, status: "Strong",xp: 300},
-      {rating: 400, status: "Strong",xp: 400},
-      {rating: 450, status: "Strong",xp: 500},
-    ]
-  }
   const [data, setData] = useState<RatingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
-  // const [categories, setCategories] = useState<Record<number, string>>({});
   const [progressData, setProgressData] = useState<any[]>([]);
   const [progressLoading, setProgressLoading] = useState(true);
   const [progressError, setProgressError] = useState<any>(null);
-  // const [last5tests, setLast5tests] = useState<any[]>([]);
   const [userData, setUserData] = useState<any>(null);
   const [radarData, setRadarData] = useState<RadarDataPoint[]>([]);
   const [minRating, setMinRating] = useState(0);
   const [maxRating, setMaxRating] = useState(10);
   const [testSeriesData, setTestSeriesData] = useState<TestSeriesData[]>([]);
+  const [progressConstraints, setProgressConstraints] = useState<{
+    weakLimit: number;
+    strongLimit: number;
+    xp_status: Array<{rating: number; status: string; xp: number}>;
+  } | null>(null);
+  // const [constraintsLoading, setConstraintsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProgressConstraints = async () => {
+      try {
+        const response = await fetch(`${env.API}/progressConstraints`, {
+          headers: {
+            'Authorization': `Bearer ${Cookies.get('token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch progress constraints');
+        }
+        
+        const data = await response.json();
+        const xpStatus = typeof data.data.xp_status === 'string' 
+          ? JSON.parse(data.data.xp_status)
+          : data.data.xp_status;
+          
+        setProgressConstraints({
+          weakLimit: data.data.weakLimit,
+          strongLimit: data.data.strongLimit,
+          xp_status: xpStatus
+        });
+      } catch (error) {
+        console.error('Error fetching progress constraints:', error);
+        // Set default values if API fails
+        setProgressConstraints({
+          weakLimit: 250,
+          strongLimit: 450,
+          xp_status: [
+            {rating: 250, status: "Weak", xp: 100},
+            {rating: 300, status: "Strong", xp: 200},
+            {rating: 350, status: "Strong", xp: 300},
+            {rating: 400, status: "Strong", xp: 400},
+            {rating: 450, status: "Strong", xp: 500},
+          ]
+        });
+      } finally {
+        // setConstraintsLoading(false);
+      }
+    };
+
+    fetchProgressConstraints();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -111,8 +150,8 @@ export default function Dashboard() {
           setRadarData(formattedData);
           
           // Set min and max ratings from progressConstraints
-          setMinRating((progressConstraints.weakLimit / 100) * 2); // 100 -> 2/10
-          setMaxRating((progressConstraints.strongLimit / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
+          setMinRating((progressConstraints?.weakLimit || 250 / 100) * 2); // 100 -> 2/10
+          setMaxRating((progressConstraints?.strongLimit || 450 / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
           
           const categoryMap: Record<number, string> = {};
           result.data.forEach((item: any) => {
@@ -201,7 +240,17 @@ export default function Dashboard() {
   }, [data]);
 
   const getExperienceAndStatus = (rating: number) => {
-    const { xp_status } = progressConstraints;
+    const { xp_status } = progressConstraints || {
+      weakLimit: 250,
+      strongLimit: 450,
+      xp_status: [
+        {rating: 250, status: "Weak",xp: 100},
+        {rating: 300, status: "Strong",xp: 200},
+        {rating: 350, status: "Strong",xp: 300},
+        {rating: 400, status: "Strong",xp: 400},
+        {rating: 450, status: "Strong",xp: 500},
+      ]
+    };
     const currentLevel = [...xp_status].reverse().find(level => rating >= level.rating) || xp_status[0];
     return {
       experience: currentLevel.xp,
@@ -211,7 +260,7 @@ export default function Dashboard() {
 
   const userRating = userData?.userData.rating || 0;
   const { experience, status } = getExperienceAndStatus(userRating);
-  const maxRatingLevel = progressConstraints.xp_status[progressConstraints.xp_status.length - 1].rating;
+  const maxRatingLevel = (progressConstraints?.xp_status[progressConstraints?.xp_status.length - 1].rating) || 450;
   const progressPercentage = Math.min(100, (userRating / maxRatingLevel) * 100);
 
   // Helper: Map rating (0-500) to radar chart value (0-10)
@@ -276,7 +325,7 @@ export default function Dashboard() {
                     style={{ width: `${progressPercentage}%`, minWidth: '0.5rem' }}
                   ></div>
                 </div>
-                <span className="text-gray-400 text-xs font-semibold">{progressConstraints.xp_status[progressConstraints.xp_status.length-1].xp}</span>
+                <span className="text-gray-400 text-xs font-semibold">{progressConstraints?.xp_status[progressConstraints?.xp_status.length-1].xp}</span>
               </span>
             </div>
             <div className="grid grid-cols-3 items-center py-1">
@@ -348,20 +397,6 @@ export default function Dashboard() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-
-          {/* Bar Chart
-          <div className="bg-white rounded-lg p-4 shadow">
-            <p className="text-center font-semibold mb-2">Last 5 Prelims Tests Series</p>
-            <BarChart width={330} height={200} data={mockBarData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="score1" fill="#f59e0b" />
-              <Bar dataKey="score2" fill="#3b82f6" />
-              <Bar dataKey="score3" fill="#10b981" />
-            </BarChart>
-          </div> */}
         </div>
       </div>
     </div>

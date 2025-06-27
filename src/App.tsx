@@ -30,7 +30,9 @@ import AddQuestion from './components/admin-dashboard/question';
 import TestForm from './components/admin-dashboard/test-form';
 import TestSeries from './components/admin-dashboard/test-series';
 import AdminLogin from './components/admin-dashboard/admin-login';
+import Subscription from './pages/subscription'
 import ReportCard from './pages/reportcard';
+import AdminPermissions from './components/admin-dashboard/admin-permissions';
 // Layout wrapper component
 const LayoutWithSidebar = () => (
   <HomeLayout>
@@ -73,10 +75,11 @@ function App() {
             <Route path="/admin/add-question" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AddQuestion /></ProtectedRoute>} />
             <Route path="/admin/test-form" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><TestForm /></ProtectedRoute>} />
             <Route path="/admin/testSeries" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><TestSeries /></ProtectedRoute>} />
+            <Route path="/admin/permissions" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AdminPermissions /></ProtectedRoute>} />
             </Route>
           
           {/* Test Portal route without Layout */}
-          
+          <Route path="/subscription" element={<Subscription />} />
               <Route path="/test" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestPortal /></ProtectedRoute>} />
               <Route path="/socket-test" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><SocketTestPage /></ProtectedRoute>} />
               <Route path="/test-series/:testSeriesId" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestSeriesPage /></ProtectedRoute>} />
