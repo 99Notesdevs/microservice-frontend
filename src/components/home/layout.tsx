@@ -47,7 +47,7 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       {/* Main Content */}
       <div 
         className={`min-h-screen transition-all duration-300 ${
-          isSidebarOpen ? 'ml-64' : 'ml-0'
+          isSidebarOpen ? 'ml-67' : 'ml-0'
         }`}
       >
         <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />

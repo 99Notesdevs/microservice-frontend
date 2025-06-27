@@ -253,7 +253,7 @@ export default function Dashboard() {
   if (data.length === 0) return <div className="p-4">No rating data available</div>;
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-200 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gradient from-gray-100 to-gray-200 min-h-screen">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">Dashboard</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column */}
