@@ -30,6 +30,7 @@ import AddQuestion from './components/admin-dashboard/question';
 import TestForm from './components/admin-dashboard/test-form';
 import TestSeries from './components/admin-dashboard/test-series';
 import AdminLogin from './components/admin-dashboard/admin-login';
+import ReportCard from './pages/reportcard';
 // Layout wrapper component
 const LayoutWithSidebar = () => (
   <HomeLayout>
@@ -58,6 +59,7 @@ function App() {
               <Route path="/packages" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestSelector /></ProtectedRoute>} />
               <Route path="/mytestseries" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><MytestSeries /></ProtectedRoute>} />
               <Route path="/user" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><UserDashboard /></ProtectedRoute>} />
+              <Route path="/reportcard" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><ReportCard /></ProtectedRoute>} />
             </Route>
             <Route path="/login" element={<LogIn />} />
             {/* ADmin Routes */}

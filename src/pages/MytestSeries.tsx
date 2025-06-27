@@ -186,7 +186,7 @@ const MytestSeries = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className=" mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -248,7 +248,7 @@ const MytestSeries = () => {
           </motion.div>
         ) : testSeries.length > 0 ? (
           <motion.div 
-            className="grid gap-6 md:grid-cols-2"
+            className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
             initial="hidden"
             animate="show"
             variants={{
