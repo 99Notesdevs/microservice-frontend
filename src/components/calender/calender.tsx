@@ -64,8 +64,61 @@ const calendarApi = {
   getEventsByUser: async (userId: number) => {
     console.log('Fetching events for user:', userId);
     const data = await api(`/calendar/user/${userId}`);
-    console.log('Fetched events:', data);
-    return data;
+    const month = 6;
+    const year = 2025;
+    
+    try {
+      const response = await api(`/calendar/tests?month=${month}&year=${year}`);
+      console.log('Fetched tests:', response);
+      
+      // Process test data
+      const tests = response.data?.tests || [];
+      const testSeries = response.data?.testSeries || [];
+      
+      // Process individual tests
+      const testEvents = tests.map((test: any) => {
+        const result = parseTestResult(test.result);
+        return {
+          id: `test-${test.id}`,
+          userId: test.userId,
+          date: new Date(test.createdAt).getDate(),
+          month: new Date(test.createdAt).getMonth() + 1,
+          year: new Date(test.createdAt).getFullYear(),
+          status: 'completed',
+          event: `Test Attempt - Score: ${result.score}/${result.totalQuestions}`,
+          type: 'test',
+          score: result.score,
+          totalQuestions: result.totalQuestions,
+          timeTaken: result.timeTaken,
+          questionIds: test.questionIds
+        };
+      });
+
+      // Process test series
+      const seriesEvents = testSeries.map((series: any) => {
+        const result = parseTestResult(series.result);
+        return {
+          id: `series-${series.id}`,
+          userId: series.userId,
+          date: new Date(series.createdAt).getDate(),
+          month: new Date(series.createdAt).getMonth() + 1,
+          year: new Date(series.createdAt).getFullYear(),
+          status: 'completed',
+          event: `Test Series: ${series.test?.name} - Score: ${result.score}/${result.totalQuestions}`,
+          type: 'testSeries',
+          score: result.score,
+          totalQuestions: result.totalQuestions,
+          timeTaken: result.timeTaken,
+          testSeriesName: series.test?.name
+        };
+      });
+
+      // Combine all events
+      return [...data, ...testEvents, ...seriesEvents];
+    } catch (error) {
+      console.error('Error fetching tests:', error);
+      return data;
+    }
   },
 
   // Get events for a specific date
@@ -125,7 +178,14 @@ interface CalendarEvent {
   description?: string;
 }
 
-
+// Helper function to parse test result
+function parseTestResult(result: any) {
+  return {
+    score: result.score,
+    totalQuestions: result.totalQuestions,
+    timeTaken: result.timeTaken
+  };
+}
 
 function Calendar() {
   const [eventsService] = useState(() => createEventsServicePlugin());
@@ -476,9 +536,13 @@ function Calendar() {
                   ? 'bg-green-500 border-green-500 flex items-center justify-center' 
                   : 'border-gray-300'
               }">
-                ${eventData.status === 'completed' ? '✓' : ''}
+                ${eventData.status === 'completed' && (
+                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
               </div>
-              <span class="truncate ${eventData.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'}">
+              <span class="truncate text-sm ${eventData.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'}">
                 ${eventData.event || 'Untitled'}
               </span>
             </div>
