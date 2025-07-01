@@ -7,6 +7,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { env } from '@/config/env';
 import Cookies from 'js-cookie';
 import RadarChartComponent from '@/components/home/RadarChart';
+import { api } from '@/api/route';
 
 interface RatingData {
   categoryId: number;
@@ -83,25 +84,26 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchProgressConstraints = async () => {
       try {
-        const response = await fetch(`${env.API}/progressConstraints`, {
-          headers: {
-            'Authorization': `Bearer ${Cookies.get('token')}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        // const response = await fetch(`${env.API}/progressConstraints`, {
+        //   headers: {
+        //     'Authorization': `Bearer ${Cookies.get('token')}`,
+        //     'Content-Type': 'application/json',
+        //   },
+        // });
+        const data = await api.get('/progressConstraints');
+        // if (!response.ok) {
+        //   throw new Error('Failed to fetch progress constraints');
+        // }
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch progress constraints');
-        }
-        
-        const data = await response.json();
-        const xpStatus = typeof data.data.xp_status === 'string' 
-          ? JSON.parse(data.data.xp_status)
-          : data.data.xp_status;
+        // const data = await response.json();
+        const typedData = data as { data: { xp_status: string; weakLimit: number; strongLimit: number } };
+        const xpStatus = typeof typedData.data.xp_status === 'string' 
+          ? JSON.parse(typedData.data.xp_status)
+          : typedData.data.xp_status;
           
         setProgressConstraints({
-          weakLimit: data.data.weakLimit,
-          strongLimit: data.data.strongLimit,
+          weakLimit: typedData.data.weakLimit,
+          strongLimit: typedData.data.strongLimit,
           xp_status: xpStatus
         });
       } catch (error) {
