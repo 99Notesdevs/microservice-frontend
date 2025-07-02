@@ -1,7 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
-import { env } from "@/config/env";
+import { api } from "@/api/route";
 
 interface Category {
   id: number;
@@ -25,12 +24,11 @@ export default function CategorySelect({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const token = Cookies.get("token");
-        const response = await fetch(`${env.API}/categories`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error("Failed to fetch categories");
-        const { data } = await response.json();
+        const response = await api.get("/categories");
+        const typedResponse = response as { success: boolean; data: Category[] };
+        if (!typedResponse.success) throw new Error("Failed to fetch categories");
+        
+        const data = typedResponse.data;
         setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);

@@ -3,8 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import TestForm from '@/components/testUtils/testForm'
 import SelectedQuestions from '@/components/testUtils/selectedQuestions'
 import CategorySelect from '@/components/testUtils/CategorySelect'
-import { env } from "@/config/env"
-import Cookies from "js-cookie"
+import { api } from '@/api/route'
 interface Question {
     id: number
     question: string
@@ -66,12 +65,11 @@ export default function EditTestSeries() {
   const fetchTestSeries = async () => {
     try {
       setIsLoading(true)
-      const token = Cookies.get("token")
-      const response = await fetch(`${env.API}/testSeries/${params.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!response.ok) throw new Error("Failed to fetch test series")
-      const { data } = await response.json()
+      const response = await api.get(`/testSeries/${params.id}`)
+      const typedResponse = response as { success: boolean; data: any }
+      
+      if (!typedResponse.success) throw new Error("Failed to fetch test series")
+      const data = typedResponse.data
       
       // Update test series data
       setTestSeriesData(data)
@@ -103,13 +101,12 @@ export default function EditTestSeries() {
 
   const fetchAvailableQuestions = async (categoryId: number) => {
     try {
-      const token = Cookies.get("token")
       const pageSize = 10
-      const response = await fetch(`${env.API}/questions?categoryId=${categoryId}&limit=${pageSize}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (!response.ok) throw new Error("Failed to fetch questions")
-      const { data } = await response.json()
+      const response = await api.get(`/questions?categoryId=${categoryId}&limit=${pageSize}`)
+      const typedResponse = response as { success: boolean; data: any }
+      
+      if (!typedResponse.success) throw new Error("Failed to fetch questions")
+      const data = typedResponse.data
       setAvailableQuestions(data)
     } catch (error) {
       console.error("Error fetching available questions:", error)
@@ -196,31 +193,24 @@ export default function EditTestSeries() {
 
   const handleSubmit = async (data: TestSeriesData) => {
     try {
-      const token = Cookies.get("token")
-      const response = await fetch(`${env.API}/testSeries/${params.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: data.name,
-          correctAttempted: data.correctAttempted,
-          wrongAttempted: data.wrongAttempted,
-          notAttempted: data.notAttempted,
-          partialAttempted: data.partialAttempted,
-          partialNotAttempted: data.partialNotAttempted,
-          partialWrongAttempted: data.partialWrongAttempted,
-          timeTaken: data.timeTaken,
-          questionIds: selectedQuestionIds
-        })
-      })
-
-      if (response.ok) {
-        router('/admin/testSeries')
-      } else {
-        console.error('Failed to update test series')
+      const sendingData = {
+        name: data.name,
+        correctAttempted: data.correctAttempted,
+        wrongAttempted: data.wrongAttempted,
+        notAttempted: data.notAttempted,
+        partialAttempted: data.partialAttempted,
+        partialNotAttempted: data.partialNotAttempted,
+        partialWrongAttempted: data.partialWrongAttempted,
+        timeTaken: data.timeTaken,
+        questionIds: selectedQuestionIds
       }
+    const response = await api.put(`/testSeries/${params.id}`, sendingData)
+    const typedResponse = response as { success: boolean; data: any }
+
+    if (!typedResponse.success) throw new Error('Failed to update test series')
+    
+      router('/admin/testSeries')
+   
     } catch (error) {
       console.error('Error:', error)
     }

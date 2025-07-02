@@ -4,8 +4,7 @@ import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { useNavigate } from 'react-router-dom';
 import { CategorySelection } from '../components/home/CategorySelection';
-import { env } from '../config/env';
-import Cookies from 'js-cookie';
+import { api } from '@/api/route';
 // import type { CategoryType } from '../components/home/CategorySelection';
 
 // Add this interface at the top of the file
@@ -66,16 +65,13 @@ export const Category = () => {
   useEffect(() => {
     const fetchTestPatterns = async () => {
       try {
-        const response = await fetch(`${env.API}/test`,{
-          headers: {
-            Authorization: `Bearer ${Cookies.get('token')}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch test patterns');
+        const response = await api.get(`/test`);
+        const result = response as { success: boolean; data: any };
+        if (!result.success) {
+          throw new Error("Failed to fetch test patterns")
         }
-        const testPatternsData = await response.json();
-        setTestPatterns(testPatternsData.data);
+        const responseData = result.data;
+        setTestPatterns(responseData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load test patterns');
         console.error('Error fetching test patterns:', err);

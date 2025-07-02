@@ -6,6 +6,7 @@ import { env } from "../config/env"
 import { useTestContext } from "../contexts/TestContext"
 import { useAuth } from "../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
+import { api } from "@/api/route"
 interface UseSocketConnectionProps {
   userId: string | null | undefined
   questions: any[]
@@ -40,7 +41,6 @@ export const useSocketConnection = ({
   setIsReviewMode,
 }: UseSocketConnectionProps) => {
   const { socket } = useSocket() // Use the shared socket from context
-  const apiUrl = env.API
   const { markingScheme, testData, setTestResult } = useTestContext()
   const { user } = useAuth()
   const userId = user?.id
@@ -212,14 +212,7 @@ export const useSocketConnection = ({
             score: testResult.score,
           };
           console.log("Request Body:", requestBody);
-          const response = await fetch(`${env.API}/user/testSeries`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${Cookies.get("token")}`,
-            },
-            body:JSON.stringify(requestBody),
-          })
+          const response = await api.post(`/user/testSeries`, requestBody);
           console.log("Response: send for this here hello", response)
         }else{
           const requestBody = {
@@ -228,14 +221,7 @@ export const useSocketConnection = ({
             result: testResult
           };
           console.log("Request Body:", requestBody);
-          const response = await fetch(`${env.API}/user/tests`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${Cookies.get("token")}`,
-            },
-            body:JSON.stringify(requestBody),
-          })
+          const response = await api.post(`/user/tests`, requestBody);
           console.log("Response: send for this here hello", response)
         }
         // Update the UI state
@@ -295,21 +281,15 @@ export const useSocketConnection = ({
         setTestSeriesObject(testSeriesObject)
       }
       // Send POST request to /questions/submit
-      const response = await fetch(`${apiUrl}/questions/submit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-        body: JSON.stringify({
-          submissions,
-          markingScheme,
-          userId,
-        }),
+      const response = await api.post(`/questions/submit`, {
+        submissions,
+        markingScheme,
+        userId,
       })
+      const typedResponse = response as { success: boolean; data: any }
       console.log("testId set here", testSeriesObject)
       console.log("made the post request")
-      if (!response.ok) {
+      if (!typedResponse.success) {
         throw new Error("Failed to submit test")
       }
       console.log("post request success")
@@ -327,7 +307,6 @@ export const useSocketConnection = ({
     setTestStarted,
     questionStatuses,
     negativeMarking,
-    apiUrl,
     markingScheme,
     userId,
     testData,

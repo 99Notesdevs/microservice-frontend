@@ -9,8 +9,7 @@ import QuestionDisplay from "../components/testPortal/QuestionDisplay"
 import NavigationButtons from "../components/testPortal/NavigationButtons"
 import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import type { QuestionStatus } from "../types/testTypes"
-import Cookies from "js-cookie"
-import { env } from "../config/env"
+import { api } from "@/api/route"
 
 const ReviewPage: React.FC = () => {
   const navigate = useNavigate()
@@ -43,27 +42,19 @@ const ReviewPage: React.FC = () => {
       try {
         // Fetch test data from API
         
-        const userresponse = await fetch(`${env.API}/user/testSeries/${testId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        })
-        
-        const userdata = await userresponse.json()
-        console.log("User data: is ", userdata.data.id)
-        const response = await fetch(`${env.API}/testSeries/${userdata.data.testId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        });
-        if (!response.ok) {
+        const userresponse = await api.get(`/user/testSeries/${testId}`)
+        const typedUserResponse = userresponse as { success: boolean; data: any };
+        if (!typedUserResponse.success) {
           throw new Error("Failed to fetch review data")
         }
-        const data = await response.json()
+        const userdata = typedUserResponse.data
+        console.log("User data: is ", userdata.data.id)
+        const response = await api.get(`/testSeries/${userdata.data.testId}`)
+        const typedResponse = response as { success: boolean; data: any };
+        if (!typedResponse.success) {
+          throw new Error("Failed to fetch review data")
+        }
+        const data = typedResponse.data
         console.log("Review data:", data)
         console.log("User data:", userdata)
 

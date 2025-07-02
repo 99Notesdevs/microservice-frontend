@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom"
 import { useTestContext } from "../contexts/TestContext"
 import { useSocketConnection } from "./use-socket-connection"
 import Cookies from "js-cookie"
-import { env } from "../config/env"
 import type { TestSeriesObject } from "@/types/testTypes"
+import { api } from "@/api/route"
 
 export function useSocketTest() {
   const navigate = useNavigate()
@@ -116,14 +116,9 @@ export function useSocketTest() {
       setNegativeMarking(negativeMarkingParam)
       setMarkingScheme(markingScheme) 
       // First make the HTTP request to queue the questions
-      const response = await fetch(`${env.API}/questions/test?limitS=${limitS}&limitM=${limitM}&categoryS=${categoryS}&categoryM=${categoryM}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-      })
-     
-      if (!response.ok) {
+      const response = await api.get(`/questions/test?limitS=${limitS}&limitM=${limitM}&categoryS=${categoryS}&categoryM=${categoryM}`)
+      const typedResponse = response as { success: boolean; data: any };
+      if (!typedResponse.success) {
         throw new Error("Failed to fetch questions")
       }
 

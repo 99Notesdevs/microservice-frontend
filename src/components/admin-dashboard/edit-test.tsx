@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { SimpleTestForm } from '@/components/testUtils/testForm'
-import { env } from "@/config/env"
-import Cookies from "js-cookie"
+import { api } from '@/api/route'
 
 interface TestFormData {
   name: string
@@ -28,16 +27,11 @@ export default function EditTest() {
   useEffect(() => {
     const fetchTest = async () => {
       try {
-        const token = Cookies.get("token")
-        const response = await fetch(`${env.API}/test/${params.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-
-        if (!response.ok) throw new Error('Failed to fetch test')
-        const testData = await response.json()
-        const data = testData.data
+        const response = await api.get(`/test/${params.id}`)
+        const typedResponse = response as { success: boolean; data: any }
+        
+        if (!typedResponse.success) throw new Error('Failed to fetch test')
+        const data = typedResponse.data
         setTestData(data)
       } catch (error) {
         console.error('Error fetching test:', error)
@@ -52,18 +46,10 @@ export default function EditTest() {
 
   const handleSubmit = async (data: TestFormData) => {
     try {
-      const token = Cookies.get("token")
-      const response = await fetch(`${env.API}/test/${params.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      })
-
-      if (!response.ok) throw new Error('Failed to update test')
+      const response = await api.put(`/test/${params.id}`, data)
+      const typedResponse = response as { success: boolean; data: any }
       
+      if (!typedResponse.success) throw new Error('Failed to update test')
       
       setTimeout(() => {
         router('/admin/testForms')

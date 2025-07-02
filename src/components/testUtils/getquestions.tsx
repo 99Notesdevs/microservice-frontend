@@ -1,6 +1,5 @@
-import Cookies from "js-cookie";
-import { env } from "@/config/env";
 import { useEffect } from "react";
+import { api } from "@/api/route";
 
 interface Question {
   id: number;
@@ -38,23 +37,20 @@ export default function GetQuestions({
   }, [categoryId, testSeriesId]);
   const fetchQuestions = async () => {
     try {
-      const token = Cookies.get("token");
       const limit = 10
       const offset = 0
       
-      let url = `${env.API}/questions/practice?categoryId=${categoryId}&limit=${limit}&offset=${offset}`
+      let url = `/questions/practice?categoryId=${categoryId}&limit=${limit}&offset=${offset}`
       
       if (testSeriesId) {
         url += `&testSeriesId=${testSeriesId}`
       }
 
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch questions");
+      const response = await api.get(url);
+      const typedResponse = response as { success: boolean; data: { data: Question[]; total: number } };
+      if (!typedResponse.success) throw new Error("Failed to fetch questions");
       
-      const { data, total } = await response.json();
+      const { data, total } = typedResponse.data;
       return { data, total };
     } catch (error) {
       console.error("Error fetching questions:", error);

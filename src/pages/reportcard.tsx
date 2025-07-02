@@ -1,5 +1,4 @@
 "use client";
-import { env } from '@/config/env';
 import { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -11,9 +10,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
-import Cookies from 'js-cookie';
+import { api } from '@/api/route';
 
 // Register ChartJS components
 ChartJS.register(
@@ -48,21 +46,25 @@ export default function ReportCard() {
     const fetchData = async () => {
       try {
         // 1. Get user's category ratings
-        const ratingsResponse = await axios.get(`${env.API}/ratingCategory/user/${user?.id}`, {
-          headers: { 'Authorization': `Bearer ${Cookies.get('token')}` }
-        });
-
-        const ratings = Array.isArray(ratingsResponse.data.data) 
-          ? ratingsResponse.data.data 
-          : [ratingsResponse.data.data];
+        const ratingsResponse = await api.get(`/ratingCategory/user/${user?.id}`)
+        const typedRatingsResponse = ratingsResponse as { success: boolean; data: any };
+        if (!typedRatingsResponse.success) {
+          throw new Error("Failed to fetch review data")
+        }
+        const ratings = Array.isArray(typedRatingsResponse.data.data) 
+          ? typedRatingsResponse.data.data 
+          : [typedRatingsResponse.data.data];
 
         // 2. Get all categories
-        const allCategoriesResponse = await axios.get(`${env.API}/categories`, {
-          headers: { 'Authorization': `Bearer ${Cookies.get('token')}` }
-        });
+        const allCategoriesResponseapi = await api.get(`/categories`);
+        const typedAllCategoriesResponseapi = allCategoriesResponseapi as { success: boolean; data: any };
+        if (!typedAllCategoriesResponseapi.success) {
+          throw new Error("Failed to fetch review data")
+        }
+        const allCategoriesResponse = typedAllCategoriesResponseapi.data.data
 
         // 3. Combine ratings with category data
-        const categoriesWithRatings = allCategoriesResponse.data.data.map((category: any) => {
+        const categoriesWithRatings = allCategoriesResponse.map((category: any) => {
           const ratingData = ratings.find((r: any) => r.categoryId === category.id);
           return {
             ...category,
