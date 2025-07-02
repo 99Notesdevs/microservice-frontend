@@ -1,9 +1,8 @@
 // components/home/CategorySelection.tsx
 import { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
-import { env } from '../../config/env';
 import { ChevronDown, Check, Loader2, AlertCircle, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { api } from '@/api/route';
 
 export interface CategoryType {
   id: number;
@@ -96,11 +95,11 @@ export const CategorySelection = ({ onSingleSelectionChange, onMultipleSelection
     const fetchCategories = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${env.API}/categories`, {
-          headers: { Authorization: `Bearer ${Cookies.get('token')}` }
-        });
-        if (!response.ok) throw new Error('Failed to fetch categories');
-        const { data } = await response.json();
+        const response = await api.get("/categories");
+        const typedResponse = response as { success: boolean; data: CategoryType[] };
+        if (!typedResponse.success) throw new Error("Failed to fetch categories");
+        
+        const data = typedResponse.data;
         setCategories(buildCategoryTree(data));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');

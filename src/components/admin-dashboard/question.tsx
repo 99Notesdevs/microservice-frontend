@@ -22,6 +22,7 @@ interface Question {
 }
 
 import { useRef } from "react";
+import { api } from "@/api/route";
 
 export default function AddQuestionsPage() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -71,15 +72,11 @@ const formRef = useRef<HTMLDivElement>(null);
 
     const fetchQuestions = async () => {
       try {
-        const token = Cookies.get("token");
-        const response = await fetch(
-          `${env.API}/questions/?categoryId=${selectedCategory}&limit=${pageSize}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        if (!response.ok) throw new Error("Failed to fetch questions");
-        const { data } = await response.json();
+        const response = await api.get(`/questions/?categoryId=${selectedCategory}&limit=${pageSize}`)
+        const typedResponse = response as { success: boolean; data: any }
+        
+        if (!typedResponse.success) throw new Error("Failed to fetch questions");
+        const { data } = typedResponse;
         setQuestions(data);
       } catch (error) {
         console.error("Error fetching questions:", error);
@@ -161,13 +158,7 @@ const formRef = useRef<HTMLDivElement>(null);
         ? newQuestion.answer.split(',').map(num => parseInt(num) - 1).join(',')
         : (parseInt(newQuestion.answer) - 1).toString();
       
-      const response = await fetch(`${env.API}/questions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-        body: JSON.stringify({
+      const response = await api.post(`/questions`, {
           ...newQuestion,
           question: processedQuestion,
           options: processedOptions,
@@ -175,18 +166,14 @@ const formRef = useRef<HTMLDivElement>(null);
           answer,
           categoryId: selectedCategory,
           multipleCorrectType: newQuestion.multipleCorrectType
-        }),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create question");
-      }
+        })
+      const typedResponse = response as { success: boolean; data: any }
+      if (!typedResponse.success) throw new Error("Failed to create question")
       
-      const createdQuestion = await response.json();
+      const createdQuestion = typedResponse.data
       
       // Update the questions list with the new question
-      setQuestions(prevQuestions => [createdQuestion.data, ...prevQuestions]);
+      setQuestions(prevQuestions => [createdQuestion, ...prevQuestions]);
       
       // Show success message
       setToast({ message: "Question added successfully!", type: "success" });
@@ -253,14 +240,9 @@ const formRef = useRef<HTMLDivElement>(null);
     if (!deleteConfirmation.questionId) return;
     
     try {
-      const response = await fetch(`${env.API}/questions/${deleteConfirmation.questionId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${Cookies.get('token')}`,
-        },
-      });
-
-      if (!response.ok) throw new Error('Failed to delete question');
+      const response = await api.delete(`/questions/${deleteConfirmation.questionId}`)
+      const typedResponse = response as { success: boolean; data: any }
+      if (!typedResponse.success) throw new Error('Failed to delete question');
 
       // Remove the question from the local state
       setQuestions(prev => prev.filter(q => q.id !== deleteConfirmation.questionId));
@@ -282,29 +264,18 @@ const formRef = useRef<HTMLDivElement>(null);
     if (!editingQuestion) return;
 
     try {
-      const token = Cookies.get("token");
       const answer = newQuestion.multipleCorrectType 
         ? newQuestion.answer.split(',').map(num => parseInt(num) - 1).join(',')
         : (parseInt(newQuestion.answer) - 1).toString();
       
-      const response = await fetch(
-        `${env.API}/questions/${editingQuestion.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
+      const response = await api.put(`/questions/${editingQuestion.id}`, {
             ...newQuestion,
             answer,
             creatorName: creatorName || "",
             multipleCorrectType: newQuestion.multipleCorrectType
-          }),
-        }
-      );
-      console.log("creatorName", creatorName);
-      if (!response.ok) throw new Error("Failed to update question");
+          })
+      const typedResponse = response as { success: boolean; data: any }
+      if (!typedResponse.success) throw new Error("Failed to update question");
 
       // Update the question in the list
       setQuestions((prevQuestions) =>

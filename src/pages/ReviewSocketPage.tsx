@@ -9,8 +9,7 @@ import QuestionDisplay from "../components/testPortal/QuestionDisplay"
 import NavigationButtons from "../components/testPortal/NavigationButtons"
 import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import type { QuestionStatus } from "../types/testTypes"
-import Cookies from "js-cookie"
-import { env } from "../config/env"
+import { api } from "@/api/route"
 
 const ReviewSocketPage: React.FC = () => {
   const navigate = useNavigate()
@@ -43,34 +42,26 @@ const ReviewSocketPage: React.FC = () => {
       try {
         // Fetch test data from API
         
-        const userresponse = await fetch(`${env.API}/user/tests/${testId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        })
-        
-        const userdata = await userresponse.json()
+        const userresponse = await api.get(`/user/tests/${testId}`)
+        const typedUserResponse = userresponse as { success: boolean; data: any };
+        if (!typedUserResponse.success) {
+          throw new Error("Failed to fetch review data")
+        }
+        const userdata = typedUserResponse.data
         console.log("User data:", userdata)
         
         // Convert array of question IDs to comma-separated string
         const questionIds = userdata.data.questionIds.join(',')
         console.log("Question IDs:", questionIds)
         
-        const response = await fetch(`${env.API}/questions/ids?ids=${questionIds}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        });
+        const response = await api.get(`/questions/ids?ids=${questionIds}`)
+        const typedResponse = response as { success: boolean; data: any };
         
-        if (!response.ok) {
+        if (!typedResponse.success) {
           throw new Error("Failed to fetch review data")
         }
         
-        const data = await response.json()
+        const data = typedResponse.data
         console.log("Review data:", data)
 
         if (!data || !data.data || typeof data.data !== 'object') {

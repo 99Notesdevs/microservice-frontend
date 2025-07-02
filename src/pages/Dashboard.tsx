@@ -133,17 +133,13 @@ export default function Dashboard() {
       try {
         const userId = localStorage.getItem('userId');
         // Fetch category ratings
-        const response = await fetch(`${env.API}/ratingCategory/user/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get('token')}`,
-          },
-        });
-        const result = await response.json();
-        if (result.success) {
-          setData(result.data);
+        const response = await api.get(`/ratingCategory/user/${userId}`);
+        const typedResponse = response as { success: boolean; data: any };
+        if (typedResponse.success) {
+          setData(typedResponse.data);
           
           // Process data for radar chart
-          const formattedData = result.data.map((item: any) => ({
+          const formattedData = typedResponse.data.map((item: any) => ({
             subject: item.categoryName || `Category ${item.categoryId}`,
             rating: (item.rating / 100) * 10, // Convert 0-500 to 0-10 scale
             fullMark: 10
@@ -156,7 +152,7 @@ export default function Dashboard() {
           setMaxRating((progressConstraints?.strongLimit || 450 / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
           
           const categoryMap: Record<number, string> = {};
-          result.data.forEach((item: any) => {
+          typedResponse.data.forEach((item: any) => {
             if (item.categoryName && item.categoryId) {
               categoryMap[item.categoryId] = item.categoryName;
             }
@@ -164,12 +160,8 @@ export default function Dashboard() {
           // setCategories(categoryMap);
         }
         
-        const responseB = await fetch(`${env.API}/progress/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get('token')}`,
-          },
-        });
-        const resultB = await responseB.json();
+        const responseB = await api.get(`/progress/${userId}`);
+        const resultB = responseB as { success: boolean; data: any };
         if (resultB.success) {
           // Parse dates and ensure numbers for the chart
           const formattedData = resultB.data.map((item: any) => ({
@@ -198,19 +190,14 @@ export default function Dashboard() {
         } else {
           console.log(resultP.error);
         }
-        const responseL = await fetch(`${env.API}/user/testSeries/data`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get('token')}`,
-          },
-        });
-        const resultL = await responseL.json();
+        const responseL = await api.get(`/user/testSeries/data`);
+        const resultL = responseL as { success: boolean; data: any };
         if (resultL.success) {
           console.log("resultL.data",resultL.data);
           // setLast5tests(resultL.data);
           setTestSeriesData(resultL.data);
         } else {
           setError('Failed to fetch last 5 tests');
-          console.log(resultL.error);
         }
       } catch (err) {
         setProgressError(err);

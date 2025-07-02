@@ -1,20 +1,11 @@
-import { env } from "./env";
-import Cookies from "js-cookie";
-
-const token = Cookies.get('token') || null;
+import { api } from "@/api/route";
 
 export const uploadImageToS3 = async (formData: FormData, folder: string, name?: string): Promise<string | null> => {
 
-  const res = await fetch(`${env.API}/aws/upload-image?folder=${folder}&name=${name}`, {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
+  const res = await api.post(`/aws/upload-image?folder=${folder}&name=${name}`, formData);
+  const typedRes = res as { success: boolean; data: string };
+  if (!typedRes.success) return null;
 
-  if (!res.ok) return null;
-
-  const { data } = await res.json();
+  const data = typedRes.data;
   return data || null;
 };

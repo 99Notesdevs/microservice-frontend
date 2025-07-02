@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { SimpleTestForm } from '@/components/testUtils/testForm'
-import { env } from "@/config/env"
-import Cookies from "js-cookie"
+import { api } from '@/api/route'
 
 interface TestFormData {
   name: string
@@ -23,17 +22,10 @@ export default function AddTest() {
 
   const handleSubmit = async (data: TestFormData) => {
     try {
-      const token = Cookies.get("token")
-      const response = await fetch(`${env.API}/test`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      })
+      const response = await api.post(`/test`, data)
+      const typedResponse = response as { success: boolean; data: any }
 
-      if (!response.ok) throw new Error('Failed to create test')
+      if (!typedResponse.success) throw new Error('Failed to create test')
       
       
       

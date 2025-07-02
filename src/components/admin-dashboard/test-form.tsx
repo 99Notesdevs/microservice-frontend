@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { env } from "@/config/env";
-import Cookies from "js-cookie";
 import { Link } from 'react-router-dom';
+import { api } from '@/api/route'
 
 interface TestFormData {
   id: number
@@ -26,16 +25,12 @@ export default function TestForms() {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const token = Cookies.get("token")
-        const response = await fetch(`${env.API}/test`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-
-        if (!response.ok) throw new Error('Failed to fetch tests')
-        const testsData = await response.json()
-        const data = testsData.data
+        const response = await api.get(`/test`)
+        const typedResponse = response as { success: boolean; data: any }
+        
+        if (!typedResponse.success) throw new Error('Failed to fetch tests')
+        
+        const { data } = typedResponse
         // Ensure data is an array
         if (Array.isArray(data)) {
           setTests(data)
@@ -57,16 +52,10 @@ export default function TestForms() {
     if (!confirm('Are you sure you want to delete this test?')) return
 
     try {
-      const token = Cookies.get("token")
-      const response = await fetch(`${env.API}/test/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      })
-
-      if (!response.ok) throw new Error('Failed to delete test')
+      const response = await api.delete(`/test/${id}`)
+      const typedResponse = response as { success: boolean; data: any }
+      
+      if (!typedResponse.success) throw new Error('Failed to delete test')
       
       setTests(tests.filter(test => test.id !== id))
     } catch (error) {

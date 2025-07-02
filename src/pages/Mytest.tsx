@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiBookOpen, FiChevronRight, FiBarChart2, FiAlertCircle, FiCheckCircle, FiXCircle } from 'react-icons/fi';
-import { env } from '../config/env';
-import Cookies from 'js-cookie';
+import { api } from '@/api/route';
 
 interface TestAttempt {
   id: string;
@@ -42,23 +41,16 @@ const Mytest = () => {
   useEffect(() => {
     const fetchTestAttempts = async () => {
       try {
-        const response = await fetch(`${env.API}/user/tests`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${Cookies.get("token")}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch test attempts');
+        const response = await api.get(`/user/tests`);
+        const typedresponse = response as { success: boolean; data: any };
+        if (!typedresponse.success) {
+          throw new Error("Failed to fetch test attempts")
         }
 
-        const { data } = await response.json();
+        const responseData = typedresponse.data.data;
         
         // Parse the nested JSON strings in the response
-        const parsedAttempts = data.map((attempt: any) => {
+        const parsedAttempts = responseData.map((attempt: any) => {
           try {
             // Parse the result field which contains the test details
             const parsedResult = JSON.parse(attempt.result);

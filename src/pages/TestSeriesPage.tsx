@@ -8,11 +8,10 @@ import NavigationButtons from "../components/testPortal/NavigationButtons"
 import FullScreenHeader from "../components/testPortal/FullScreenHeader"
 import TestStatusPanel from "../components/testPortal/TestStatusPanel"
 import { AlertTriangle } from "lucide-react"
-import Cookies from "js-cookie"
-import {env} from "../config/env"
 import { useSocketTest } from "../hooks/useSocketTest"
 // import type { TestSeriesObject } from "@/types/testTypes"
 import { usePreventTestExit } from '../hooks/usePreventTestExit';
+import { api } from "@/api/route"
 // import { useAuth } from "../contexts/AuthContext"
 // API function to fetch test series data
 
@@ -49,19 +48,13 @@ import { usePreventTestExit } from '../hooks/usePreventTestExit';
               const fetchTestSeriesData = async (testSeriesId: string) => {
                 try {
                   setTestStarted(true)
-                  const apiUrl = env.API
-                  const response = await fetch(`${apiUrl}/testSeries/${testSeriesId}`, {
-                    method: "GET",
-                    headers: {
-                      Authorization: `Bearer ${Cookies.get("token")}`,
-                    },
-                  })
-              
-                  if (!response.ok) {
+                  const response = await api.get(`/testSeries/${testSeriesId}`)
+                  const typedResponse = response as { success: boolean; data: any };
+                  if (!typedResponse.success) {
                     throw new Error("Failed to fetch test series data")
                   }
               
-                  const data = await response.json()
+                  const data = typedResponse.data
                   const markingScheme = {
                     correct: data.data.correctAttempted,
                     incorrect: data.data.wrongAttempted,

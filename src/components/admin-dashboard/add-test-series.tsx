@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import TestForm from '@/components/testUtils/testForm'
 import CategorySelect from '@/components/testUtils/CategorySelect'
 import GetQuestions from '@/components/testUtils/getquestions'
-import { env } from "@/config/env";
-import Cookies from "js-cookie";
+import { api } from "@/api/route"
 
 interface TestSeriesData {
   name: string
@@ -56,18 +55,13 @@ export default function AddTestSeries() {
     try {
       setLoading(true)
       setError(null)
-      const token = Cookies.get("token")
       
-      const url = `${env.API}/questions?categoryId=${categoryId}&limit=${pageSize}&page=${page}`
+      const url = `/questions?categoryId=${categoryId}&limit=${pageSize}&page=${page}`
       
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch questions");
-      
-      const { data, total } = await response.json();
-      
+      const response = await api.get(url)
+      const typedResponse = response as { success: boolean; data: any }
+      if (!typedResponse.success) throw new Error("Failed to fetch questions");
+      const { data } = typedResponse;
       // If this is the first page or switching categories, reset questions
       if (page === 1) {
         setQuestions(data)
@@ -75,7 +69,7 @@ export default function AddTestSeries() {
         setQuestions(prev => [...prev, ...data])
       }
       
-      setHasMore(total > (page * pageSize))
+      setHasMore(data.length > (page * pageSize))
       setCurrentPage(page)
     } catch (error) {
       console.error("Error fetching questions:", error);
@@ -142,14 +136,7 @@ export default function AddTestSeries() {
 
   const handleSubmit = async (data: TestSeriesData) => {
     try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${env.API}/testSeries`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const response = await api.post(`/testSeries`, {
           name: data.name,
           timeTaken: data.timeTaken,
           correctAttempted: data.correctAttempted,
@@ -162,9 +149,8 @@ export default function AddTestSeries() {
           questionsMultiple: data.questionsMultiple,
           questionIds: selectedQuestionIds,
         })
-      })
-
-      if (response.ok) {
+      const typedResponse = response as { success: boolean; data: any }
+      if (typedResponse.success) {
         // Reset form and selected questions after successful submission
         setTestSeriesData({
           name: '',
@@ -180,15 +166,12 @@ export default function AddTestSeries() {
           questionIds: [],
         })
         setSelectedQuestionIds([])
-        navigate('/dashboard/testSeries')
+        navigate('/dashboard/testseries')
       } else {
-        const errorData = await response.json()
-        console.error('Failed to create test series:', errorData)
-        alert(errorData.message || 'Failed to create test series')
+        console.error('Failed to create test series')
       }
     } catch (error) {
       console.error('Error creating test series:', error)
-      alert('An error occurred while creating the test series')
     }
   }
 
@@ -208,7 +191,7 @@ export default function AddTestSeries() {
       questionIds: [],
     })
     setSelectedQuestionIds([])
-    navigate('/dashboard/testSeries')
+    navigate('/dashboard/testseries')
   }
 
   return (

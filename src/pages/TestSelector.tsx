@@ -1,8 +1,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { env } from "../config/env"
-import Cookies from "js-cookie"
+import { api } from "@/api/route"
 
 interface TestSeries {
   id: number
@@ -23,14 +22,12 @@ const TestSelector: React.FC = () => {
     const fetchTestSeries = async () => {
       setLoading(true)
       try {
-        const response = await fetch(`${env.API}/testSeries`,{
-          headers:{
-            'Authorization': `Bearer ${Cookies.get('token')}`
-          }
-        })
-
-        if (!response.ok) throw new Error("Failed to fetch test series")
-        const result = await response.json()
+        const response = await api.get(`/testSeries`)
+        const typedResponse = response as { success: boolean; data: any };
+        if (!typedResponse.success) {
+          throw new Error("Failed to fetch test series")
+        }
+        const result = typedResponse.data
         if (result.success && result.data) {
           setTestSeries(result.data.map((series: any) => ({
             id: series.id,

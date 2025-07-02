@@ -4,41 +4,9 @@ import { createViewMonthGrid } from '@schedule-x/calendar';
 import { createEventsServicePlugin } from '@schedule-x/events-service';
 import '@schedule-x/theme-default/dist/index.css';
 import { format } from 'date-fns';
-import Cookies from 'js-cookie';
-import { env } from '@/config/env';
+import { api } from '@/api/route';
 
-const API_BASE_URL = env.API;
-
-// Helper function to make API requests
-const api = async (endpoint: string, options: RequestInit = {}) => {
-  const token = Cookies.get('token');
-  console.log('Making API call to:', `${API_BASE_URL}${endpoint}`);
-  console.log('Auth token:', token ? 'Present' : 'Missing');
-  
-  const headers = new Headers({
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
-  });
-
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-    console.log('API Response status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
-    }
-    
-    return response.json();
-  } catch (error) {
-    console.error('Fetch error:', error);
-    throw error;
-  }
-};
+// Helper function to make API request
 
 // Calendar API functions
 const calendarApi = {
@@ -52,10 +20,7 @@ const calendarApi = {
     event: string;
   }) => {
     console.log('Creating event:', data);
-    const response = await api('/calendar', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
+    const response = await api.post('/calendar', data);
     console.log('Event created:', response);
     return response;
   },
@@ -63,17 +28,20 @@ const calendarApi = {
   // Get events for a specific user
   getEventsByUser: async (userId: number) => {
     console.log('Fetching events for user:', userId);
-    const data = await api(`/calendar/user/${userId}`);
+    const data = await api.get(`/calendar/user/${userId}`);
     const month = 6;
     const year = 2025;
     
     try {
-      const response = await api(`/calendar/tests?month=${month}&year=${year}`);
+      const response = await api.get(`/calendar/tests?month=${month}&year=${year}`);
       console.log('Fetched tests:', response);
+      const typedResponse = response as { success: boolean; data: any };
+      if (!typedResponse.success) throw new Error("Failed to fetch tests");
       
+      const data = typedResponse.data;
       // Process test data
-      const tests = response.data?.tests || [];
-      const testSeries = response.data?.testSeries || [];
+      const tests = data?.tests || [];
+      const testSeries = data?.testSeries || [];
       
       // Process individual tests
       const testEvents = tests.map((test: any) => {
@@ -128,11 +96,15 @@ const calendarApi = {
     const month = date.getMonth() + 1; // Months are 0-indexed in JS
     const year = date.getFullYear();
     
-    const data = await api(
+    const data = await api.get(
       `/calendar/user/${userId}/date?date=${day}&month=${month}&year=${year}`
     );
     console.log('Fetched events:', data);
-    return data;
+    const typedResponse = data as { success: boolean; data: any };
+    if (!typedResponse.success) throw new Error("Failed to fetch events");
+    
+    const events = typedResponse.data;
+    return events;
   },
 
   // Update an existing event
@@ -145,10 +117,7 @@ const calendarApi = {
     event?: string;
   }) => {
     console.log('Updating event:', eventId, data);
-    const response = await api(`/calendar/${eventId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    });
+    const response = await api.put(`/calendar/${eventId}`, data);
     console.log('Event updated:', response);
     return response;
   },
@@ -156,9 +125,7 @@ const calendarApi = {
   // Delete an event
   deleteEvent: async (eventId: string) => {
     console.log('Deleting event:', eventId);
-    const response = await api(`/calendar/${eventId}`, {
-      method: 'DELETE'
-    });
+    const response = await api.delete(`/calendar/${eventId}`);
     console.log('Event deleted:', response);
     return response;
   }

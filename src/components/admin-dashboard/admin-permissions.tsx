@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { env } from '../../config/env';
-import Cookies from 'js-cookie';
+import { api } from '@/api/route'
 
 interface XpStatus {
   rating: number;
@@ -33,18 +32,13 @@ const AdminPermissions: React.FC = () => {
   useEffect(() => {
     const fetchConstraints = async () => {
       try {
-        const response = await fetch(`${env.API}/progressConstraints`, {
-          headers: {
-            'Authorization': `Bearer ${Cookies.get('token')}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
+        const response = await api.get(`/progressConstraints`)
+        const typedResponse = response as { success: boolean; data: any }
+        if (!typedResponse.success) {
           throw new Error('Failed to fetch constraints');
         }
 
-        const data = await response.json();
+        const { data } = typedResponse;
         if (data.success && data.data) {
           // setConstraints(data.data);
           setFormData({
@@ -141,26 +135,14 @@ const AdminPermissions: React.FC = () => {
     setSaving(true);
     
     try {
-      const response = await fetch(`${env.API}/progressConstraints`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Cookies.get('token')}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          xp_status: JSON.stringify(xpStatuses)
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update constraints');
-      }
+      const response = await api.post(`/progressConstraints`, {
+        ...formData,
+        xp_status: JSON.stringify(xpStatuses)
+      })
+      const typedResponse = response as { success: boolean; data: any }
+      if (!typedResponse.success) throw new Error("Failed to update constraints");
 
       alert('Progress constraints updated successfully');
-      // setConstraints(data.data);
     } catch (error) {
       console.error('Error updating constraints:', error);
       alert(error instanceof Error ? error.message : 'Failed to update constraints');

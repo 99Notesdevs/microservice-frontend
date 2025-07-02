@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { env } from "@/config/env";
-import Cookies from "js-cookie";
+import { api } from '@/api/route'
 
 interface TestSeries {
   id: number
@@ -28,16 +27,12 @@ export default function TestSeriesPage() {
 
   const fetchTestSeries = async () => {
     try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${env.API}/testSeries`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(`/testSeries`)
+      const typedResponse = response as { success: boolean; data: any }
       
-      if (!response.ok) {
-        throw new Error("Failed to fetch test series");
-      }
+      if (!typedResponse.success) throw new Error("Failed to fetch test series");
       
-      const { data } = await response.json();
+      const { data } = typedResponse;
       setTestSeriesList(data)
     } catch (error) {
       console.error("Error fetching test series:", error);
@@ -53,17 +48,12 @@ export default function TestSeriesPage() {
     }
 
     try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${env.API}/testSeries/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.delete(`/testSeries/${id}`)
+      const typedResponse = response as { success: boolean; data: any }
       
-      if (response.ok) {
-        setTestSeriesList(prev => prev.filter(ts => ts.id !== id))
-      } else {
-        console.error('Failed to delete test series')
-      }
+      if (!typedResponse.success) throw new Error("Failed to delete test series");
+      
+      setTestSeriesList(prev => prev.filter(ts => ts.id !== id))
     } catch (error) {
       console.error('Error deleting test series:', error)
     }

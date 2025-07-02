@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { env } from '../config/env';
-import Cookies from 'js-cookie';
 import { FiClock, FiBookOpen, FiChevronRight, FiBarChart2, FiEye } from 'react-icons/fi';
+import { api } from '@/api/route';
 
 interface TestSeries {
   id: string;
@@ -62,26 +61,17 @@ const MytestSeries = () => {
     const fetchTestSeries = async () => {
       try {
         console.log('Fetching test series data...');
-        const response = await fetch(`${env.API}/user/testSeries`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${Cookies.get("token")}`,
-          },
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('API Error:', errorData);
-          throw new Error(errorData.message || 'Failed to fetch test series');
+        const response = await api.get(`/user/testSeries`);
+        const typedResponse = response as { success: boolean; data: any };
+        if (!typedResponse.success) {
+          throw new Error("Failed to fetch review data")
         }
+        const responseData = typedResponse.data
+        console.log('API Response:', responseData);
         
-        const responseData = await response.json();
-        console.log('API Response:', responseData.data);
-        
-        if (responseData.success && responseData.data) {
+        if (responseData.success && responseData) {
           // Transform the data to match our TestSeries interface
-          const transformedData = responseData.data.map((item: any) => {
+          const transformedData = responseData.map((item: any) => {
             try {
               // Initialize with default values
               let responseData = { response: '[]' };
