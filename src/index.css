@@ -1,16 +1,179 @@
 @import "tailwindcss";
 
+/* Calendar Styles */
+.sx__month-grid {
+  min-height: 500px;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
 
+/* Make header row more compact */
+.sx__month-grid-header {
+  height: 32px !important;
+}
+
+/* Make header cells more compact */
+.sx__month-grid-header-cell {
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}
+
+/* Make day cells more compact */
+.sx__month-grid-day {
+  min-height: 80px !important;
+  border: 1px solid #e5e7eb;
+  padding: 4px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.sx__event {
+  margin: 2px 0;
+  padding: 4px 6px 4px 22px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  position: relative;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.sx__event.todo-item {
+  background-color: #f0f9ff;
+  border-left: 3px solid #0ea5e9;
+  padding-left: 25px;
+}
+
+.sx__event.completed-todo {
+  text-decoration: line-through;
+  color: #6b7280;
+  background-color: #f3f4f6;
+  position: relative;
+}
+
+.sx__event.completed-todo::before {
+  content: '✓';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 1;
+}
+
+.sx__month-grid-event {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.sx__event:hover {
+  background-color: #f1f5f9;
+  transform: translateX(2px);
+}
+
+.sx__month-grid-day--current-month {
+  background-color: #fff;
+}
+
+.sx__month-grid-day--today {
+  background-color: #f0f9ff;
+  font-weight: bold;
+}
+
+.sx__month-grid-day-number {
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 4px;
+  padding: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.sx__month-grid-day--today .sx__month-grid-day-number {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.sx__month-grid-day-events {
+  max-height: 90px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.sx__month-grid-day-events::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sx__month-grid-day-events::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+.sx__month-grid-day--not-in-month {
+  opacity: 0.5;
+}
+
+.sx__event:before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.event-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.event-pending:before {
+  background-color: #f59e0b;
+}
+
+.event-completed {
+  background-color: #dcfce7;
+  color: #166534;
+  text-decoration: line-through;
+  opacity: 0.9;
+}
+
+.event-completed:before {
+  background-color: #10b981;
+}
+
+.event-in-progress {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.event-in-progress:before {
+  background-color: #3b82f6;
+}
 
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
-      "Droid Sans", "Helvetica Neue", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-  }
-  
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
