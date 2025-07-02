@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 
 export const SubscriptionPrompt: React.FC = () => {
   const handleSubscribe = () => {
-    window.location.href = `${env.API}/subscription`;
+    window.location.href = `${env.MAIN_PORTAL_API}/subscription`;
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
