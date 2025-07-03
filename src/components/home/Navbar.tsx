@@ -24,12 +24,12 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
   return (
     <>
       <div className="w-full" />
-      <nav className="sticky top-0 w-full bg-white shadow-md z-40 h-16 flex items-center px-8">
+      <nav className="sticky top-0 w-full bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.1)] z-40 h-16 flex items-center px-8">
         {/* Left Section - Hamburger Menu */}
         <div className="flex items-center">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 shadow-md"
+            className="p-2 rounded-lg bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-200 hover:shadow-md"
             aria-label="Toggle menu"
           >
             <svg

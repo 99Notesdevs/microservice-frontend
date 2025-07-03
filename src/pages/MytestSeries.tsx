@@ -69,7 +69,7 @@ const MytestSeries = () => {
         const responseData = typedResponse.data
         console.log('API Response:', responseData);
         
-        if (responseData.success && responseData) {
+        if (responseData) {
           // Transform the data to match our TestSeries interface
           const transformedData = responseData.map((item: any) => {
             try {

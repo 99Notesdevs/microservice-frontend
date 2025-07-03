@@ -28,8 +28,8 @@ const TestSelector: React.FC = () => {
           throw new Error("Failed to fetch test series")
         }
         const result = typedResponse.data
-        if (result.success && result.data) {
-          setTestSeries(result.data.map((series: any) => ({
+        if (result) {
+          setTestSeries(result.map((series: any) => ({
             id: series.id,
             name: series.name,
             description: series.name, // Using name as description since API doesn't provide description

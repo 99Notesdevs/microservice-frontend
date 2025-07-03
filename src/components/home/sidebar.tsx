@@ -92,51 +92,33 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
         initial={false}
         animate={{
           x: isSidebarOpen ? 0 : -280,
-          opacity: isSidebarOpen ? 1 : 0,
-          width: '280px',
+          opacity: isSidebarOpen ? 1 : 0.8,
           transition: {
-            x: { type: 'spring', stiffness: 300, damping: 30 },
-            opacity: { duration: 0.2 }
+            x: { 
+              type: 'spring', 
+              stiffness: 300, 
+              damping: 25,
+              mass: 0.5
+            },
+            opacity: { 
+              duration: 0.3,
+              ease: 'easeInOut'
+            }
           }
         }}
-        className={`fixed top-0 left-0 z-[1000] h-screen bg-white shadow-lg overflow-hidden ${isMobile ? 'w-[280px]' : ''}`}
+        className={`fixed top-16 left-0 z-[900] h-[calc(100vh-4rem)] w-[280px] bg-white shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] overflow-hidden`}
       >
-        <div className="flex flex-col h-full">
-          {/* Top Section */}
-          <div className="border-b border-gray-100 p-4">
-            <div className="flex items-center justify-between">
-              <NavLink
-                to="/user"
-                className="flex items-center gap-4 flex-1"
-                onClick={() => setIsSidebarOpen(false)}
-              >
-                <div className="flex items-center gap-3 cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border-2 border-white shadow-sm">
-                    {user?.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={userName}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-blue-600 font-medium">{userInitial}</span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{userName}</p>
-                    {user?.email && <p className="text-xs text-gray-500">{user.email}</p>}
-                  </div>
-                </div>
-              </NavLink>
-              <button
-                onClick={() => setIsSidebarOpen(false)}
-                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                aria-label="Close sidebar"
-              >
-                <X size={20} className="text-gray-500 cursor-pointer" />
-              </button>
-            </div>
-          </div>
+        <div className="flex flex-col h-full border-r border-gray-100">
+          {/* Close button for mobile */}
+          {isMobile && (
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 transition-colors z-10"
+              aria-label="Close sidebar"
+            >
+              <X size={20} className="text-gray-500 cursor-pointer" />
+            </button>
+          )}
 
           {/* Navigation Links */}
           <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
@@ -187,7 +169,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
           </div>
 
           {/* Bottom Section */}
-          <div className="p-4 border-t border-gray-100 ">
+          <div className="mt-auto p-4 border-t border-gray-100">
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => {

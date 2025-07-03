@@ -16,101 +16,101 @@ import { api } from "@/api/route"
 // API function to fetch test series data
 
 
-            const TEST_DURATION = 30 * 60 // 30 minutes in seconds
-            
-            const TestSeriesPage: React.FC = () => {
-              const navigate = useNavigate()
-              const { testSeriesId } = useParams<{ testSeriesId: string }>()
-              const {submitSocketTest} = useSocketTest()
-              const {
-                testData,
-                currentQuestionIndex,
-                questionStatuses,
-                selectedAnswers,
-                isReviewMode,
-                handleQuestionSelect,
-                setIsReviewMode,
-                handleOptionSelect,
-                handleConfirmAnswer,
-                handleSaveForLater,
-                setTestData,
-                setMarkingScheme,
-              } = useTestContext()
-              const [loading, setLoading] = useState(true)
-              const [testStarted, setTestStarted] = useState(false)
-              const [error, setError] = useState<string | null>(null)
-              const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
-              const [isFullScreen, setIsFullScreen] = useState(false)
-              const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
-              //const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
-              
-              // Fetch test series data
-              const fetchTestSeriesData = async (testSeriesId: string) => {
-                try {
-                  setTestStarted(true)
-                  const response = await api.get(`/testSeries/${testSeriesId}`)
-                  const typedResponse = response as { success: boolean; data: any };
-                  if (!typedResponse.success) {
-                    throw new Error("Failed to fetch test series data")
-                  }
-              
-                  const data = typedResponse.data
-                  const markingScheme = {
-                    correct: data.data.correctAttempted,
-                    incorrect: data.data.wrongAttempted,
-                    unattempted: data.data.notAttempted,
-                    partial: data.data.partialAttempted,
-                    partialWrong: data.data.partialNotAttempted,
-                    partialUnattempted: data.data.partialWrongAttempted,
-                  }
-                  setMarkingScheme(markingScheme)
-                  console.log("Marking scheme:", markingScheme)
-                  // Extract questions from the response
-                  if (data && data.data && data.data.questions) {
-                    return {
-                      id: Number.parseInt(testSeriesId),
-                      name: data.data.name || `Test Series ${testSeriesId}`,
-                      questions: data.data.questions.map((q: any) => ({
-                        id: q.id,
-                        question: q.question,
-                        options: q.options || [],
-                        answer: q.answer || "",
-                        explaination: q.explanation || q.explaination || "",
-                        multipleCorrectType: q.multipleCorrectType || false,
-                        pyq: q.pyq || false,
-                        year: q.year,
-                        creatorName: q.creatorName,
-                      })),
-                    }
-                  }   
-                  
-                  throw new Error("Invalid test series data format")
-                } catch (error) {
-                  console.error("Error fetching test series:", error)
-                  throw error
-                }
-              }
-              useEffect(() => {
-                const loadTestSeriesData = async () => {
-                  if (!testSeriesId) {
-                    setError("No test series ID provided")
-                    setLoading(false)
-                    return
-                  }
-                  
-                  try {
-                    setIsReviewMode(false)
-                    const data = await fetchTestSeriesData(testSeriesId)
-                    setTestData({
-                      id: data.id,
-                      name: data.name,
-                      questions: data.questions,
-                      type: "testSeries",
-                    })
-                    setLoading(false)
-                  } catch (err) {
-                    setError("Failed to load test series data")
-                    setLoading(false)
+const TEST_DURATION = 30 * 60 // 30 minutes in seconds
+
+const TestSeriesPage: React.FC = () => {
+  const navigate = useNavigate()
+  const { testSeriesId } = useParams<{ testSeriesId: string }>()
+  const { submitSocketTest } = useSocketTest()
+  const {
+    testData,
+    currentQuestionIndex,
+    questionStatuses,
+    selectedAnswers,
+    isReviewMode,
+    handleQuestionSelect,
+    setIsReviewMode,
+    handleOptionSelect,
+    handleConfirmAnswer,
+    handleSaveForLater,
+    setTestData,
+    setMarkingScheme,
+  } = useTestContext()
+  const [loading, setLoading] = useState(true)
+  const [testStarted, setTestStarted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
+  const [isFullScreen, setIsFullScreen] = useState(false)
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
+  //const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
+
+  // Fetch test series data
+  const fetchTestSeriesData = async (testSeriesId: string) => {
+    try {
+      setTestStarted(true)
+      const response = await api.get(`/testSeries/${testSeriesId}`)
+      const typedResponse = response as { success: boolean; data: any };
+      if (!typedResponse.success) {
+        throw new Error("Failed to fetch test series data")
+      }
+
+      const data = typedResponse.data
+      const markingScheme = {
+        correct: data.correctAttempted,
+        incorrect: data.wrongAttempted,
+        unattempted: data.notAttempted,
+        partial: data.partialAttempted,
+        partialWrong: data.partialNotAttempted,
+        partialUnattempted: data.partialWrongAttempted,
+      }
+      setMarkingScheme(markingScheme)
+      console.log("Marking scheme:", markingScheme)
+      // Extract questions from the response
+      if (data && data && data.questions) {
+        return {
+          id: Number.parseInt(testSeriesId),
+          name: data.name || `Test Series ${testSeriesId}`,
+          questions: data.questions.map((q: any) => ({
+            id: q.id,
+            question: q.question,
+            options: q.options || [],
+            answer: q.answer || "",
+            explaination: q.explanation || q.explaination || "",
+            multipleCorrectType: q.multipleCorrectType || false,
+            pyq: q.pyq || false,
+            year: q.year,
+            creatorName: q.creatorName,
+          })),
+        }
+      }
+
+      throw new Error("Invalid test series data format")
+    } catch (error) {
+      console.error("Error fetching test series:", error)
+      throw error
+    }
+  }
+  useEffect(() => {
+    const loadTestSeriesData = async () => {
+      if (!testSeriesId) {
+        setError("No test series ID provided")
+        setLoading(false)
+        return
+      }
+
+      try {
+        setIsReviewMode(false)
+        const data = await fetchTestSeriesData(testSeriesId)
+        setTestData({
+          id: data.id,
+          name: data.name,
+          questions: data.questions,
+          type: "testSeries",
+        })
+        setLoading(false)
+      } catch (err) {
+        setError("Failed to load test series data")
+        setLoading(false)
       }
     }
 
@@ -162,7 +162,7 @@ import { api } from "@/api/route"
   const handleSubmit = async () => {
     try {
       setTestStarted(false)
-      
+
       setShowConfirmSubmit(false)
       console.log("Submitting socket test...")
       const newtestSeriesObject = ({
@@ -293,21 +293,21 @@ import { api } from "@/api/route"
               onSaveAndNext={
                 !isReviewMode
                   ? () => {
-                      handleConfirmAnswer()
-                      if (currentQuestionIndex < testData.questions.length - 1) {
-                        handleQuestionSelect(currentQuestionIndex + 1)
-                      }
+                    handleConfirmAnswer()
+                    if (currentQuestionIndex < testData.questions.length - 1) {
+                      handleQuestionSelect(currentQuestionIndex + 1)
                     }
+                  }
                   : undefined
               }
               onMarkForReview={
                 !isReviewMode
                   ? () => {
-                      handleSaveForLater()
-                      if (currentQuestionIndex < testData.questions.length - 1) {
-                        handleQuestionSelect(currentQuestionIndex + 1)
-                      }
+                    handleSaveForLater()
+                    if (currentQuestionIndex < testData.questions.length - 1) {
+                      handleQuestionSelect(currentQuestionIndex + 1)
                     }
+                  }
                   : undefined
               }
               isReviewMode={isReviewMode}

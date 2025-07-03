@@ -33,23 +33,26 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
-      {/* Sidebar is now self-contained with its own overlay */}
-      <Sidebar 
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-        isMobile={isMobile}
-      />
+    <div className="min-h-screen bg-gray-50 flex flex-col relative">
+      <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} user={user as User} />
       
-      {/* Main Content */}
-      <div 
-        className={`min-h-screen transition-all duration-300 ${
-          !isMobile && isSidebarOpen ? 'md:ml-[280px]' : 'md:ml-0'
-        }`}
-      >
-        <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} user={user as User} />
-        <div className="w-full p-4 md:p-6">
-          {children}
+      <div className="flex flex-1 relative pt-16 h-[calc(100vh-4rem)]">
+        {/* Sidebar */}
+        <Sidebar 
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          isMobile={isMobile}
+        />
+        
+        {/* Main Content */}
+        <div 
+          className={`flex-1 transition-all duration-300 h-full overflow-auto ${
+            !isMobile && isSidebarOpen ? 'md:ml-[280px]' : 'md:ml-0'
+          }`}
+        >
+          <div className="w-full p-4 md:p-6">
+            {children}
+          </div>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiBookOpen, FiChevronRight, FiBarChart2, FiAlertCircle, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiClock, FiBookOpen, FiChevronRight, FiBarChart2, FiEye, FiAlertCircle } from 'react-icons/fi';
 import { api } from '@/api/route';
 
 interface TestAttempt {
@@ -47,7 +47,7 @@ const Mytest = () => {
           throw new Error("Failed to fetch test attempts")
         }
 
-        const responseData = typedresponse.data.data;
+        const responseData = typedresponse.data;
         
         // Parse the nested JSON strings in the response
         const parsedAttempts = responseData.map((attempt: any) => {
@@ -122,20 +122,14 @@ const Mytest = () => {
     return Math.round((JSON.parse(attempt.parsedResult.result).score / (JSON.parse(attempt.parsedResult.result).totalQuestions * 2)) * 100);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadgeStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case 'success':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <FiCheckCircle className="mr-1" /> Completed
-          </span>
-        );
+        return 'bg-green-100 text-green-800';
+      case 'in-progress':
+        return 'bg-blue-100 text-blue-800';
       default:
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            <FiAlertCircle className="mr-1" /> {status}
-          </span>
-        );
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -167,14 +161,14 @@ const Mytest = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full mx-auto">
-        <div 
-          className="text-center mb-12"
+        <motion.p 
+          className="text-gray-600 text-lg text-center mb-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <p 
-            className="text-gray-600 text-xl font-semibold" >
-            Review your test history and track your progress
-          </p>
-        </div>
+          Review your test history and track your progress
+        </motion.p>
 
         {testAttempts.length === 0 ? (
           <motion.div 
@@ -196,20 +190,42 @@ const Mytest = () => {
             </button>
           </motion.div>
         ) : (
-          <AnimatePresence>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {testAttempts.map((attempt, index) => {
+          <motion.div 
+            className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            <AnimatePresence>
+              {testAttempts.map((attempt) => {
                 const scorePercentage = getScorePercentage(attempt);
-                const isPassing = scorePercentage >= 50;
+
                 const scoreData = attempt.parsedResult ? JSON.parse(attempt.parsedResult.result || '{}') : {};
                 
                 return (
                   <motion.div
                     key={attempt.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      show: { 
+                        opacity: 1, 
+                        y: 0,
+                        transition: { 
+                          type: 'spring',
+                          stiffness: 100,
+                          damping: 15
+                        }
+                      }
+                    }}
+                    className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100"
                   >
                     <div className="p-6">
                       <div className="flex justify-between items-start mb-4">
@@ -221,72 +237,68 @@ const Mytest = () => {
                             {formatDate(attempt.createdAt)}
                           </p>
                         </div>
-                        {attempt.parsedResult?.status && getStatusBadge(attempt.parsedResult.status)}
+                        <div className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusBadgeStyle('Completed')}`}>
+                          Completed
+                        </div>
                       </div>
                       
                       <div className="mt-6 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className={`p-4 rounded-xl ${isPassing ? 'bg-green-50' : 'bg-red-50'}`}>
-                            <p className="text-xs font-medium text-gray-600 mb-1">SCORE</p>
-                            <div className="flex items-center">
-                              <span className={`text-2xl font-bold ${isPassing ? 'text-green-600' : 'text-red-600'} mr-2`}>
-                                {scorePercentage}%
-                              </span>
-                              {isPassing ? (
-                                <FiCheckCircle className="h-5 w-5 text-green-500" />
-                              ) : (
-                                <FiXCircle className="h-5 w-5 text-red-500" />
-                              )}
-                            </div>
-                            <p className="text-xs mt-1 text-gray-500">
-                              {scoreData.score || 0} / {scoreData.totalQuestions * 2 || 0} points
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <p className="text-xs text-blue-600 mb-1">Score</p>
+                            <p className="text-xl font-bold text-gray-800">
+                              {scoreData.score || 0}/{scoreData.totalQuestions * 2 || 0}
                             </p>
+                            <div className="h-1.5 bg-blue-100 rounded-full mt-2 overflow-hidden">
+                              <div 
+                                className="h-full bg-blue-500"
+                                style={{ width: `${scorePercentage}%` }}
+                              ></div>
+                            </div>
                           </div>
                           
-                          <div className="bg-blue-50 p-4 rounded-xl">
-                            <p className="text-xs font-medium text-blue-600 mb-1">TIME TAKEN</p>
+                          <div className="bg-green-50 p-3 rounded-lg">
+                            <p className="text-xs text-green-600 mb-1">Correct</p>
                             <p className="text-xl font-bold text-gray-800">
-                              {scoreData.timeTaken ? formatTime(scoreData.timeTaken) : 'N/A'}
-                            </p>
-                            <p className="text-xs mt-1 text-gray-500">
-                              {new Date(attempt.createdAt).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric' 
-                              })}
+                              {Math.round((scoreData.score || 0) / 2)}
+                              <span className="text-xs font-normal text-gray-500 ml-1">answers</span>
                             </p>
                           </div>
                         </div>
                         
-                        <div className="pt-4 border-t border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center text-sm text-gray-600">
-                              <FiBookOpen className="mr-2 text-gray-400" />
-                              <span>{scoreData.totalQuestions || 0} Questions</span>
-                            </div>
-                            <motion.button
-                              whileHover={{ x: 5 }}
-                              className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center transition-colors duration-200"
-                              onClick={() => navigate(`/review-socket/${attempt.id}`)}
-                            >
-                              Review Details
-                              <FiChevronRight className="ml-1" />
-                            </motion.button>
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <div className="flex items-center">
+                            <FiBookOpen className="mr-2 text-gray-500" />
+                            <span>{scoreData.totalQuestions || 0} Questions</span>
+                          </div>
+                          <div className="flex items-center">
+                            <FiClock className="mr-2 text-gray-500" />
+                            <span>{scoreData.timeTaken ? formatTime(scoreData.timeTaken) : 'N/A'}</span>
                           </div>
                         </div>
+                        
+                        <div className="text-xs text-gray-500">
+                          Attempted on: {formatDate(attempt.createdAt)}
+                        </div>
+                        
+                        <motion.div 
+                          className="mt-4 flex items-center justify-between pt-4 border-t border-gray-100"
+                          whileHover={{ x: 5 }}
+                        >
+                          <span className="text-sm font-medium text-blue-600 flex items-center"
+                                onClick={() => navigate(`/review-socket/${attempt.id}`)}>
+                            <FiEye className="mr-2" />
+                            Review Test
+                          </span>
+                          <FiChevronRight className="text-gray-500" />
+                        </motion.div>
                       </div>
                     </div>
-                    
-                    {/* <div className={`px-6 py-3 text-center text-sm font-medium ${
-                      isPassing ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                    }`}>
-                      {isPassing ? '🎉 Well done! You passed!' : 'Keep practicing! You can do better!'}
-                    </div> */}
                   </motion.div>
                 );
               })}
-            </div>
-          </AnimatePresence>
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
     </div>
