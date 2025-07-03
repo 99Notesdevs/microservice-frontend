@@ -177,20 +177,6 @@ const MytestSeries = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className=" mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <motion.h1 
-            className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            My Test Attempts
-          </motion.h1>
           <motion.p 
             className="text-gray-600 text-lg"
             initial={{ opacity: 0 }}
@@ -199,7 +185,6 @@ const MytestSeries = () => {
           >
             Review your completed tests and analyze your performance
           </motion.p>
-        </motion.div>
 
         {loading ? (
           <div className="flex justify-center items-center py-16">

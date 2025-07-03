@@ -28,65 +28,59 @@ const calendarApi = {
   // Get events for a specific user
   getEventsByUser: async (userId: number) => {
     console.log('Fetching events for user:', userId);
-    const data = await api.get(`/calendar/user/${userId}`);
+    const calendarData = await api.get(`/calendar/user/${userId}`);
     const month = 6;
     const year = 2025;
     
-    try {
-      const response = await api.get(`/calendar/tests?month=${month}&year=${year}`);
-      console.log('Fetched tests:', response);
-      const typedResponse = response as { success: boolean; data: any };
-      if (!typedResponse.success) throw new Error("Failed to fetch tests");
-      
-      const data = typedResponse.data;
-      // Process test data
-      const tests = data?.tests || [];
-      const testSeries = data?.testSeries || [];
-      
-      // Process individual tests
-      const testEvents = tests.map((test: any) => {
-        const result = parseTestResult(test.result);
-        return {
-          id: `test-${test.id}`,
-          userId: test.userId,
-          date: new Date(test.createdAt).getDate(),
-          month: new Date(test.createdAt).getMonth() + 1,
-          year: new Date(test.createdAt).getFullYear(),
-          status: 'completed',
-          event: `Test Attempt - Score: ${result.score}/${result.totalQuestions}`,
-          type: 'test',
-          score: result.score,
-          totalQuestions: result.totalQuestions,
-          timeTaken: result.timeTaken,
-          questionIds: test.questionIds
-        };
-      });
+    const response = await api.get(`/calendar/tests?month=${month}&year=${year}`);
+    console.log('Fetched tests:', response);
+    const typedResponse = response as { success: boolean; data: any };
+    
+    const testData = typedResponse.data;
+    // Process test data
+    const tests = testData?.tests || [];
+    const testSeries = testData?.testSeries || [];
+    
+    // Process individual tests
+    const testEvents = tests.map((test: any) => {
+      const result = parseTestResult(test.result);
+      return {
+        id: `test-${test.id}`,
+        userId: test.userId,
+        date: new Date(test.createdAt).getDate(),
+        month: new Date(test.createdAt).getMonth() + 1,
+        year: new Date(test.createdAt).getFullYear(),
+        status: 'completed',
+        event: `Test Attempt - Score: ${result.score}/${result.totalQuestions}`,
+        type: 'test',
+        score: result.score,
+        totalQuestions: result.totalQuestions,
+        timeTaken: result.timeTaken,
+        questionIds: test.questionIds
+      };
+    });
 
-      // Process test series
-      const seriesEvents = testSeries.map((series: any) => {
-        const result = parseTestResult(series.result);
-        return {
-          id: `series-${series.id}`,
-          userId: series.userId,
-          date: new Date(series.createdAt).getDate(),
-          month: new Date(series.createdAt).getMonth() + 1,
-          year: new Date(series.createdAt).getFullYear(),
-          status: 'completed',
-          event: `Test Series: ${series.test?.name} - Score: ${result.score}/${result.totalQuestions}`,
-          type: 'testSeries',
-          score: result.score,
-          totalQuestions: result.totalQuestions,
-          timeTaken: result.timeTaken,
-          testSeriesName: series.test?.name
-        };
-      });
+    // Process test series
+    const seriesEvents = testSeries.map((series: any) => {
+      const result = parseTestResult(series.result);
+      return {
+        id: `series-${series.id}`,
+        userId: series.userId,
+        date: new Date(series.createdAt).getDate(),
+        month: new Date(series.createdAt).getMonth() + 1,
+        year: new Date(series.createdAt).getFullYear(),
+        status: 'completed',
+        event: `Test Series: ${series.test?.name} - Score: ${result.score}/${result.totalQuestions}`,
+        type: 'testSeries',
+        score: result.score,
+        totalQuestions: result.totalQuestions,
+        timeTaken: result.timeTaken,
+        testSeriesName: series.test?.name
+      };
+    });
 
-      // Combine all events
-      return [...data, ...testEvents, ...seriesEvents];
-    } catch (error) {
-      console.error('Error fetching tests:', error);
-      return data;
-    }
+    // Combine all events
+    return [...(Array.isArray(calendarData) ? calendarData : []), ...testEvents, ...seriesEvents];
   },
 
   // Get events for a specific date
@@ -101,7 +95,6 @@ const calendarApi = {
     );
     console.log('Fetched events:', data);
     const typedResponse = data as { success: boolean; data: any };
-    if (!typedResponse.success) throw new Error("Failed to fetch events");
     
     const events = typedResponse.data;
     return events;
@@ -190,9 +183,9 @@ function Calendar() {
       return;
     }
     
+    setIsLoading(true);
+    console.log('Fetching events...');
     try {
-      setIsLoading(true);
-      console.log('Fetching events...');
       const calendarEvents = await calendarApi.getEventsByUser(Number(userId));
       console.log('Raw events from API:', JSON.stringify(calendarEvents, null, 2));
       
@@ -200,7 +193,7 @@ function Calendar() {
       console.log('Processed events:', processedEvents);
       
       // Log each event's date information
-      processedEvents.forEach(event => {
+      processedEvents.forEach((event: any) => {
         const eventDate = new Date(event.year, event.month - 1, event.date);
         console.log(`Event: ${event.event} - Date: ${eventDate.toISOString()}`);
       });
@@ -272,16 +265,36 @@ function Calendar() {
   };
 
   const toggleTodoStatus = async (todo: CalendarEvent) => {
+    if (!todo || !todo.id) {
+      console.error('Invalid todo item:', todo);
+      return;
+    }
+    
     const newStatus = todo.status === 'completed' ? 'pending' : 'completed';
+    console.log('Toggling todo status:', { id: todo.id, currentStatus: todo.status, newStatus });
     
     try {
+      // Optimistically update the UI
+      setEvents(prevEvents => 
+        prevEvents.map(event => 
+          event.id === todo.id 
+            ? { ...event, status: newStatus } 
+            : event
+        )
+      );
+      
+      // Then make the API call
       await calendarApi.updateEvent(todo.id, {
         ...todo,
         status: newStatus
       });
+      
+      // Refresh data to ensure consistency
       await fetchData();
     } catch (error) {
       console.error('Error updating todo status:', error);
+      // Revert the UI if there's an error
+      fetchData().catch(console.error);
     }
   };
 
@@ -436,14 +449,6 @@ function Calendar() {
         setSelectedDate(new Date(date));
         setIsModalOpen(true);
       },
-      onEventClick: (event: any) => {
-        console.log('Event clicked:', event);
-        const eventData = events.find(e => e.id.toString() === event.id);
-        if (eventData) {
-          // Toggle todo status when clicking on the event
-          toggleTodoStatus(eventData);
-        }
-      },
       onEventUpdate: () => {
         console.log('Calendar events updated');
         if (calendar) {
@@ -458,14 +463,27 @@ function Calendar() {
     // This runs after the calendar is rendered
     const handleDateCellClick = (e: Event) => {
       const target = e.target as HTMLElement;
-      const dateCell = target.closest('.sx__month-grid-day, .sx__month-grid-day--current-month');
+      // Find the closest date cell or day cell
+      const dateCell = target.closest('[data-date]') || 
+                      target.closest('.sx__month-grid-day') || 
+                      target.closest('.sx__month-grid-day--current-month');
       
-      if (dateCell && !target.closest('.sx__event')) {
-        const dateStr = dateCell.getAttribute('data-date');
+      // If we found a date cell, open the modal
+      if (dateCell) {
+        let dateStr = dateCell.getAttribute('data-date');
+        // If the clicked element doesn't have data-date but is inside a date cell
+        if (!dateStr) {
+          const dateCellWithDate = dateCell.querySelector('[data-date]');
+          if (dateCellWithDate) {
+            dateStr = dateCellWithDate.getAttribute('data-date');
+          }
+        }
+        
         if (dateStr) {
           console.log('Date cell clicked:', dateStr);
           setSelectedDate(new Date(dateStr));
           setIsModalOpen(true);
+          e.stopPropagation();
         }
       }
     };
@@ -473,12 +491,12 @@ function Calendar() {
     // Add click listener to the calendar container
     const calendarContainer = document.querySelector('.schedule-x-calendar');
     if (calendarContainer) {
-      calendarContainer.addEventListener('click', handleDateCellClick as EventListener);
+      calendarContainer.addEventListener('click', handleDateCellClick as EventListener, true); // Use capture phase
     }
 
     return () => {
       if (calendarContainer) {
-        calendarContainer.removeEventListener('click', handleDateCellClick as EventListener);
+        calendarContainer.removeEventListener('click', handleDateCellClick as EventListener, true);
       }
     };
   }, []);
@@ -493,35 +511,55 @@ function Calendar() {
         const eventData = events.find(e => e.id === eventId);
         if (!eventData) return;
         
-        // Update the event content with a checkbox and text
+        const isCompleted = eventData.status === 'completed';
         const contentEl = eventEl.querySelector('.sx__event-content') as HTMLElement;
+        
         if (contentEl) {
-          contentEl.innerHTML = `
-            <div class="flex items-center">
-              <div class="w-4 h-4 rounded border mr-2 flex-shrink-0 ${
-                eventData.status === 'completed' 
-                  ? 'bg-green-500 border-green-500 flex items-center justify-center' 
-                  : 'border-gray-300'
-              }">
-                ${eventData.status === 'completed' && (
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <span class="truncate text-sm ${eventData.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'}">
-                ${eventData.event || 'Untitled'}
-              </span>
-            </div>
-          `;
+          // Only update if necessary to prevent infinite loops
+          const currentCheckmark = contentEl.querySelector('.event-checkmark');
+          const currentStatus = contentEl.getAttribute('data-completed') === 'true';
           
-          // Add click handler to the checkbox
-          const checkbox = contentEl.querySelector('div');
-          if (checkbox) {
-            checkbox.addEventListener('click', (e: Event) => {
-              e.stopPropagation();
-              toggleTodoStatus(eventData);
-            });
+          if (isCompleted !== currentStatus || !currentCheckmark) {
+            contentEl.innerHTML = `
+              <div class="flex items-center w-full">
+                <div class="event-checkmark w-4 h-4 rounded border mr-2 flex-shrink-0 ${
+                  isCompleted 
+                    ? 'bg-green-500 border-green-500 flex items-center justify-center' 
+                    : 'border-gray-300 bg-white'
+                }">
+                  ${isCompleted ? 
+                    '<svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>' 
+                    : ''
+                  }
+                </div>
+                <span class="truncate text-sm ${isCompleted ? 'line-through text-gray-500' : 'text-gray-800'}">
+                  ${eventData.event || 'Untitled'}
+                </span>
+              </div>
+            `;
+            
+            // Add click handler to the checkbox
+            const checkbox = contentEl.querySelector('.event-checkmark');
+            if (checkbox) {
+              // Remove existing listeners to prevent duplicates
+              const newCheckbox = checkbox.cloneNode(true);
+              checkbox.parentNode?.replaceChild(newCheckbox, checkbox);
+              
+              newCheckbox.addEventListener('click', (e: Event) => {
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('Checkbox clicked for event:', eventId);
+                toggleTodoStatus(eventData);
+              });
+              
+              // Also make the entire event clickable
+              eventEl.addEventListener('click', (e: Event) => {
+                if (e.target === newCheckbox) return; // Skip if clicking the checkbox
+                e.stopPropagation();
+                setSelectedDate(new Date(eventData.year, eventData.month - 1, eventData.date));
+                setIsModalOpen(true);
+              });
+            }
           }
         }
       });
@@ -571,8 +609,7 @@ function Calendar() {
 
   return (
     <div className="calendar-wrapper">
-      <style dangerouslySetInnerHTML={{ __html: calendarStyles }} />
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden relative" style={{ minHeight: '600px' }}>
+<div className="bg-white rounded-lg shadow-lg overflow-hidden relative" style={{ minHeight: '600px' }}>
         {isLoading && (
           <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10">
             <div className="flex flex-col items-center">
@@ -700,223 +737,6 @@ function Calendar() {
       )}
     </div>
   );
-}
-
-// Add custom styles for different event types
-const calendarStyles = `
-  .sx__month-grid {
-    min-height: 500px;
-    width: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  }
-  
-  /* Make header row more compact */
-  .sx__month-grid-header {
-    height: 32px !important;
-  }
-  
-  /* Make header cells more compact */
-  .sx__month-grid-header-cell {
-    padding: 4px 8px !important;
-    font-size: 12px !important;
-  }
-  
-  /* Make day cells more compact */
-  .sx__month-grid-day {
-    min-height: 80px !important;
-  }
-  
-  .sx__event {
-    margin: 2px 0;
-    padding: 4px 6px 4px 22px;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-    position: relative;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-  }
-  
-  .sx__event.todo-item {
-    background-color: #f0f9ff;
-    border-left: 3px solid #0ea5e9;
-    padding-left: 25px;
-  }
-  
-  .sx__event.completed-todo {
-    text-decoration: line-through;
-    color: #6b7280;
-    background-color: #f3f4f6;
-    position: relative;
-  }
-  
-  .sx__event.completed-todo::before {
-    content: '✓';
-    position: absolute;
-    left: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #10b981;
-    font-weight: bold;
-    font-size: 14px;
-    z-index: 1;
-  }
-  
-  /* Ensure the checkmark is visible in the calendar grid */
-  .sx__month-grid-event {
-    min-height: 24px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .sx__event {
-    transition: all 0.2s ease;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-  }
-  
-  .sx__event:hover {
-    background-color: #f1f5f9;
-    transform: translateX(2px);
-  }
-  
-  .todo-item {
-    background-color: #f0fdf4;
-    border-left: 3px solid #10b981;
-    margin: 2px 0;
-    padding: 4px 8px;
-    border-radius: 4px;
-  }
-  
-  .regular-event {
-    background-color: #eff6ff;
-    border-left: 3px solid #3b82f6;
-  }
-  
-  .sx__month-grid-day {
-    min-height: 120px;
-    border: 1px solid #e5e7eb;
-    padding: 4px;
-    overflow: hidden;
-    background-color: #fff;
-  }
-  
-  .sx__month-grid-day--current-month {
-    background-color: #fff;
-  }
-  
-  .sx__month-grid-day--today {
-    background-color: #f0f9ff;
-    font-weight: bold;
-  }
-  
-  .sx__month-grid-day-number {
-    font-weight: 500;
-    text-align: center;
-    margin-bottom: 4px;
-    padding: 4px;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-  
-  .sx__month-grid-day--today .sx__month-grid-day-number {
-    background-color: #3b82f6;
-    color: white;
-  }
-  
-  .sx__month-grid-day-events {
-    max-height: 90px;
-    overflow-y: auto;
-    padding-right: 2px;
-  }
-  
-  .sx__month-grid-day-events::-webkit-scrollbar {
-    width: 4px;
-  }
-  
-  .sx__month-grid-day-events::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 4px;
-  }
-  
-  .sx__month-grid-day--not-in-month {
-    opacity: 0.5;
-  }
-  
-  /* Style for calendar events */
-  .sx__event {
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    margin-bottom: 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s ease;
-    position: relative;
-    padding-left: 8px;
-  }
-  
-  .sx__event:before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 6px;
-    flex-shrink: 0;
-  }
-  
-  .event-pending {
-    background-color: #fef3c7;
-    color: #92400e;
-  }
-  
-  .event-pending:before {
-    background-color: #f59e0b;
-  }
-  
-  .event-completed {
-    background-color: #dcfce7;
-    color: #166534;
-    text-decoration: line-through;
-    opacity: 0.9;
-  }
-  
-  .event-completed:before {
-    background-color: #10b981;
-  }
-  
-  .event-in-progress {
-    background-color: #dbeafe;
-    color: #1e40af;
-  }
-  
-  .event-in-progress:before {
-    background-color: #3b82f6;
-  }
-`;
-
-// Add styles to the document head
-if (typeof document !== 'undefined') {
-  const existingStyle = document.getElementById('calendar-custom-styles');
-  if (!existingStyle) {
-    const styleElement = document.createElement('style');
-    styleElement.id = 'calendar-custom-styles';
-    styleElement.textContent = calendarStyles;
-    document.head.appendChild(styleElement);
-  }
 }
 
 export default Calendar;

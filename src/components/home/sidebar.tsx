@@ -2,7 +2,7 @@ import { Home, CalendarDays, Pencil, ShoppingBag, Star, Power, MessageSquare, X 
 import { useLocation, NavLink } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -32,15 +32,18 @@ const links = [
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth() as { user: User | null; logout: () => void };
-  const userName = user?.firstName+" "+user?.lastName || 'User';
+  const userName = user?.firstName + " " + user?.lastName || 'User';
   const userInitial = userName.charAt(0).toUpperCase();
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
     if (isMobile && isSidebarOpen) {
-      setIsSidebarOpen(false);
+      const timer = setTimeout(() => {
+        setIsSidebarOpen(false);
+      }, 300); // Small delay to allow the click to complete
+      return () => clearTimeout(timer);
     }
-  }, [location.pathname, isMobile, isSidebarOpen, setIsSidebarOpen]);
+  }, [location.pathname]);
 
   // Disable body scroll when sidebar is open on mobile
   useEffect(() => {
@@ -49,6 +52,22 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
     }
     return () => {
       document.body.style.overflow = 'auto';
+    };
+  }, [isSidebarOpen, isMobile]);
+
+  // Handle click outside to close sidebar
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (isSidebarOpen && isMobile && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setIsSidebarOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isSidebarOpen, isMobile]);
 
@@ -69,47 +88,46 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
       </AnimatePresence>
 
       <motion.aside
+        ref={sidebarRef}
         initial={false}
         animate={{
-          width: isSidebarOpen ? '17rem' : '0rem',
-          opacity: isSidebarOpen ? 1 : 0.8,
-          x: isSidebarOpen ? 0 : -250,
-          
+          x: isSidebarOpen ? 0 : -280,
+          opacity: isSidebarOpen ? 1 : 0,
+          width: '280px',
+          transition: {
+            x: { type: 'spring', stiffness: 300, damping: 30 },
+            opacity: { duration: 0.2 }
+          }
         }}
-        transition={{
-          type: 'spring',
-          damping: 25,
-          stiffness: 300,
-        }}
-        className="fixed top-0 left-0 z-30 h-screen bg-white shadow-lg overflow-hidden"
+        className={`fixed top-0 left-0 z-[1000] h-screen bg-white shadow-lg overflow-hidden ${isMobile ? 'w-[280px]' : ''}`}
       >
         <div className="flex flex-col h-full">
           {/* Top Section */}
           <div className="border-b border-gray-100 p-4">
             <div className="flex items-center justify-between">
-            <NavLink 
-              to="/user" 
-              className="flex items-center gap-4 flex-1"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <div className="flex items-center gap-3 cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border-2 border-white shadow-sm">
-                  {user?.avatar ? (
-                    <img 
-                      src={user.avatar} 
-                      alt={userName}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-blue-600 font-medium">{userInitial}</span>
-                  )}
+              <NavLink
+                to="/user"
+                className="flex items-center gap-4 flex-1"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <div className="flex items-center gap-3 cursor-pointer">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border-2 border-white shadow-sm">
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={userName}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-blue-600 font-medium">{userInitial}</span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{userName}</p>
+                    {user?.email && <p className="text-xs text-gray-500">{user.email}</p>}
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900">{userName}</p>
-                  {user?.email && <p className="text-xs text-gray-500">{user.email}</p>}
-                </div>
-              </div>
-            </NavLink>
+              </NavLink>
               <button
                 onClick={() => setIsSidebarOpen(false)}
                 className="p-1 rounded-full hover:bg-gray-100 transition-colors"
@@ -119,60 +137,55 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
               </button>
             </div>
           </div>
-          
+
           {/* Navigation Links */}
           <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-          <NavLink 
-              to="/"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <ul className="space-y-1 px-2">
-                {links.map((link, index) => (
-                  <motion.li 
-                    key={link.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 300,
-                      damping: 24,
-                      delay: 0.05 * index
-                    }}
+            <ul className="space-y-1 px-2">
+              {links.map((link, index) => (
+                <motion.li
+                  key={link.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 24,
+                    delay: 0.05 * index
+                  }}
+                >
+                  <NavLink
+                    to={link.path}
+                    className={({ isActive }) =>
+                      `group flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? 'bg-blue-50 text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`
+                    }
+                    onClick={() => isMobile && setIsSidebarOpen(false)}
                   >
-                    <NavLink
-                      to={link.path}
-                      className={({ isActive }) =>
-                        `group flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          isActive
-                            ? 'bg-blue-50 text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`
-                      }
-                      onClick={() => isMobile && setIsSidebarOpen(false)}
-                    >
-                      <span className="mr-3 transition-transform group-hover:scale-110">
-                        {link.icon}
-                      </span>
-                      <span className="whitespace-nowrap">{link.name}</span>
-                      {location.pathname === link.path && (
-                        <motion.span
-                          layoutId="activeIndicator"
-                          className="ml-auto w-1.5 h-6 bg-blue-500 rounded-full"
-                          initial={false}
-                          transition={{
-                            type: 'spring',
-                            stiffness: 500,
-                            damping: 30,
-                          }}
-                        />
-                      )}
-                    </NavLink>
-                  </motion.li>
-                ))}
-              </ul>
-            </NavLink>
+                    <span className="mr-3 transition-transform group-hover:scale-110">
+                      {link.icon}
+                    </span>
+                    <span className="whitespace-nowrap">{link.name}</span>
+                    {location.pathname === link.path && (
+                      <motion.span
+                        layoutId="activeIndicator"
+                        className="ml-auto w-1.5 h-6 bg-blue-500 rounded-full"
+                        initial={false}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 500,
+                          damping: 30,
+                        }}
+                      />
+                    )}
+                  </NavLink>
+                </motion.li>
+              ))}
+            </ul>
           </div>
-          
+
           {/* Bottom Section */}
           <div className="p-4 border-t border-gray-100 ">
             <motion.button

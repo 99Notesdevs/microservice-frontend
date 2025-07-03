@@ -34,31 +34,21 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
-      {/* Blur Overlay */}
-      {isSidebarOpen && isMobile && (
-        <div 
-          className="fixed inset-0 bg-white/30 backdrop-blur-sm z-[1100] transition-all duration-300"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full z-[1200]">
-        <Sidebar 
-          isSidebarOpen={isSidebarOpen}
-          setIsSidebarOpen={setIsSidebarOpen}
-          isMobile={isMobile}
-        />
-      </div>
+      {/* Sidebar is now self-contained with its own overlay */}
+      <Sidebar 
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        isMobile={isMobile}
+      />
       
       {/* Main Content */}
       <div 
         className={`min-h-screen transition-all duration-300 ${
-          isSidebarOpen ? 'ml-67' : 'ml-0'
+          !isMobile && isSidebarOpen ? 'md:ml-[280px]' : 'md:ml-0'
         }`}
       >
         <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} user={user as User} />
-        <div className="w-full">
+        <div className="w-full p-4 md:p-6">
           {children}
         </div>
       </div>
