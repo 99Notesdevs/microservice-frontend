@@ -153,8 +153,16 @@ const calendarApi = {
     event?: string;
   }) => {
     try {
+      const id = Number(eventId);
+      if (isNaN(id)) {
+        throw new Error('Invalid event ID');
+      }
+      const updateData = {
+        event: data.event,
+        status: data.status
+      };
       console.log('Updating event:', eventId, data);
-      const response = await api.put(`/calendar/${eventId}`, data);
+      const response = await api.put(`/calendar/${eventId}`, updateData);
       console.log('Event updated:', response);
       return response;
     } catch (error) {
