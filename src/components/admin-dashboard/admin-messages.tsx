@@ -82,25 +82,25 @@ export default function AdminMessages() {
             console.log('Selected range:', selectedRange);
             
             // For the 0-199 range, we need special handling
-            if (selectedRange.min === 0 && selectedRange.max === 199) {
-              // Include messages that start at 0 and end at or above 0
-              // or messages that include any part of the 0-199 range
-              if (!msg.ratingS || !msg.ratingE) {
-                console.log('Skipping message with missing ratingS or ratingE');
-                return false;
-              }
-              const isInRange = (msg.ratingS === 0 && msg.ratingE >= 0) || 
-                             (msg.ratingS <= 199 && msg.ratingE >= 0);
-              console.log('Special 0-199 range check:', isInRange);
-              return isInRange;
-            }
+            // if (selectedRange.min === 0 && selectedRange.max === 200) {
+            //   // Include messages that start at 0 and end at or above 0
+            //   // or messages that include any part of the 0-199 range
+            //   if (!msg.ratingS || !msg.ratingE) {
+            //     console.log('Skipping message with missing ratingS or ratingE');
+            //     return false;
+            //   }
+            //   const isInRange = (msg.ratingS === 0 && msg.ratingE >= 0) || 
+            //                  (msg.ratingS <= 200 && msg.ratingE >= 0);
+            //   console.log('Special 0-199 range check:', isInRange);
+            //   return isInRange;
+            // }
             
             // For other ranges, use the standard overlap check
-            if (!msg.ratingS || !msg.ratingE) {
+            if (msg.ratingS === undefined || msg.ratingE === undefined) {
               console.log('Skipping message with missing ratingS or ratingE');
               return false;
             }
-            const overlap = msg.ratingS <= selectedRange.max && msg.ratingE >= selectedRange.min;
+            const overlap = msg.ratingS >= selectedRange.min && msg.ratingE <= selectedRange.max+1;
             console.log('Message range overlaps with selected range:', overlap);
             return overlap;
           });
