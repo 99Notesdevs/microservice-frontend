@@ -37,7 +37,7 @@ interface CategoryDetails {
 export default function ReportCard() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<CategoryDetails[]>([]);
-  // const [allCategories, setAllCategories] = useState<CategoryDetails[]>([]);
+  const [_allCategories, setAllCategories] = useState<CategoryDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentPath, setCurrentPath] = useState<number[]>([]);
@@ -103,7 +103,7 @@ export default function ReportCard() {
 
         setCategories(rootCategories);
         setCurrentLevelCategories(rootCategories); // Set initial view to root categories
-        // setAllCategories(Array.from(categoryMap.values()));
+        setAllCategories(Array.from(categoryMap.values()));
         
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -117,7 +117,7 @@ export default function ReportCard() {
   }, [user]);
 
   // Handle bar click to drill down
-  const handleBarClick = (elements: any) => {
+  const handleBarClick = (_event: any, elements: any) => {
     if (elements.length > 0) {
       const clickedIndex = elements[0].index;
       const clickedCategory = currentLevelCategories[clickedIndex];
