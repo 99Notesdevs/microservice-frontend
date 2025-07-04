@@ -33,6 +33,7 @@ import AdminLogin from './components/admin-dashboard/admin-login';
 import Subscription from './pages/subscription'
 import ReportCard from './pages/reportcard';
 import AdminPermissions from './components/admin-dashboard/admin-permissions';
+import AdminMessages from './components/admin-dashboard/admin-messages';
 // Layout wrapper component
 const LayoutWithSidebar = () => (
   <HomeLayout>
@@ -76,6 +77,7 @@ function App() {
             <Route path="/admin/test-form" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><TestForm /></ProtectedRoute>} />
             <Route path="/admin/testSeries" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><TestSeries /></ProtectedRoute>} />
             <Route path="/admin/permissions" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AdminPermissions /></ProtectedRoute>} />
+            <Route path="/admin/messages" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AdminMessages /></ProtectedRoute>} />
             </Route>
           
           {/* Test Portal route without Layout */}

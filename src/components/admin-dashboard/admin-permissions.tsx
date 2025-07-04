@@ -39,13 +39,13 @@ const AdminPermissions: React.FC = () => {
         }
 
         const { data } = typedResponse;
-        if (data.success && data.data) {
+        if (data) {
           // setConstraints(data.data);
           setFormData({
-            weakLimit: data.data.weakLimit,
-            strongLimit: data.data.strongLimit,
+            weakLimit: data.weakLimit,
+            strongLimit: data.strongLimit,
           });
-          setXpStatuses(data.data.xp_status || []);
+          setXpStatuses(JSON.parse(data.xp_status) || []);
         }
       } catch (error) {
         console.error('Error fetching constraints:', error);
