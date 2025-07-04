@@ -51,9 +51,9 @@ export default function ReportCard() {
         if (!typedRatingsResponse.success) {
           throw new Error("Failed to fetch review data")
         }
-        const ratings = Array.isArray(typedRatingsResponse.data.data) 
-          ? typedRatingsResponse.data.data 
-          : [typedRatingsResponse.data.data];
+        const ratings = Array.isArray(typedRatingsResponse.data) 
+          ? typedRatingsResponse.data 
+          : [typedRatingsResponse.data];
 
         // 2. Get all categories
         const allCategoriesResponseapi = await api.get(`/categories`);
@@ -61,7 +61,7 @@ export default function ReportCard() {
         if (!typedAllCategoriesResponseapi.success) {
           throw new Error("Failed to fetch review data")
         }
-        const allCategoriesResponse = typedAllCategoriesResponseapi.data.data
+        const allCategoriesResponse = typedAllCategoriesResponseapi.data
 
         // 3. Combine ratings with category data
         const categoriesWithRatings = allCategoriesResponse.map((category: any) => {

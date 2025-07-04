@@ -29,19 +29,12 @@
 
 .sx__event {
   margin: 2px 0;
-  padding: 4px 6px 4px 22px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
+  font-size: 0.875rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
-  position: relative;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
+  white-space: nowrap;
 }
 
 .sx__event.todo-item {
@@ -164,6 +157,33 @@
 
 .event-in-progress:before {
   background-color: #3b82f6;
+}
+
+/* Test and Test Series Event Styles */
+.test-event {
+  background-color: #fef3c7; /* Yellow-100 */
+  border-left: 3px solid #f59e0b; /* Yellow-500 */
+  color: #92400e; /* Yellow-800 */
+  margin: 2px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.test-series-event {
+  background-color: #fee2e2; /* Red-100 */
+  border-left: 3px solid #ef4444; /* Red-500 */
+  color: #991b1b; /* Red-800 */
+  margin: 2px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body {
