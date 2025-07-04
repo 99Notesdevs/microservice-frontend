@@ -37,9 +37,11 @@ interface CategoryDetails {
 export default function ReportCard() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<CategoryDetails[]>([]);
-  const [allCategories, setAllCategories] = useState<CategoryDetails[]>([]);
+  // const [allCategories, setAllCategories] = useState<CategoryDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPath, setCurrentPath] = useState<number[]>([]);
+  const [currentLevelCategories, setCurrentLevelCategories] = useState<CategoryDetails[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
 
   useEffect(() => {
@@ -75,9 +77,7 @@ export default function ReportCard() {
           };
         });
 
-        setAllCategories(categoriesWithRatings);
-
-        // 4. Build category hierarchy
+        // 4. Build category hierarchy and set root categories
         const categoryMap = new Map<number, CategoryDetails>();
         const rootCategories: CategoryDetails[] = [];
 
@@ -102,7 +102,9 @@ export default function ReportCard() {
         });
 
         setCategories(rootCategories);
-        setExpandedCategories(rootCategories.map(cat => cat.id)); // Expand all by default
+        setCurrentLevelCategories(rootCategories); // Set initial view to root categories
+        // setAllCategories(Array.from(categoryMap.values()));
+        
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load category data');
@@ -114,18 +116,56 @@ export default function ReportCard() {
     if (user) fetchData();
   }, [user]);
 
-  // Prepare data for the bar chart (top 10 categories by rating)
+  // Handle bar click to drill down
+  const handleBarClick = (elements: any) => {
+    if (elements.length > 0) {
+      const clickedIndex = elements[0].index;
+      const clickedCategory = currentLevelCategories[clickedIndex];
+      
+      // If category has children, drill down
+      if (clickedCategory.children && clickedCategory.children.length > 0) {
+        setCurrentPath(prev => [...prev, clickedCategory.id]);
+        setCurrentLevelCategories(clickedCategory.children);
+      }
+    }
+  };
+
+  // Handle drill up
+  const handleDrillUp = () => {
+    if (currentPath.length > 0) {
+      const newPath = [...currentPath];
+      newPath.pop(); // Remove last element
+      setCurrentPath(newPath);
+      
+      // Find the categories at the new path level
+      if (newPath.length === 0) {
+        setCurrentLevelCategories(categories); // Back to root categories
+      } else {
+        let current = [...categories];
+        let targetCategories = [...categories];
+        
+        // Find the parent category
+        for (const id of newPath) {
+          const found = current.find(cat => cat.id === id);
+          if (found?.children) {
+            targetCategories = found.children;
+            current = found.children;
+          }
+        }
+        setCurrentLevelCategories(targetCategories);
+      }
+    } else {
+      // If already at root, do nothing
+      setCurrentLevelCategories(categories);
+    }
+  };
+
+  // Prepare data for the bar chart (current level categories)
   const chartData = {
-    labels: [...allCategories]
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-      .slice(0, 10)
-      .map(cat => cat.name),
+    labels: currentLevelCategories.map(cat => cat.name),
     datasets: [{
       label: 'Rating',
-      data: [...allCategories]
-        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-        .slice(0, 10)
-        .map(cat => (cat.rating || 0)), // Convert 0-5 to 0-500
+      data: currentLevelCategories.map(cat => (cat.rating || 0) * 100), // Convert 0-5 to 0-500
       backgroundColor: 'rgba(59, 130, 246, 0.7)',
       borderColor: 'rgba(59, 130, 246, 1)',
       borderWidth: 1,
@@ -134,17 +174,25 @@ export default function ReportCard() {
 
   const chartOptions = {
     responsive: true,
+    onClick: handleBarClick,
     plugins: {
       legend: {
         display: false,
       },
       title: {
         display: true,
-        text: 'Top Categories by Rating',
+        text: currentPath.length > 0 ? 'Subcategories' : 'Root Categories',
         font: {
           size: 16
         }
       },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            return `Rating: ${(context.raw / 100).toFixed(1)}/5`;
+          }
+        }
+      }
     },
     scales: {
       y: {
@@ -155,8 +203,10 @@ export default function ReportCard() {
           text: 'Rating (out of 500)'
         },
         ticks: {
-          // Show tick marks at every 100 points
-          stepSize: 100
+          stepSize: 100,
+          callback: function(value: any) {
+            return (value / 100).toFixed(1); // Show 0.0 to 5.0 on y-axis
+          }
         }
       }
     }
@@ -197,7 +247,7 @@ export default function ReportCard() {
                 <svg 
                   className={`w-5 h-5 ml-2 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`}
                   fill="none" 
-                  viewBox="0 0 24 24" 
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -206,7 +256,7 @@ export default function ReportCard() {
             </div>
           </div>
         </div>
-
+        
         {hasChildren && isExpanded && (
           <div className="mt-2">
             {category.children?.map(child => renderCategoryCard(child, level + 1))}
@@ -233,19 +283,50 @@ export default function ReportCard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <h1 className="text-3xl font-bold text-center mb-8">Performance Report</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Performance Report</h1>
       
-      {/* Bar Chart */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">
+            {currentPath.length > 0 ? 'Subcategories' : 'Root Categories'}
+          </h2>
+          {currentPath.length > 0 && (
+            <button
+              onClick={handleDrillUp}
+              className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Parent
+            </button>
+          )}
+        </div>
         <div className="h-80">
-          <Bar data={chartData} options={chartOptions} />
+          <Bar 
+            data={chartData} 
+            options={{
+              ...chartOptions,
+              onClick: handleBarClick,
+              plugins: {
+                ...chartOptions.plugins,
+                tooltip: {
+                  callbacks: {
+                    label: function(context: any) {
+                      return `Rating: ${(context.raw / 100).toFixed(1)}/5`;
+                    }
+                  }
+                }
+              }
+            }} 
+          />
         </div>
       </div>
 
       {/* Category Hierarchy */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-6">Category Performance</h2>
+        <h2 className="text-2xl font-semibold mb-6">Category Hierarchy</h2>
         <div className="space-y-4">
           {categories.map(category => renderCategoryCard(category))}
         </div>
