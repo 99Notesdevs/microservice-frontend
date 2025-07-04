@@ -8,6 +8,7 @@ import { env } from '@/config/env';
 import Cookies from 'js-cookie';
 import RadarChartComponent from '@/components/home/RadarChart';
 import { api } from '@/api/route';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface RatingData {
   categoryId: number;
@@ -33,6 +34,16 @@ interface TestSeriesData {
   score: number;
   averageScore: number;
   bestScore: number;
+}
+
+interface Message {
+  id: number;
+  type: 'global' | 'range';
+  content: string;
+  ratingS?: number;
+  ratingE?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const TestSeriesBarChart = ({ data }: { data: TestSeriesData[] }) => {
@@ -80,6 +91,13 @@ export default function Dashboard() {
     xp_status: Array<{rating: number; status: string; xp: number}>;
   } | null>(null);
   // const [constraintsLoading, setConstraintsLoading] = useState(true);
+
+  const [globalMessages, setGlobalMessages] = useState<Message[]>([]);
+  const [ratingMessages, setRatingMessages] = useState<Message[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const [currentRatingIndex, setCurrentRatingIndex] = useState(0);
+  const [ratingDirection, setRatingDirection] = useState(0);
 
   useEffect(() => {
     const fetchProgressConstraints = async () => {
@@ -209,6 +227,104 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        // Fetch global messages
+        const globalResponse = await api.get('/admin-messages/global');
+        const globalTypedResponse = globalResponse as { success: boolean; data: any };
+        if (globalTypedResponse.success) {
+          setGlobalMessages(globalTypedResponse.data || []);
+        }
+        
+        // Fetch rating-specific messages if user has a rating
+        if (userData?.userData?.rating) {
+          const ratingResponse = await api.get(`/admin-messages/rating/${userData.userData.rating}`);
+          const ratingTypedResponse = ratingResponse as { success: boolean; data: any };
+          if (ratingTypedResponse.success) {
+            setRatingMessages(ratingTypedResponse.data || []);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+    
+    fetchMessages();
+    
+    // Set up interval to cycle through messages
+    const globalInterval = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % globalMessages.length);
+    }, 5000);
+    const ratingInterval = setInterval(() => {
+      setCurrentRatingIndex(prev => (prev + 1) % ratingMessages.length);
+    }, 5000);
+    
+    return () => {
+      clearInterval(globalInterval);
+      clearInterval(ratingInterval);
+    };
+  }, [userData, globalMessages.length, ratingMessages.length]);
+
+  const messageVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? 300 : -300,
+      opacity: 0,
+      position: 'absolute' as const,
+    }),
+  };
+
+  const nextMessage = () => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % globalMessages.length);
+  };
+
+  const prevMessage = () => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev - 1 + globalMessages.length) % globalMessages.length);
+  };
+
+  const nextRatingMessage = () => {
+    setRatingDirection(1);
+    setCurrentRatingIndex((prev) => (prev + 1) % ratingMessages.length);
+  };
+
+  const prevRatingMessage = () => {
+    setRatingDirection(-1);
+    setCurrentRatingIndex((prev) => (prev - 1 + ratingMessages.length) % ratingMessages.length);
+  };
+
+  const AnimatedMessage = ({ message, title }: { message: string; title: string }) => (
+    <motion.div
+      key={message}
+      custom={direction}
+      variants={messageVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{
+        x: { type: "spring", stiffness: 300, damping: 30 },
+        opacity: { duration: 0.2 },
+      }}
+      className="w-full h-full flex items-center justify-center absolute inset-0"
+    >
+      <div className="px-4">
+        <div className="text-sm font-semibold text-gray-500 mb-2">{title}</div>
+        <div className="text-gray-700">{message}</div>
+      </div>
+    </motion.div>
+  );
+
+  const messageBoxStyle = "bg-white p-6 rounded-xl shadow-lg mb-6 relative overflow-hidden min-h-[120px] flex items-center";
+
   // Stats
   const stats = useMemo(() => {
     if (data.length === 0) return null;
@@ -291,103 +407,127 @@ export default function Dashboard() {
   if (data.length === 0) return <div className="p-4">No rating data available</div>;
 
   return (
-    <div className="p-4 sm:p-6 bg-gradient from-gray-100 to-gray-200 min-h-screen">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
-        <div className="space-y-4">
-          {/* Student Stats */}
-          <div className="bg-gray-50 rounded-xl p-4 shadow flex flex-col gap-2">
-            <div className="grid grid-cols-3 items-center py-1">
-              <span className="col-span-1 text-gray-500 text-sm">Global Rating</span>
-              <span className="col-span-1 text-center text-gray-400">—</span>
-              <span className="col-span-1 text-right text-gray-800 font-semibold">{userRating}</span>
-            </div>
-            <div className="grid grid-cols-3 items-center py-1">
-              <span className="col-span-1 text-gray-500 text-sm">Experience Level</span>
-              <span className="col-span-1 text-center text-gray-400">—</span>
-              <span className="col-span-1 flex items-center justify-end gap-2">
-                <span className="text-gray-800 font-semibold text-base">{experience}</span>
-                <div className="relative w-24 h-3 bg-gray-200 rounded-full mx-2">
-                  <div
-                    className="absolute left-0 top-0 h-3 bg-green-500 rounded-full"
-                    style={{ width: `${progressPercentage}%`, minWidth: '0.5rem' }}
-                  ></div>
+<div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
+  <h1 className="text-3xl font-bold mb-6 text-gray-800">Dashboard</h1>
+
+  {/* Global Message */}
+  <div className={`${messageBoxStyle} relative mb-4 max-w-5xl mx-auto`}>
+    <button onClick={prevMessage} className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Previous message">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+    </button>
+    <div className="w-full relative h-full">
+      <AnimatePresence mode="wait" custom={direction}>
+        {globalMessages.length > 0 ? (
+          <AnimatedMessage message={globalMessages[currentIndex].content} title="Global Message" />
+        ) : (
+          <div className="text-center w-full">No global messages available</div>
+        )}
+      </AnimatePresence>
+    </div>
+    <button onClick={nextMessage} className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Next message">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+    </button>
+  </div>
+
+  {/* Main Grid Layout */}
+  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto">
+    
+    {/* Sidebar (Left) */}
+    <div className="lg:col-span-4 space-y-4">
+      {/* Stats Box */}
+      <div className="bg-white rounded-xl p-4 shadow space-y-2">
+        {[
+          { label: "Global Rating", value: userRating },
+          { label: "Experience Level", value: experience, bar: true },
+          { label: "Test Attempted", value: `${stats?.completedCategories || 0}` },
+          { label: "Status", value: status }
+        ].map((item, idx) => (
+          <div key={idx} className="grid grid-cols-3 items-center text-sm">
+            <span className="text-gray-500">{item.label}</span>
+            <span className="text-center text-gray-400">—</span>
+            <span className="text-right text-gray-800 font-semibold flex items-center justify-end gap-2">
+              {item.value}
+              {item.bar && (
+                <div className="relative w-20 h-2 bg-gray-200 rounded-full ml-2">
+                  <div className="absolute top-0 left-0 h-2 bg-green-500 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
                 </div>
-                <span className="text-gray-400 text-xs font-semibold">{progressConstraints?.xp_status[progressConstraints?.xp_status.length-1].xp}</span>
-              </span>
-            </div>
-            <div className="grid grid-cols-3 items-center py-1">
-              <span className="col-span-1 text-gray-500 text-sm">Test Attempted</span>
-              <span className="col-span-1 text-center text-gray-400">—</span>
-              <span className="col-span-1 text-right text-gray-800 font-semibold">{`${stats?.completedCategories || 0}`}</span>
-            </div>
-            <div className="grid grid-cols-3 items-center py-1">
-              <span className="col-span-1 text-gray-500 text-sm">Status</span>
-              <span className="col-span-1 text-center text-gray-400">—</span>
-              <span className="col-span-1 text-right text-gray-800 font-semibold">{status}</span>
-            </div>
+              )}
+            </span>
           </div>
+        ))}
+      </div>
 
-          <RadarChartComponent 
-            userRadarData={userRadarData}
-            referenceRadarData={referenceRadarData}
-            minRating={minRating}
-            maxRating={maxRating}
-            strengths={strengths}
-            weakness={weakness}
-          />
-        </div>
-
-        {/* Middle Column */}
-        <div className="space-y-4">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold mb-4">Test Series Progress</h2>
-            <TestSeriesBarChart data={testSeriesData} />
+      {/* Message for Rating */}
+      {userData?.userData?.rating && (
+        <div className="bg-white p-4 rounded-xl shadow relative overflow-hidden min-h-[120px] flex items-center">
+          <button onClick={prevRatingMessage} className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Previous rating message">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <div className="w-full relative h-full">
+            <AnimatePresence mode="wait" custom={ratingDirection}>
+              {ratingMessages.length > 0 ? (
+                <motion.div
+                  key={`rating-${currentRatingIndex}`}
+                  custom={ratingDirection}
+                  variants={messageVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                  className="w-full h-full flex items-center justify-center absolute inset-0 px-2 text-center"
+                >
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 mb-1">Message for Rating: {userData.userData.rating}</div>
+                    <div className="text-gray-700 text-sm">{ratingMessages[currentRatingIndex]?.content}</div>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="text-center w-full text-sm">No messages available for your rating</div>
+              )}
+            </AnimatePresence>
           </div>
+          <button onClick={nextRatingMessage} className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Next rating message">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
         </div>
+      )}
+    </div>
 
-        {/* Right Column */}
-        <div className="space-y-4">
-          {/* Line Chart */}
-          <div className="bg-white rounded-lg p-4 shadow">
+    {/* Charts Section (Right) */}
+    <div className="lg:col-span-8 space-y-4">
+      <div className="bg-white rounded-lg p-4 shadow">
+        <RadarChartComponent 
+          userRadarData={userRadarData}
+          referenceRadarData={referenceRadarData}
+          minRating={minRating}
+          maxRating={maxRating}
+          strengths={strengths}
+          weakness={weakness}
+        />
+      </div>
 
-            <p className="text-center font-semibold mb-2">My Progress</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart
-                data={progressData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(date) => new Date(date).toLocaleDateString()}
-                />
-                <YAxis domain={[0, 500]} />
-                <Tooltip 
-                  labelFormatter={(value) => `Date: ${new Date(value).toLocaleDateString()}`}
-                  formatter={(value, name) => [value, name === 'progressMax' ? 'Max Rating' : 'Min Rating']}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="progressMax" 
-                  stroke="#10b981" 
-                  name="Max Rating" 
-                  activeDot={{ r: 6 }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="progressMin" 
-                  stroke="#ef4444" 
-                  name="Min Rating" 
-                  activeDot={{ r: 6 }} 
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      <div className="bg-white rounded-lg p-4 shadow">
+        <p className="text-center font-semibold mb-2">My Progress</p>
+        <ResponsiveContainer width="100%" height={220}>
+          <LineChart data={progressData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
+            <YAxis domain={[0, 500]} />
+            <Tooltip labelFormatter={(value) => `Date: ${new Date(value).toLocaleDateString()}`} formatter={(value, name) => [value, name === 'progressMax' ? 'Max Rating' : 'Min Rating']} />
+            <Legend />
+            <Line type="monotone" dataKey="progressMax" stroke="#10b981" name="Max Rating" activeDot={{ r: 6 }} />
+            <Line type="monotone" dataKey="progressMin" stroke="#ef4444" name="Min Rating" activeDot={{ r: 6 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-white p-4 rounded-lg shadow">
+        <h2 className="text-lg font-semibold mb-3">Test Series Progress</h2>
+        <TestSeriesBarChart data={testSeriesData} />
       </div>
     </div>
+  </div>
+</div>
+
   );
 }

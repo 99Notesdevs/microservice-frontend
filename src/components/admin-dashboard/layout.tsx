@@ -1,4 +1,4 @@
-import { FaPlus, FaEdit, FaClipboardList } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaClipboardList, FaAccusoft } from 'react-icons/fa';
 import { NavLink, Outlet } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
@@ -12,6 +12,8 @@ const Sidebar = () => {
         { icon: FaClipboardList, text: 'Test Forms', path: 'admin/test-form' },
         { icon: FaEdit, text: 'Test Series', path: 'admin/testseries' },
         { icon: FaPlus, text: 'Add Test', path: 'admin/add-test' },
+        { icon: FaAccusoft, text: 'Admin Panel', path: 'admin/permissions' },
+        { icon: FaAccusoft, text: 'Admin Messages', path: 'admin/messages' },
       ],
     },
   ];
