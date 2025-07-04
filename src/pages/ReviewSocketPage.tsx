@@ -14,6 +14,7 @@ import { api } from "@/api/route"
 const ReviewSocketPage: React.FC = () => {
   const navigate = useNavigate()
   const { testId } = useParams<{ testId: string }>()
+  console.log("Test ID:", testId)
   const {
     testData,
     currentQuestionIndex,
@@ -33,6 +34,7 @@ const ReviewSocketPage: React.FC = () => {
   // Fetch review data
   useEffect(() => {
     const loadReviewData = async () => {
+      console.log("Loading review data for test ID:", testId)
       if (!testId) {
         setError("No test ID provided")
         setLoading(false)
@@ -41,7 +43,7 @@ const ReviewSocketPage: React.FC = () => {
 
       try {
         // Fetch test data from API
-        
+        console.log("Fetching review data for test ID:", testId)
         const userresponse = await api.get(`/user/tests/${testId}`)
         const typedUserResponse = userresponse as { success: boolean; data: any };
         if (!typedUserResponse.success) {
@@ -51,7 +53,7 @@ const ReviewSocketPage: React.FC = () => {
         console.log("User data:", userdata)
         
         // Convert array of question IDs to comma-separated string
-        const questionIds = userdata.data.questionIds.join(',')
+        const questionIds = userdata.questionIds.join(',')
         console.log("Question IDs:", questionIds)
         
         const response = await api.get(`/questions/ids?ids=${questionIds}`)
@@ -64,12 +66,12 @@ const ReviewSocketPage: React.FC = () => {
         const data = typedResponse.data
         console.log("Review data:", data)
 
-        if (!data || !data.data || typeof data.data !== 'object') {
+        if (!data) {
           throw new Error("Invalid review data format")
         }
 
         // Convert the questions object into an array
-        const questions = Object.values(data.data).map((q: any) => ({
+        const questions = Object.values(data).map((q: any) => ({
           id: q.id,
           question: q.question,
           options: q.options || [],
@@ -95,8 +97,10 @@ const ReviewSocketPage: React.FC = () => {
         console.log("Processed questions:", questions);
 
         const reviewData = { questions };
-        const userResponseData = userdata.data;
+        const userResponseData = userdata;
+        console.log("User response data:", userResponseData)
         const userResponseSWE = JSON.parse(userResponseData.response);
+        console.log("User response SWE:", userResponseSWE)
         const userResponse = JSON.parse(userResponseSWE.response);
         console.log("User response:", userResponse)
 

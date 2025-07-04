@@ -19,85 +19,128 @@ const calendarApi = {
     status?: string;
     event: string;
   }) => {
-    console.log('Creating event:', data);
-    const response = await api.post('/calendar', data);
-    console.log('Event created:', response);
-    return response;
+    try {
+      console.log('Creating event:', data);
+      const response = await api.post('/calendar', data);
+      console.log('Event created:', response);
+      return response;
+    } catch (error) {
+      console.error('Error creating event:', error);
+      throw error;
+    }
   },
 
   // Get events for a specific user
   getEventsByUser: async (userId: number) => {
-    console.log('Fetching events for user:', userId);
-    const calendarData = await api.get(`/calendar/user/${userId}`);
-    const month = 6;
-    const year = 2025;
-    
-    const response = await api.get(`/calendar/tests?month=${month}&year=${year}`);
-    console.log('Fetched tests:', response);
-    const typedResponse = response as { success: boolean; data: any };
-    
-    const testData = typedResponse.data;
-    // Process test data
-    const tests = testData?.tests || [];
-    const testSeries = testData?.testSeries || [];
-    
-    // Process individual tests
-    const testEvents = tests.map((test: any) => {
-      const result = parseTestResult(test.result);
-      return {
-        id: `test-${test.id}`,
-        userId: test.userId,
-        date: new Date(test.createdAt).getDate(),
-        month: new Date(test.createdAt).getMonth() + 1,
-        year: new Date(test.createdAt).getFullYear(),
-        status: 'completed',
-        event: `Test Attempt - Score: ${result.score}/${result.totalQuestions}`,
-        type: 'test',
-        score: result.score,
-        totalQuestions: result.totalQuestions,
-        timeTaken: result.timeTaken,
-        questionIds: test.questionIds
+    try {
+      console.log('Fetching events for user:', userId);
+      const currentDate = new Date();
+      const month = currentDate.getMonth() + 1;
+      const year = currentDate.getFullYear();
+      
+      const calendarData = await api.get(`/calendar/user/${userId}`);
+      const response = await api.get(`/calendar/tests?month=${month}&year=${year}`);
+      console.log('Fetched tests:', response);
+      
+      const typedResponse = response as {
+        success: boolean;
+        data: {
+          tests?: Array<{
+            id: number;
+            userId: number;
+            createdAt: string;
+            result: {
+              score: number;
+              totalQuestions: number;
+              timeTaken: number;
+            };
+            questionIds: number[];
+          }>;
+          testSeries?: Array<{
+            id: number;
+            userId: number;
+            createdAt: string;
+            result: {
+              score: number;
+              totalQuestions: number;
+              timeTaken: number;
+            };
+            test: { name: string };
+          }>;
+        };
       };
-    });
+      
+      const testData = typedResponse.data;
+      // Process test data
+      const tests = testData?.tests || [];
+      const testSeries = testData?.testSeries || [];
+      
+      // Process individual tests
+      const testEvents = tests.map((test: any) => {
+        const result = parseTestResult(JSON.parse(JSON.parse(test.result).result));
+        return {
+          id: `test-${test.id}`,
+          userId: test.userId,
+          date: new Date(test.createdAt).getDate(),
+          month: new Date(test.createdAt).getMonth() + 1,
+          year: new Date(test.createdAt).getFullYear(),
+          status: 'completed',
+          event: `Test Attempt - Score: ${result.score}`,
+          type: 'test',
+          score: result.score,
+          totalQuestions: result.totalQuestions,
+          timeTaken: result.timeTaken,
+          questionIds: test.questionIds
+        };
+      });
 
-    // Process test series
-    const seriesEvents = testSeries.map((series: any) => {
-      const result = parseTestResult(series.result);
-      return {
-        id: `series-${series.id}`,
-        userId: series.userId,
-        date: new Date(series.createdAt).getDate(),
-        month: new Date(series.createdAt).getMonth() + 1,
-        year: new Date(series.createdAt).getFullYear(),
-        status: 'completed',
-        event: `Test Series: ${series.test?.name} - Score: ${result.score}/${result.totalQuestions}`,
-        type: 'testSeries',
-        score: result.score,
-        totalQuestions: result.totalQuestions,
-        timeTaken: result.timeTaken,
-        testSeriesName: series.test?.name
-      };
-    });
+      // Process test series
+      const seriesEvents = testSeries.map((series: any) => {
+        const result = parseTestResult(JSON.parse(series.result));
+        return {
+          id: `series-${series.id}`,
+          userId: series.userId,
+          date: new Date(series.createdAt).getDate(),
+          month: new Date(series.createdAt).getMonth() + 1,
+          year: new Date(series.createdAt).getFullYear(),
+          status: 'completed',
+          event: `Test Series: ${series.test?.name} - Score: ${result.score}`,
+          type: 'testSeries',
+          score: result.score,
+          totalQuestions: result.totalQuestions,
+          timeTaken: result.timeTaken,
+          testSeriesName: series.test?.name
+        };
+      });
 
-    // Combine all events
-    return [...(Array.isArray(calendarData) ? calendarData : []), ...testEvents, ...seriesEvents];
+      // Combine all events
+      return [...(Array.isArray(calendarData) ? calendarData : []), ...testEvents, ...seriesEvents];
+    } catch (error) {
+      console.error('Error fetching events for user:', error);
+      throw error;
+    }
   },
 
   // Get events for a specific date
   getEventsByDate: async (userId: number, date: Date) => {
-    console.log('Fetching events for user and date:', userId, date);
-    const day = date.getDate();
-    const month = date.getMonth() + 1; // Months are 0-indexed in JS
-    const year = date.getFullYear();
-    
-    const data = await api.get(
-      `/calendar/user/${userId}/date?date=${day}&month=${month}&year=${year}`
-    );
-    console.log('Fetched events:', data);
-    const typedResponse = data as { success: boolean; data: any };
-    
-    const events = typedResponse.data;
-    return events;
+    try {
+      console.log('Fetching events for user and date:', userId, date);
+      const day = date.getDate();
+      const month = date.getMonth() + 1; // Months are 0-indexed in JS
+      const year = date.getFullYear();
+      
+      const data = await api.get(
+        `/calendar/user/${userId}/date?date=${day}&month=${month}&year=${year}`
+      );
+      console.log('Fetched events:', data);
+      const typedResponse = data as { success: boolean; data: any };
+      
+      const events = typedResponse.data;
+      return events;
+    } catch (error) {
+      console.error('Error fetching events for user and date:', error);
+      throw error;
+    }
   },
 
   // Update an existing event
@@ -109,18 +152,28 @@ const calendarApi = {
     status?: string;
     event?: string;
   }) => {
-    console.log('Updating event:', eventId, data);
-    const response = await api.put(`/calendar/${eventId}`, data);
-    console.log('Event updated:', response);
-    return response;
+    try {
+      console.log('Updating event:', eventId, data);
+      const response = await api.put(`/calendar/${eventId}`, data);
+      console.log('Event updated:', response);
+      return response;
+    } catch (error) {
+      console.error('Error updating event:', error);
+      throw error;
+    }
   },
 
   // Delete an event
   deleteEvent: async (eventId: string) => {
-    console.log('Deleting event:', eventId);
-    const response = await api.delete(`/calendar/${eventId}`);
-    console.log('Event deleted:', response);
-    return response;
+    try {
+      console.log('Deleting event:', eventId);
+      const response = await api.delete(`/calendar/${eventId}`);
+      console.log('Event deleted:', response);
+      return response;
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      throw error;
+    }
   }
 };
 
@@ -192,19 +245,12 @@ function Calendar() {
       const processedEvents = Array.isArray(calendarEvents) ? calendarEvents : [];
       console.log('Processed events:', processedEvents);
       
-      // Log each event's date information
-      processedEvents.forEach((event: any) => {
-        const eventDate = new Date(event.year, event.month - 1, event.date);
-        console.log(`Event: ${event.event} - Date: ${eventDate.toISOString()}`);
-      });
-      
       setEvents(processedEvents);
-    } catch (error) {
-      console.error('Error in fetchData:', error);
-      setEvents([]);
-    } finally {
-      console.log('Fetch complete, setting loading to false');
       setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching calendar data:', error);
+      setIsLoading(false);
+      // Consider showing an error message to the user here
     }
   }, [userId]);
 

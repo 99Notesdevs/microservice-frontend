@@ -41,15 +41,15 @@ const ReviewPage: React.FC = () => {
 
       try {
         // Fetch test data from API
-        
+
         const userresponse = await api.get(`/user/testSeries/${testId}`)
         const typedUserResponse = userresponse as { success: boolean; data: any };
         if (!typedUserResponse.success) {
           throw new Error("Failed to fetch review data")
         }
         const userdata = typedUserResponse.data
-        console.log("User data: is ", userdata.data.id)
-        const response = await api.get(`/testSeries/${userdata.data.testId}`)
+        console.log("User data: is ", userdata)
+        const response = await api.get(`/testSeries/${userdata.testId}`)
         const typedResponse = response as { success: boolean; data: any };
         if (!typedResponse.success) {
           throw new Error("Failed to fetch review data")
@@ -58,12 +58,12 @@ const ReviewPage: React.FC = () => {
         console.log("Review data:", data)
         console.log("User data:", userdata)
 
-        if (!data || !data.data) {
+        if (!data) {
           throw new Error("Invalid review data format")
         }
 
-        const reviewData = data.data
-        const userResponseData = userdata.data
+        const reviewData = data
+        const userResponseData = userdata
         const userResponseSWE = JSON.parse(userResponseData.response)
         const userResponse = JSON.parse(userResponseSWE.response)
         console.log("User response:", userResponse)
@@ -86,40 +86,40 @@ const ReviewPage: React.FC = () => {
         const userAnswers = userResponse.map((r: any) => {
           // Find the corresponding question
           const question = questions.find((q: any) => q.id === r.questionId);
-          
+
           // Use the selectedOptions directly from the response
-          const selectedOptions = Array.isArray(r.selectedOptions) 
-            ? r.selectedOptions 
+          const selectedOptions = Array.isArray(r.selectedOptions)
+            ? r.selectedOptions
             : [];
-        
+
           // Initialize flags
           let isCorrect = false;
           let isPartiallyCorrect = false;
-        
+
           if (question) {
             // Get correct answers from the question data
-            const correctAnswers = question.answer 
+            const correctAnswers = question.answer
               ? question.answer.split(',').map((a: string) => Number(a.trim()))
               : [];
-        
+
             if (correctAnswers.length > 0) {
               if (question.multipleCorrectType) {
                 // For multiple correct answers
-                const allCorrectSelected = selectedOptions.length > 0 && 
+                const allCorrectSelected = selectedOptions.length > 0 &&
                   selectedOptions.every((opt: any) => correctAnswers.includes(opt)) &&
                   selectedOptions.length === correctAnswers.length;
-                
+
                 isCorrect = allCorrectSelected;
-                
+
                 // Partially correct if some but not all correct options are selected
-                const someCorrectSelected = selectedOptions.some((opt: any) => 
+                const someCorrectSelected = selectedOptions.some((opt: any) =>
                   correctAnswers.includes(opt)
                 );
                 isPartiallyCorrect = !isCorrect && someCorrectSelected;
               } else {
                 // For single correct answer
-                isCorrect = selectedOptions.length === 1 && 
-                           correctAnswers.includes(selectedOptions[0]);
+                isCorrect = selectedOptions.length === 1 &&
+                  correctAnswers.includes(selectedOptions[0]);
               }
             }
           }
@@ -292,9 +292,9 @@ const ReviewPage: React.FC = () => {
             <QuestionDisplay
               question={currentQuestion}
               selectedOptions={currentAnswer?.selectedOptions || []}
-              onOptionSelect={() => {}} // No-op in review mode
-              onConfirmAnswer={() => {}} // No-op in review mode
-              onSaveForLater={() => {}} // No-op in review mode
+              onOptionSelect={() => { }} // No-op in review mode
+              onConfirmAnswer={() => { }} // No-op in review mode
+              onSaveForLater={() => { }} // No-op in review mode
               isReviewMode={true}
             />
 
