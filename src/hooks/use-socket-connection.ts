@@ -1,8 +1,6 @@
 import { useEffect, useCallback, useRef, useState } from "react"
-import Cookies from "js-cookie"
 import type { QuestionStatus, TestSeriesObject } from "../types/testTypes"
 import { useSocket } from "../contexts/SocketContext"
-import { env } from "../config/env"
 import { useTestContext } from "../contexts/TestContext"
 import { useAuth } from "../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"

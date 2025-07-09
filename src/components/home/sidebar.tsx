@@ -10,15 +10,6 @@ interface SidebarProps {
   isMobile: boolean;
 }
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  avatar?: string;
-  // Add other user properties as needed
-}
-
 const links = [
   { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
   { name: "Calendar", icon: <CalendarDays size={20} />, path: "/calendar" },
@@ -31,9 +22,7 @@ const links = [
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   const location = useLocation();
-  const { user, logout } = useAuth() as { user: User | null; logout: () => void };
-  const userName = user?.firstName + " " + user?.lastName || 'User';
-  const userInitial = userName.charAt(0).toUpperCase();
+  const { logout } = useAuth() as { logout: () => void };
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
