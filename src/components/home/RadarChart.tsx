@@ -81,80 +81,128 @@ const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl p-4 flex flex-col md:flex-row items-center" style={{ minHeight: 300 }}>
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center">
       {/* Left: Subjectwise Rating, Strength, Weakness */}
-      <div className="flex flex-col items-start justify-center min-w-[270px] mr-2">
-        <div className="w-full md:w-1/2 mt-4 md:mt-0 md:pl-4">
-          <div className="text-2xl font-serif font-semibold text-gray-900 mb-2 underline underline-offset-4">
-            Subjectwise Rating
-          </div>
-        </div>
-        <div className="mb-8 w-full relative">
-          <div className="relative">
-            <span className="bg-white border-2 border-green-600 px-4 py-0.5 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-4 shadow-sm">Strength</span>
-            <div className="w-full min-h-11 bg-green-500 rounded-2xl opacity-80 flex items-center justify-center py-2 px-4">
-              <div className="text-lg font-serif text-black text-center">
-                {strengths.join(', ')}
+      <div className="w-full md:w-2/5 space-y-6 pr-0 md:pr-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">Performance Analysis</h2>
+          
+          {/* Strengths Section */}
+          <div className="relative bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6 overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 opacity-30 -z-10"></div>
+            <div className="flex items-start mb-4">
+              
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">Your Strengths</h3>
+                <p className="text-sm text-gray-500">Areas where you excel</p>
               </div>
             </div>
+            <div className="flex flex-wrap gap-2">
+              {strengths.map((item, index) => (
+                <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white/80 backdrop-blur-sm border border-blue-100 text-blue-700 shadow-sm hover:bg-white hover:shadow transition-all">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2"></span>
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="w-full relative">
-          <div className="relative">
-            <span className="bg-white border-2 border-yellow-500 px-4 py-0.5 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-4 shadow-sm">Weakness</span>
-            <div className="w-full min-h-11 bg-yellow-400 rounded-2xl opacity-80 flex items-center justify-center py-2 px-4">
-              <div className="text-lg font-serif text-black text-center">
-                {weakness.join(', ')}
+
+          {/* Weaknesses Section */}
+          <div className="relative bg-white rounded-xl p-5 shadow-sm border border-gray-100 overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-50 to-amber-100 opacity-30 -z-10"></div>
+            <div className="flex items-start mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">Areas to Improve</h3>
+                <p className="text-sm text-gray-500">Focus areas for growth</p>
               </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {weakness.map((item, index) => (
+                <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white/80 backdrop-blur-sm border border-amber-100 text-amber-700 shadow-sm hover:bg-white hover:shadow transition-all">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2"></span>
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
         </div>
       </div>
+
       {/* Radar Chart */}
-      <div className="w-full md:w-1/2 h-72 relative">
+      <div className="w-full md:w-3/5 h-80 mt-8 md:mt-0">
         <ResponsiveContainer width="100%" height="100%">
           <RechartsRadarChart
             cx="50%"
             cy="50%"
-            outerRadius="70%"
+            outerRadius="75%"
             data={referenceRadarData}
-            margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
           >
-            <PolarGrid gridType="circle" stroke="#222" />
+            <PolarGrid 
+              gridType="circle" 
+              stroke="#e5e7eb" 
+              strokeDasharray="3 3"
+            />
+            
+            {/* Background circles */}
             <svg width="100%" height="100%" style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
-              <circle cx="50%" cy="50%" r={outerRadius} fill="#22c55e" fillOpacity={0.7} />
-              <circle cx="50%" cy="50%" r={midRadius} fill="#3b82f6" fillOpacity={0.7} />
-              <circle cx="50%" cy="50%" r={innerRadius} fill="#ef4444" fillOpacity={0.7} />
+              <circle cx="50%" cy="50%" r={outerRadius} fill="#3b82f6" fillOpacity={0.1} />
+              <circle cx="50%" cy="50%" r={midRadius} fill="#3b82f6" fillOpacity={0.2} />
+              <circle cx="50%" cy="50%" r={innerRadius} fill="#ef4444" fillOpacity={0.2} />
             </svg>
+
             <PolarAngleAxis
               dataKey="subject"
               tick={(props) => <CustomAngleTick {...props} userRadarData={userRadarData} />}
-              stroke="#111"
+              stroke="#4b5563"
               tickLine={false}
+              axisLine={false}
             />
+            
             <PolarRadiusAxis
               angle={30}
               domain={[0, 10]}
               tick={false}
               axisLine={false}
-              stroke="#111"
             />
+            
             <Radar
               name="Your Rating"
               dataKey="value"
-              stroke="#222"
-              fill="#fde68a"
-              fillOpacity={0.7}
+              stroke="#3b82f6"
+              fill="#3b82f6"
+              fillOpacity={0.6}
               strokeWidth={2}
-              dot={true}
+              dot={{
+                fill: '#1d4ed8',
+                stroke: '#fff',
+                strokeWidth: 2,
+                r: 4,
+              }}
+              activeDot={{
+                fill: '#1d4ed8',
+                stroke: '#fff',
+                strokeWidth: 2,
+                r: 6,
+              }}
             />
-            <Tooltip content={<CustomTooltip />} />
+            
+            <Tooltip 
+              content={<CustomTooltip />}
+              wrapperStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                padding: '0.75rem',
+                fontSize: '0.875rem'
+              }}
+            />
           </RechartsRadarChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
 };
-
 
 export default RatingRadarChart;

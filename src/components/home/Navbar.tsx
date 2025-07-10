@@ -1,8 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
-// import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
 interface User {
@@ -10,70 +8,69 @@ interface User {
   firstName?: string;
   lastName?: string;
   email?: string;
-  // Add other user properties as needed
 }
 
 interface NavbarProps {
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (open: boolean) => void;
   user?: User;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }) => {
+const navLinks = [
+  { name: "Dashboard", path: "/dashboard" },
+  { name: "Calendar", path: "/calendar" },
+  { name: "Mock Test", path: "/tests" },
+  { name: "My Tests", path: "/mytest" },
+  { name: "My Test Series", path: "/mytestseries" },
+  { name: "Purchases", path: "/purchases" },
+  { name: "Inbox", path: "/messages" },
+];
+
+const Navbar: React.FC<NavbarProps> = ({ user }) => {
   const { logout } = useAuth();
+  
   return (
     <>
       <div className="w-full" />
-      <nav className="sticky top-0 w-full bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.1)] z-40 h-16 flex items-center px-8">
-        {/* Left Section - Hamburger Menu */}
-        <div className="flex items-center">
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-200 hover:shadow-md"
-            aria-label="Toggle menu"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Center Section - Logo */}
-        <div className="flex-1 flex justify-center">
-          <Link to="/about" className="flex items-center">
+      <nav className="sticky top-0 w-full bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.1)] z-40 h-16 flex items-center px-4 md:px-8">
+        {/* Left Section - Logo and Navigation */}
+        <div className="flex items-center space-x-6">
+          {/* Logo */}
+          <Link to="/" className="flex-shrink-0">
             <img 
-              className="w-22 h-8" 
+              className="h-8 w-auto" 
               src={logo} 
               alt="99notes"
             />
           </Link>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className={({ isActive }) => 
+                  `px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  } ${link.name.toLowerCase().replace(' ', '-')}-link`
+                }
+              >
+                {link.name}
+              </NavLink>
+            ))}
+          </div>
         </div>
 
-        {/* Right Section - Navigation */}
-        <div className="flex items-center gap-4 ">
-          {/* Report Card Button */}
+        {/* Right Section - Profile and Actions */}
+        <div className="flex items-center space-x-4 ml-auto">
+          {/* Report Card Button - Desktop */}
           <Link 
             to="/reportcard" 
-            className="flex items-center gap-1 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="hidden md:flex items-center gap-1 p-2 rounded-lg hover:bg-gray-100 transition-colors"
             title="View Report Card"
           >
-            <svg 
-              className="w-5 h-5 text-gray-700" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
@@ -81,7 +78,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" 
               />
             </svg>
-            <span className="hidden md:inline text-sm font-medium text-gray-700">Report Card</span>
+            <span className="text-sm font-medium text-gray-700">Report Card</span>
           </Link>
 
           {/* Profile Dropdown */}
@@ -93,10 +90,10 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
                 className="w-8 h-8 rounded-full border-2 border-gray-200 object-cover"
               />
               <span className="hidden md:inline text-sm font-medium text-gray-700">
-                {user?.firstName+" "+user?.lastName || 'User'}
+                {user?.firstName || 'User'}
               </span>
               <svg 
-                className="w-4 h-4 text-gray-500" 
+                className="w-4 h-4 text-gray-500 hidden md:block" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -129,6 +126,15 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Mobile menu button */}
+        <div className="md:hidden flex items-center ml-4">
+          <button className="p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
       </nav>
     </>

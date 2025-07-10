@@ -3,7 +3,7 @@ import { useTour, type StepType } from '@reactour/tour';
 import { Button } from '../ui/button';
 import { HelpCircle } from 'lucide-react';
 
-export const steps = [
+export const steps: StepType[] = [
   // Sidebar Navigation
   {
     selector: '.sidebar-nav',
@@ -46,19 +46,17 @@ export const steps = [
     position: 'right',
   },
   
-  // Dashboard Stats
+  // Dashboard Elements
   {
     selector: '.stats-box',
     content: 'Your key performance indicators and progress metrics are displayed here.',
-    position: 'right',
+    position: 'bottom',
   },
   {
     selector: '.global-message',
     content: 'Important announcements and messages from the platform will appear here.',
     position: 'bottom',
   },
-  
-  // Charts Section
   {
     selector: '.radar-chart-container',
     content: 'This radar chart shows your performance across different categories compared to the average.',
@@ -66,7 +64,7 @@ export const steps = [
   },
   {
     selector: '.test-series-chart',
-    content: 'Track your test performance over time with this bar chart.',
+    content: 'Track your test performance over time with this chart.',
     position: 'top',
   },
   {
@@ -83,8 +81,7 @@ export const steps = [
 
 export const AppTour = () => {
   const [isMounted, setIsMounted] = useState(false);
-  
-  const { setSteps, setCurrentStep, setIsOpen } = useTour();
+  const { setSteps, setCurrentStep, setIsOpen, isOpen } = useTour();
 
   useEffect(() => {
     setIsMounted(true);
@@ -95,12 +92,24 @@ export const AppTour = () => {
 
   const startTour = () => {
     if (setSteps && setCurrentStep && setIsOpen) {
-      setSteps(steps as StepType[]);
+      setSteps(steps);
       setCurrentStep(0);
       setIsOpen(true);
       document.body.classList.add('tour-active');
     }
   };
+
+  // Add keyboard shortcut (Shift + T) to start tour
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key.toLowerCase() === 't' && !isOpen) {
+        startTour();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (!isMounted) return null;
 
@@ -111,6 +120,7 @@ export const AppTour = () => {
       onClick={startTour}
       className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white text-blue-600 hover:bg-blue-50 h-12 w-12 flex items-center justify-center"
       aria-label="Start guided tour"
+      title="Start Tour (Shift+T)"
     >
       <HelpCircle className="h-6 w-6" />
     </Button>
