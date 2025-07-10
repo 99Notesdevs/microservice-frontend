@@ -1,0 +1,97 @@
+/* Tour button styles */
+.reactour__helper {
+  border-radius: 0.5rem !important;
+  max-width: 320px !important;
+  padding: 1.5rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Tour navigation buttons */
+.reactour__nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.reactour__nav-button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.reactour__nav-button:hover {
+  background-color: #2563eb;
+}
+
+.reactour__nav-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Close button */
+.reactour__close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.reactour__close-button:hover {
+  color: #1f2937;
+  background-color: #f3f4f6;
+}
+
+/* Highlighted area */
+.reactour__highlighted {
+  border-radius: 0.5rem !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Badge */
+.reactour__badge {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  min-width: 1.5rem !important;
+  height: 1.5rem !important;
+  border-radius: 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 0.5rem !important;
+}
+
+/* Navigation dots */
+.reactour__dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.reactour__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.reactour__dot--current {
+  background-color: #3b82f6;
+  transform: scale(1.2);
+}
