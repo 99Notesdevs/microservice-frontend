@@ -56,7 +56,7 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       >
         <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} user={user as User} />
         
-        <div className="flex flex-1 pt-16 h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="flex flex-1 relative h-[calc(100vh-4rem)]">
           <Sidebar 
             isSidebarOpen={isSidebarOpen}
             setIsSidebarOpen={setIsSidebarOpen}
@@ -68,7 +68,7 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
               !isMobile && isSidebarOpen ? 'md:ml-[280px]' : 'md:ml-0'
             }`}
           >
-            <div className="w-full p-4 md:p-6">
+            <div className="w-full">
               {children}
             </div>
           </div>
