@@ -154,10 +154,30 @@ export default function Dashboard() {
         const response = await api.get(`/ratingCategory/user/${userId}`);
         const typedResponse = response as { success: boolean; data: any };
         if (typedResponse.success) {
-          setData(typedResponse.data);
+          const dataWithCategoryNames = await Promise.all(typedResponse.data.map(async (item: any) => {
+            try {
+              const categoryResponse = await api.get(`/categories/${item.categoryId}`);
+              const typedCategoryResponse = categoryResponse as { success: boolean; data: any };
+              if (typedCategoryResponse.success) {
+                return {
+                  ...item,
+                  categoryName: typedCategoryResponse.data.name
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching category ${item.categoryId}:`, error);
+              return {
+                ...item,
+                categoryName: item.categoryName
+              };
+            }
+          }));
           
-          // Process data for radar chart
-          const formattedData = typedResponse.data.map((item: any) => ({
+          // Update the data state with category names
+          setData(dataWithCategoryNames);
+          
+          // Process data for radar chart with actual category names
+          const formattedData = dataWithCategoryNames.map((item: any) => ({
             subject: item.categoryName || `Category ${item.categoryId}`,
             rating: (item.rating / 100) * 10, // Convert 0-500 to 0-10 scale
             fullMark: 10
@@ -170,7 +190,7 @@ export default function Dashboard() {
           setMaxRating((progressConstraints?.strongLimit || 450 / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
           
           const categoryMap: Record<number, string> = {};
-          typedResponse.data.forEach((item: any) => {
+          dataWithCategoryNames.forEach((item: any) => {
             if (item.categoryName && item.categoryId) {
               categoryMap[item.categoryId] = item.categoryName;
             }
