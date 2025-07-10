@@ -88,7 +88,7 @@ export default function Dashboard() {
   const [progressConstraints, setProgressConstraints] = useState<{
     weakLimit: number;
     strongLimit: number;
-    xp_status: Array<{rating: number; status: string; xp: number}>;
+    xp_status: Array<{ rating: number; status: string; xp: number }>;
   } | null>(null);
   // const [constraintsLoading, setConstraintsLoading] = useState(true);
 
@@ -112,13 +112,13 @@ export default function Dashboard() {
         // if (!response.ok) {
         //   throw new Error('Failed to fetch progress constraints');
         // }
-        
+
         // const data = await response.json();
         const typedData = data as { data: { xp_status: string; weakLimit: number; strongLimit: number } };
-        const xpStatus = typeof typedData.data.xp_status === 'string' 
+        const xpStatus = typeof typedData.data.xp_status === 'string'
           ? JSON.parse(typedData.data.xp_status)
           : typedData.data.xp_status;
-          
+
         setProgressConstraints({
           weakLimit: typedData.data.weakLimit,
           strongLimit: typedData.data.strongLimit,
@@ -131,11 +131,11 @@ export default function Dashboard() {
           weakLimit: 250,
           strongLimit: 450,
           xp_status: [
-            {rating: 250, status: "Weak", xp: 100},
-            {rating: 300, status: "Strong", xp: 200},
-            {rating: 350, status: "Strong", xp: 300},
-            {rating: 400, status: "Strong", xp: 400},
-            {rating: 450, status: "Strong", xp: 500},
+            { rating: 250, status: "Weak", xp: 100 },
+            { rating: 300, status: "Strong", xp: 200 },
+            { rating: 350, status: "Strong", xp: 300 },
+            { rating: 400, status: "Strong", xp: 400 },
+            { rating: 450, status: "Strong", xp: 500 },
           ]
         });
       } finally {
@@ -172,23 +172,23 @@ export default function Dashboard() {
               };
             }
           }));
-          
+
           // Update the data state with category names
           setData(dataWithCategoryNames);
-          
+
           // Process data for radar chart with actual category names
           const formattedData = dataWithCategoryNames.map((item: any) => ({
             subject: item.categoryName || `Category ${item.categoryId}`,
             rating: (item.rating / 100) * 10, // Convert 0-500 to 0-10 scale
             fullMark: 10
           }));
-          
+
           setRadarData(formattedData);
-          
+
           // Set min and max ratings from progressConstraints
           setMinRating((progressConstraints?.weakLimit || 250 / 100) * 2); // 100 -> 2/10
           setMaxRating((progressConstraints?.strongLimit || 450 / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
-          
+
           const categoryMap: Record<number, string> = {};
           dataWithCategoryNames.forEach((item: any) => {
             if (item.categoryName && item.categoryId) {
@@ -197,7 +197,7 @@ export default function Dashboard() {
           });
           // setCategories(categoryMap);
         }
-        
+
         const responseB = await api.get(`/progress/${userId}`);
         const resultB = responseB as { success: boolean; data: any };
         if (resultB.success) {
@@ -207,10 +207,10 @@ export default function Dashboard() {
             progressMax: Number(item.progressMax),
             progressMin: Number(item.progressMin),
           }));
-          
+
           // Sort by date to ensure chronological order
           formattedData.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-          
+
           setProgressData(formattedData);
         } else {
           setProgressError('Failed to fetch progress');
@@ -223,7 +223,7 @@ export default function Dashboard() {
         const resultP = await responseP.json();
         if (resultP.success) {
           // Assuming result.data is an array of progress objects with { date, progressMin, progressMax }
-          console.log("resultP.data",resultP.data);
+          console.log("resultP.data", resultP.data);
           setUserData(resultP.data);
         } else {
           console.log(resultP.error);
@@ -231,7 +231,7 @@ export default function Dashboard() {
         const responseL = await api.get(`/user/testSeries/data`);
         const resultL = responseL as { success: boolean; data: any };
         if (resultL.success) {
-          console.log("resultL.data",resultL.data);
+          console.log("resultL.data", resultL.data);
           // setLast5tests(resultL.data);
           setTestSeriesData(resultL.data);
         } else {
@@ -256,7 +256,7 @@ export default function Dashboard() {
         if (globalTypedResponse.success) {
           setGlobalMessages(globalTypedResponse.data || []);
         }
-        
+
         // Fetch rating-specific messages if user has a rating
         if (userData?.userData?.rating) {
           const ratingResponse = await api.get(`/admin-messages/rating/${userData.userData.rating}`);
@@ -269,9 +269,9 @@ export default function Dashboard() {
         console.error('Error fetching messages:', error);
       }
     };
-    
+
     fetchMessages();
-    
+
     // Set up interval to cycle through messages
     const globalInterval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % globalMessages.length);
@@ -279,7 +279,7 @@ export default function Dashboard() {
     const ratingInterval = setInterval(() => {
       setCurrentRatingIndex(prev => (prev + 1) % ratingMessages.length);
     }, 5000);
-    
+
     return () => {
       clearInterval(globalInterval);
       clearInterval(ratingInterval);
@@ -369,11 +369,11 @@ export default function Dashboard() {
       weakLimit: 250,
       strongLimit: 450,
       xp_status: [
-        {rating: 250, status: "Weak",xp: 100},
-        {rating: 300, status: "Strong",xp: 200},
-        {rating: 350, status: "Strong",xp: 300},
-        {rating: 400, status: "Strong",xp: 400},
-        {rating: 450, status: "Strong",xp: 500},
+        { rating: 250, status: "Weak", xp: 100 },
+        { rating: 300, status: "Strong", xp: 200 },
+        { rating: 350, status: "Strong", xp: 300 },
+        { rating: 400, status: "Strong", xp: 400 },
+        { rating: 450, status: "Strong", xp: 500 },
       ]
     };
     const currentLevel = [...xp_status].reverse().find(level => rating >= level.rating) || xp_status[0];
@@ -424,40 +424,40 @@ export default function Dashboard() {
   if (error || progressError) return <div className="text-red-500 p-4">Error loading data</div>;
   if (data.length === 0) return <div className="p-4">No rating data available</div>;
 
-return (
-<div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
-<div className="flex items-center justify-between mb-6">
-<h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-{/* Global Message */}
-<div className={`${messageBoxStyle} relative max-w-4xl w-full global-message`}>
-<button onClick={prevMessage} className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Previous message">
-<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-</button>
-<div className="w-full relative h-full">
-<AnimatePresence mode="wait" custom={direction}>
-{globalMessages.length > 0 ? (
-<AnimatedMessage message={globalMessages[currentIndex].content} title="Global Message" />
-) : (
-<div className="text-center w-full">No global messages available</div>
-)}
-</AnimatePresence>
-</div>
-<button onClick={nextMessage} className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Next message">
-<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-</button>
-</div>
-</div>
+  return (
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      {/* First Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1">
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+        </div>
+        <div className="md:col-span-2">
+          <div className={`${messageBoxStyle} relative w-full global-message`}>
+            <button onClick={prevMessage} className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Previous message">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <div className="w-full relative h-full">
+              <AnimatePresence mode="wait" custom={direction}>
+                {globalMessages.length > 0 ? (
+                  <AnimatedMessage message={globalMessages[currentIndex].content} title="Global Message" />
+                ) : (
+                  <div className="text-center w-full">No global messages available</div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </div>
 
-{/* Main Grid Layout */}
-<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto">
-  
-{/* Sidebar (Left) */}
-        <div className="lg:col-span-4 space-y-4">
+      {/* Second Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Stats and Rating Column */}
+        <div className="space-y-4">
           {/* Stats Box */}
           <div className="bg-white rounded-xl p-4 shadow space-y-2 stats-box">
             {[
               { label: "Global Rating", value: userRating },
-              { label: "Experience Level", value: experience},
+              { label: "Experience Level", value: experience },
               { label: "Test Attempted", value: `${stats?.completedCategories || 0}` },
               { label: "Status", value: status }
             ].map((item, idx) => (
@@ -507,11 +507,10 @@ return (
           )}
         </div>
 
-        {/* Charts Section (Right) */}
-        <div className="lg:col-span-8 space-y-4">
-          {/* Radar Chart */}
-          <div className="bg-white rounded-lg p-4 shadow radar-chart-container">
-            <RadarChartComponent 
+        {/* Radar Chart */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg p-4 shadow radar-chart-container h-full">
+            <RadarChartComponent
               userRadarData={userRadarData}
               referenceRadarData={referenceRadarData}
               minRating={minRating}
@@ -520,33 +519,36 @@ return (
               weakness={weakness}
             />
           </div>
-
-          {/* Test Series Chart */}
-          {testSeriesData.length > 0 && (
-            <div className="bg-white rounded-lg p-4 shadow test-series-chart">
-              <h3 className="text-lg font-semibold mb-4">Test Series Performance</h3>
-              <TestSeriesBarChart data={testSeriesData} />
-            </div>
-          )}
-
-          {/* Progress Chart */}
-          {progressData.length > 0 && (
-            <div className="bg-white rounded-lg p-4 shadow progress-chart">
-              <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={progressData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
-                  <YAxis domain={[0, 500]} />
-                  <Tooltip labelFormatter={(value) => `Date: ${new Date(value).toLocaleDateString()}`} formatter={(value, name) => [value, name === 'progressMax' ? 'Max Rating' : 'Min Rating']} />
-                  <Legend />
-                  <Line type="monotone" dataKey="progressMax" stroke="#10b981" name="Max Rating" activeDot={{ r: 6 }} />
-                  <Line type="monotone" dataKey="progressMin" stroke="#ef4444" name="Min Rating" activeDot={{ r: 6 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
         </div>
+      </div>
+
+      {/* Third Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Test Series Chart */}
+        {testSeriesData.length > 0 && (
+          <div className="bg-white rounded-lg p-4 shadow test-series-chart">
+            <h3 className="text-lg font-semibold mb-4">Test Series Performance</h3>
+            <TestSeriesBarChart data={testSeriesData} />
+          </div>
+        )}
+
+        {/* Progress Chart */}
+        {progressData.length > 0 && (
+          <div className="bg-white rounded-lg p-4 shadow progress-chart">
+            <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={progressData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
+                <YAxis domain={[0, 500]} />
+                <Tooltip labelFormatter={(value) => `Date: ${new Date(value).toLocaleDateString()}`} formatter={(value, name) => [value, name === 'progressMax' ? 'Max Rating' : 'Min Rating']} />
+                <Legend />
+                <Line type="monotone" dataKey="progressMax" stroke="#10b981" name="Max Rating" activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="progressMin" stroke="#ef4444" name="Min Rating" activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
     </div>
   );
