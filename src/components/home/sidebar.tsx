@@ -95,7 +95,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
             }
           }
         }}
-        className={`fixed top-16 left-0 z-[900] h-[calc(100vh-4rem)] w-[280px] bg-white shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] overflow-hidden`}
+        className={`fixed top-16 left-0 z-[900] h-[calc(100vh-4rem)] w-[280px] bg-white shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] overflow-hidden sidebar-nav`}
       >
         <div className="flex flex-col h-full border-r border-gray-100">
           {/* Close button for mobile */}
@@ -112,7 +112,10 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
           {/* Navigation Links */}
           <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
             <ul className="space-y-1 px-2">
-              {links.map((link, index) => (
+              {links.map((link, index) => {
+                // Create a class name based on the link name for the tour
+                const linkClass = link.name.toLowerCase().replace(/\s+/g, '-') + '-link';
+                return (
                 <motion.li
                   key={link.name}
                   initial={{ opacity: 0, x: -20 }}
@@ -127,7 +130,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
                   <NavLink
                     to={link.path}
                     className={({ isActive }) =>
-                      `group flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      `group flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${linkClass} ${
                         isActive
                           ? 'bg-blue-50 text-blue-600 shadow-sm'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -153,7 +156,8 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
                     )}
                   </NavLink>
                 </motion.li>
-              ))}
+                );
+              })}
             </ul>
           </div>
 
@@ -176,7 +180,6 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
           </div>
         </div>
       </motion.aside>
-
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
