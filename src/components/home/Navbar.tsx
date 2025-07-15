@@ -24,9 +24,9 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
   return (
     <>
       <div className="w-full" />
-      <nav className="sticky top-0 w-full bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.1)] z-40 h-16 flex items-center px-8">
+      <nav className="sticky top-0 w-full bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.1)] z-40 h-20 flex items-center px-8">
         {/* Left Section - Hamburger Menu */}
-        <div className="flex items-center">
+        <div className="flex items-center flex-1">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 rounded-lg bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-200 hover:shadow-md"
@@ -50,10 +50,10 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
         </div>
 
         {/* Center Section - Logo */}
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-center items-center">
           <Link to="/about" className="flex items-center">
             <img 
-              className="w-22 h-8" 
+              className="md:w-24 md:h-10 w-20 h-8" 
               src={logo} 
               alt="99notes"
             />
@@ -61,7 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
         </div>
 
         {/* Right Section - Navigation */}
-        <div className="flex items-center gap-4 ">
+        <div className="flex-1 flex justify-end items-center gap-4 ">
           {/* Report Card Button */}
           <Link 
             to="/reportcard" 

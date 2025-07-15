@@ -99,8 +99,8 @@ export const ProtectedRoute = ({
   }
 
   // Check if user has required role for non-admin routes
-  if (!allowedRolesProp.includes('admin') || !admin ) {
-    return <Navigate to="/admin/login" />;
+  if (!allowedRolesProp.includes('admin') && !isAuthenticated) {
+    return <Navigate to="/login" />;
   }
 
   // If route requires paid access and user hasn't paid, show subscription prompt

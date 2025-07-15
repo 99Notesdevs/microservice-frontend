@@ -39,7 +39,7 @@ interface TestStats {
 export const Category = () => {
   const navigate = useNavigate();
   const categorySectionRef = useRef<HTMLDivElement>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Default to true (expanded) when no pattern is selected
   const [testStats, setTestStats] = useState<TestStats>({
     correctAttempted: 0,
     wrongAttempted: 0,
@@ -98,6 +98,7 @@ export const Category = () => {
       questionsMultiple: pattern.questionsMultiple,
     });
     setShowCategoryPrompt(true);
+    setIsExpanded(false); // Collapse the test parameters section when a pattern is selected
     
     // Scroll to category selection after a short delay to allow state to update
     setTimeout(() => {
@@ -220,16 +221,34 @@ export const Category = () => {
       )}
       <div className="max-w-7xl mx-auto" ref={categorySectionRef}>
         <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 sm:p-12 border border-orange-100/50">
-          <h1 className="text-3xl sm:text-4xl font-bold text-center text-yellow-600 mb-4">
-            Test Configuration
-          </h1>
-          <h2 className="text-xl font-semibold text-center text-gray-700 mb-8">
+          {/* <h2 className="text-xl font-semibold text-center text-gray-700 mb-8">
             Customize Your Test Parameters
-          </h2>
+          </h2> */}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            {/* Category Selector */}
+            <div className="lg:order-1">
+              {showCategoryPrompt && (
+                <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-md">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">
+                         Please select your categories and click 'Start Test' to begin.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <CategorySelection onSingleSelectionChange={setSelectedSingleCategories} onMultipleSelectionChange={setSelectedMultipleCategories} />
+            </div>
+
             {/* Test Parameters Section */}
-            <div>
+            <div className="lg:order-2">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
                 <svg className="w-6 h-6 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -376,27 +395,6 @@ export const Category = () => {
                 </div>
               )}
             </div>
-            </div>
-
-            {/* Category Selector */}
-            <div>
-              {showCategoryPrompt && (
-                <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-md">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-yellow-700">
-                         Please select your categories and click 'Start Test' to begin.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <CategorySelection onSingleSelectionChange={setSelectedSingleCategories} onMultipleSelectionChange={setSelectedMultipleCategories} />
               <div className="mt-12 text-center pt-6 border-t border-orange-100">
             <Button
               onClick={handleStartTest}
