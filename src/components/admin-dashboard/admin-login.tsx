@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
 
     try {
       await adminLogin(email, password, secret);
-      navigate('/admin');
+      navigate('/admin/permissions');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {

@@ -13,7 +13,7 @@ export const ProtectedRoute = ({
   allowedRoles?: ('admin' | 'user')[],
   children: React.ReactNode 
 }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, admin } = useAuth();
   const [isPaid, setIsPaid] = useState<boolean | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
@@ -99,8 +99,8 @@ export const ProtectedRoute = ({
   }
 
   // Check if user has required role for non-admin routes
-  if (!allowedRolesProp.includes('admin') && !isAuthenticated) {
-    return <Navigate to="/login" />;
+  if (!allowedRolesProp.includes('admin') || !admin ) {
+    return <Navigate to="/admin/login" />;
   }
 
   // If route requires paid access and user hasn't paid, show subscription prompt

@@ -48,10 +48,10 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [admin, setAdmin] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Check authentication status on mount
   useEffect(() => {
@@ -191,9 +191,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (!isAdmin) {
         throw new Error("Not authorized as admin");
       }
-
+      console.log("admin login successfull!!!1");
       setAdmin(true);
-      navigate("/admin", { replace: true });
+      console.log("admin login successfull!!!2");
+      navigate("/admin/permissions");
+      console.log("admin login successfull!!!3");
     } catch (error) {
       console.error("Admin login error:", error);
       throw error;
