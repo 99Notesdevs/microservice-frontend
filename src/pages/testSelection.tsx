@@ -57,14 +57,14 @@ const TestSelection: React.FC = () => {
     };
 
     return (
-      <div className="flex items-start space-x-4 group">
-        <div className="flex-shrink-0 mt-0.5">
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorClasses[color].bg} ${colorClasses[color].text} ${colorClasses[color].hover} transition-all duration-300 shadow-sm border ${colorClasses[color].border}`}>
+      <div className="flex items-center space-x-4 group">
+        <div className="flex-shrink-0">
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorClasses[color].bg} ${colorClasses[color].text} ${colorClasses[color].hover} transition-all duration-300 shadow-sm border ${colorClasses[color].border} flex items-center justify-center`}>
             <Icon className="w-5 h-5" />
           </div>
         </div>
         <div>
-          <h4 className="font-medium text-gray-900 mb-1">{title}</h4>
+          <h4 className="font-medium text-gray-900 mb-0.5">{title}</h4>
           <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
         </div>
       </div>
@@ -82,25 +82,17 @@ const TestSelection: React.FC = () => {
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header Section */}
-        <div className="w-full mx-auto text-center mb-5">
-          <div className="inline-flex items-center justify-center mb-6 px-6 py-2.5 bg-gradient-to-r from-yellow-50 to-amber-50 border border-amber-100 text-amber-800 rounded-full text-sm font-medium shadow-sm">
-            <span className="relative flex h-2.5 w-2.5 mr-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-            </span>
-            Choose Your Learning Path
-          </div>
-        </div>
+        
 
         {/* Options Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mx-auto mb-28 max-w-6xl">
           {/* Create Your Own Test */}
           <div 
             onClick={handleCreateTest}
-            className="group relative bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer hover:border-yellow-200 hover:-translate-y-1 h-full flex flex-col"
+            className="group relative rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer hover:-translate-y-1 h-full flex flex-col bg-amber-50"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-50 to-amber-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-yellow-100 opacity-0 group-hover:opacity-20 transition-opacity duration-700"></div>
+            <div className="absolute inset-0 bg-amber-100 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-amber-100 opacity-0 group-hover:opacity-20 transition-opacity duration-700"></div>
             
             <div className="relative z-10 flex-1 flex flex-col">
               <div className="w-16 h-16 mb-6 rounded-xl bg-gradient-to-br from-yellow-100 to-amber-100 flex items-center justify-center text-amber-600 shadow-inner border border-amber-100">
@@ -112,27 +104,6 @@ const TestSelection: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Design a completely customized test tailored to your specific learning objectives and requirements.
               </p>
-              
-              <div className="space-y-4 mb-8 flex-1">
-                <FeatureItem 
-                  icon={Settings} 
-                  title="Full Customization" 
-                  description="Select topics, difficulty, and question types"
-                  color="amber"
-                />
-                <FeatureItem 
-                  icon={Clock} 
-                  title="Flexible Timing" 
-                  description="Set your own pace with adjustable time limits"
-                  color="amber"
-                />
-                <FeatureItem 
-                  icon={Zap} 
-                  title="Instant Setup" 
-                  description="Get started in just a few clicks"
-                  color="amber"
-                />
-              </div>
               
               <div className="mt-auto pt-4 border-t border-gray-100 group-hover:border-amber-100 transition-colors">
                 <button className="inline-flex items-center text-amber-600 font-medium group-hover:text-amber-700 transition-colors">
@@ -150,13 +121,13 @@ const TestSelection: React.FC = () => {
           {/* Take Test from Series */}
           <div 
             onClick={handleTakeTest}
-            className="group relative bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer hover:border-blue-200 hover:-translate-y-1 h-full flex flex-col"
+            className="group relative rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer hover:-translate-y-1 h-full flex flex-col bg-blue-100"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-blue-100 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-blue-100 opacity-0 group-hover:opacity-20 transition-opacity duration-700"></div>
             
             <div className="relative z-10 flex-1 flex flex-col">
-              <div className="w-16 h-16 mb-6 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 shadow-inner border border-blue-100">
+              <div className="w-16 h-16 mb-6 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-inner border border-blue-100">
                 <LayoutGrid className="w-7 h-7" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -165,27 +136,6 @@ const TestSelection: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Access our expertly designed test series for comprehensive exam preparation and skill assessment.
               </p>
-              
-              <div className="space-y-4 mb-8 flex-1">
-                <FeatureItem 
-                  icon={Award} 
-                  title="Expertly Curated" 
-                  description="Designed by subject matter experts"
-                  color="blue"
-                />
-                <FeatureItem 
-                  icon={BarChart2} 
-                  title="Performance Tracking" 
-                  description="Detailed analytics and progress reports"
-                  color="blue"
-                />
-                <FeatureItem 
-                  icon={CheckCircle} 
-                  title="Structured Learning" 
-                  description="Progressive difficulty and topic coverage"
-                  color="blue"
-                />
-              </div>
               
               <div className="mt-auto pt-4 border-t border-gray-100 group-hover:border-blue-100 transition-colors">
                 <button className="inline-flex items-center text-blue-600 font-medium group-hover:text-blue-700 transition-colors">
@@ -206,10 +156,7 @@ const TestSelection: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-80"></div>
           <div className="relative z-10">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Choose What Suits You Best</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                Both options are designed to help you succeed. Here's how they compare:
-              </p>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Compare Both</h2>
             </div>
             
             <div className="grid md:grid-cols-2 gap-10 md:gap-16">

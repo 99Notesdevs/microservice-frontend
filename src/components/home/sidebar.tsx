@@ -95,7 +95,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
             }
           }
         }}
-        className={`fixed top-16 left-0 z-[900] h-[calc(100vh-4rem)] w-[280px] bg-white shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] overflow-hidden sidebar-nav`}
+        className={`fixed top-20 left-0 z-[900] h-[calc(100vh-4rem)] w-[280px] bg-white shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] overflow-hidden sidebar-nav`}
       >
         <div className="flex flex-col h-full border-r border-gray-100">
           {/* Close button for mobile */}

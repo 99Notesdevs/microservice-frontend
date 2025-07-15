@@ -83,17 +83,14 @@ const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
   return (
     <div className="bg-white rounded-xl p-4 flex flex-col md:flex-row items-center" style={{ minHeight: 300 }}>
       {/* Left: Subjectwise Rating, Strength, Weakness */}
-      <div className="flex flex-col items-start justify-center min-w-[270px] mr-2">
-        <div className="w-full md:w-1/2 mt-4 md:mt-0 md:pl-4">
-          <div className="text-2xl font-serif font-semibold text-gray-900 mb-2 underline underline-offset-4">
-            Subjectwise Rating
-          </div>
+      <div className="flex flex-col items-start justify-center min-w-[320px] mr-4">
+        <div className="w-full md:w-1/2 mt-6 md:mt-0 md:pl-4">
         </div>
-        <div className="mb-8 w-full relative">
+        <div className="mb-10 w-full relative">
           <div className="relative">
-            <span className="bg-white border-2 border-green-600 px-4 py-0.5 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-4 shadow-sm">Strength</span>
-            <div className="w-full min-h-11 bg-green-500 rounded-2xl opacity-80 flex items-center justify-center py-2 px-4">
-              <div className="text-lg font-serif text-black text-center">
+            <span className="bg-white border-2 border-green-600 px-6 py-1 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-6 shadow-sm">Strength</span>
+            <div className="w-full min-h-12 bg-green-500 rounded-2xl opacity-80 flex items-center justify-center py-3 px-6">
+              <div className="text-lg font-serif text-black text-center whitespace-pre-wrap">
                 {strengths.join(', ')}
               </div>
             </div>
@@ -101,9 +98,9 @@ const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
         </div>
         <div className="w-full relative">
           <div className="relative">
-            <span className="bg-white border-2 border-yellow-500 px-4 py-0.5 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-4 shadow-sm">Weakness</span>
-            <div className="w-full min-h-11 bg-yellow-400 rounded-2xl opacity-80 flex items-center justify-center py-2 px-4">
-              <div className="text-lg font-serif text-black text-center">
+            <span className="bg-white border-2 border-yellow-500 px-6 py-1 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-6 shadow-sm">Weakness</span>
+            <div className="w-full min-h-12 bg-yellow-400 rounded-2xl opacity-80 flex items-center justify-center py-3 px-6">
+              <div className="text-lg font-serif text-black text-center whitespace-pre-wrap">
                 {weakness.join(', ')}
               </div>
             </div>

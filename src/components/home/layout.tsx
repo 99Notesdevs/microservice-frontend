@@ -56,7 +56,7 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       >
         <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} user={user as User} />
         
-        <div className="flex flex-1 relative h-[calc(100vh-4rem)]">
+        <div className="flex flex-1 relative h-[calc(120vh-4rem)]">
           <Sidebar 
             isSidebarOpen={isSidebarOpen}
             setIsSidebarOpen={setIsSidebarOpen}
