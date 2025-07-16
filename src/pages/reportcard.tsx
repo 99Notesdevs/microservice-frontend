@@ -165,7 +165,7 @@ export default function ReportCard() {
     labels: currentLevelCategories.map(cat => cat.name),
     datasets: [{
       label: 'Rating',
-      data: currentLevelCategories.map(cat => (cat.rating || 0) * 100), // Convert 0-5 to 0-500
+      data: currentLevelCategories.map(cat => cat.rating || 0),
       backgroundColor: 'rgba(59, 130, 246, 0.7)',
       borderColor: 'rgba(59, 130, 246, 1)',
       borderWidth: 1,
@@ -189,7 +189,7 @@ export default function ReportCard() {
       tooltip: {
         callbacks: {
           label: function(context: any) {
-            return `Rating: ${(context.raw / 100).toFixed(1)}/5`;
+            return `Rating: ${context.raw.toFixed(1)}`;
           }
         }
       }
@@ -197,15 +197,14 @@ export default function ReportCard() {
     scales: {
       y: {
         beginAtZero: true,
-        max: 500,
         title: {
           display: true,
-          text: 'Rating (out of 500)'
+          text: 'Rating'
         },
         ticks: {
-          stepSize: 100,
+          stepSize: 1,
           callback: function(value: any) {
-            return (value / 100).toFixed(1); // Show 0.0 to 5.0 on y-axis
+            return value.toFixed(1); 
           }
         }
       }
@@ -241,7 +240,7 @@ export default function ReportCard() {
             </div>
             <div className="flex items-center">
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                {category.rating?.toFixed(1) || 'N/A'}/5
+                {category.rating?.toFixed(1) || 'N/A'}
               </span>
               {hasChildren && (
                 <svg 
