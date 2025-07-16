@@ -631,54 +631,44 @@ const formRef = useRef<HTMLDivElement>(null);
                 questions.map((question) => (
                   <div
                     key={question.id}
-                    className="flex flex-col md:flex-row justify-between gap-4 p-6 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition-colors duration-200 shadow-sm"
+                    className="flex flex-col sm:flex-row justify-between gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200 shadow-xs"
                   >
-                    <div className="flex-1 min-w-0 space-y-6">
-                      <div className="mb-3">
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div className="line-clamp-3">
                         <div 
-                          className="text-[#0f172a] text-base leading-relaxed [&_table]:border [&_table]:border-gray-200 [&_table]:rounded [&_table]:overflow-hidden [&_table]:w-full [&_td]:p-3 [&_th]:p-3 [&_th]:bg-gray-50 [&_tr:not(:last-child)]:border-b [&_tr:not(:last-child)]:border-gray-100"
+                          className="text-[#0f172a] text-sm leading-snug [&_table]:border [&_table]:border-gray-200 [&_table]:rounded [&_table]:overflow-hidden [&_table]:w-full [&_td]:p-2 [&_th]:p-2 [&_th]:bg-gray-50 [&_tr:not(:last-child)]:border-b [&_tr:not(:last-child)]:border-gray-100"
                           dangerouslySetInnerHTML={{ __html: question.question }}
                         />
                       </div>
-                      <div className="mt-4 flex flex-wrap items-center gap-4">
-                        <div className="mt-3">
-                          <div className="text-xs font-medium text-gray-500 mb-1">Options:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {question.options.map((opt, idx) => (
-                              <div 
-                                key={idx}
-                                className="px-3 py-1.5 rounded-md bg-gray-50 text-[#0f172a] text-sm border border-gray-200 max-w-full overflow-hidden"
-                                title={opt.replace(/<[^>]*>?/gm, '')}
-                                dangerouslySetInnerHTML={{ __html: opt }}
-                              />
-                            ))}
-                          </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="text-xs font-medium text-gray-500">Options:</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {question.options.map((opt, idx) => (
+                            <div 
+                              key={idx}
+                              className="px-2 py-1 rounded bg-gray-50 text-[#0f172a] text-xs border border-gray-200 max-w-[200px] truncate"
+                              title={opt.replace(/<[^>]*>?/gm, '')}
+                              dangerouslySetInnerHTML={{ __html: opt }}
+                            />
+                          ))}
                         </div>
                       </div>
-                      <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
-                        <p className="text-sm text-green-700 font-medium">
-                          Answer:{" "}
-                          <span className="font-semibold">
-                            {question.answer}
-                          </span>
-                        </p>
-                      </div>
-                      {question.pyq && question.year && (
-                          <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                            <p className="text-sm text-blue-700 font-medium">
-                              PYQ Year:{" "}
-                              <span className="font-semibold">
-                                {question.year}
-                              </span>
-                            </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="px-2.5 py-1 bg-green-50 text-green-700 text-xs font-medium rounded border border-green-100">
+                          Answer: {question.answer}
+                        </div>
+                        {question.pyq && question.year && (
+                          <div className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded border border-blue-100">
+                            PYQ: {question.year}
                           </div>
                         )}
+                      </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-0 md:ml-6">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0 sm:ml-4">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+                        className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs h-12"
                         onClick={() => handleEditQuestion(question)}
                       >
                         <span className="text-sm font-medium">Edit</span>
@@ -686,7 +676,7 @@ const formRef = useRef<HTMLDivElement>(null);
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2"
+                        className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs h-12"
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeleteConfirmation({ isOpen: true, questionId: question.id });

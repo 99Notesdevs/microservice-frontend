@@ -1,6 +1,6 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { FiPlus, FiList, FiSettings, FiMessageSquare } from 'react-icons/fi';
+import { FiPlus, FiList } from 'react-icons/fi';
 
 const WelcomeMessage = () => (
   <div className="p-8 text-center">
