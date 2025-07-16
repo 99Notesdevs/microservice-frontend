@@ -42,15 +42,15 @@ export default function AddTest() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Add New Test</h1>
-            <p className="text-gray-600">Enter test details below</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white pt-16 pb-8">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 p-10">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">Add New Test</h1>
+            <p className="text-gray-600 text-lg">Enter test details below</p>
           </div>
           
-          <div className="bg-gray-50 rounded-lg p-6">
+          <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
             <SimpleTestForm
               onSubmit={handleSubmit}
               initialData={{

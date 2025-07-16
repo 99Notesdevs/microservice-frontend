@@ -322,7 +322,7 @@ const formRef = useRef<HTMLDivElement>(null);
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 py-10 px-2 md:px-6 flex flex-col items-center relative">
+    <div className="min-h-screen w-full bg-gray-50 py-12 px-4 md:px-8 flex flex-col items-center relative">
       {/* Toast Notification */}
       {toast && (
         <div 
@@ -351,11 +351,11 @@ const formRef = useRef<HTMLDivElement>(null);
           margin-top: 0.75em;
         }
       `}</style>
-      <div className="w-full max-w-3xl">
-        <h1 className="text-4xl font-bold text-center [color:var(--admin-bg-dark)] drop-shadow-sm tracking-tight">
+      <div className="w-full max-w-4xl">
+        <h1 className="text-4xl font-bold text-center text-gray-900 drop-shadow-sm tracking-tight mb-4">
           Add & Manage Questions
         </h1>
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 md:p-14 space-y-10 scale-105 mx-auto mt-20">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-12 space-y-8 scale-105 mx-auto mt-16">
           {/* Category Selection */}
           <CategorySelect
             selectedCategoryId={selectedCategory}
@@ -372,7 +372,7 @@ const formRef = useRef<HTMLDivElement>(null);
                 editingQuestion ? handleUpdateQuestion : handleCreateQuestion
               }
             >
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div>
                   <label className="block mb-1 [color:var(--admin-bg-dark)] font-semibold">
                     Question
@@ -386,7 +386,7 @@ const formRef = useRef<HTMLDivElement>(null);
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <label className="block [color:var(--admin-bg-dark)] font-semibold">
                     Options
                   </label>
@@ -423,8 +423,8 @@ const formRef = useRef<HTMLDivElement>(null);
                   ))}
                   <Button
                     type="button"
-                    variant="secondary"
-                    className="mt-1 rounded bg-slate-300 hover:bg-slate-400"
+                    variant="outline"
+                    className="mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg px-4 py-2"
                     onClick={() =>
                       setNewQuestion({
                         ...newQuestion,
@@ -432,7 +432,7 @@ const formRef = useRef<HTMLDivElement>(null);
                       })
                     }
                   >
-                    Add Option
+                    <span className="text-sm">Add Option</span>
                   </Button>
                 </div>
                 <div className="space-y-4">
@@ -526,7 +526,7 @@ const formRef = useRef<HTMLDivElement>(null);
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
                   <div className="flex items-center space-x-3 p-3 bg-white rounded-lg shadow-sm border border-gray-200 hover:border-indigo-300 transition-colors">
                     <div className="flex items-center h-5">
                       <input
@@ -597,7 +597,7 @@ const formRef = useRef<HTMLDivElement>(null);
                     <p className="mt-1 text-xs text-gray-500">0-100%</p>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-4 mt-6">
                   <Button
                     type="submit"
                     className="px-6 py-2 text-base font-semibold rounded bg-slate-600 hover:bg-slate-700 text-white transition"
@@ -620,8 +620,8 @@ const formRef = useRef<HTMLDivElement>(null);
           </div>
 
           {/* Questions List */}
-          <div>
-            <h2 className="text-xl font-bold text-[#0f172a] mb-4">Questions</h2>
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Questions</h2>
             <div className="space-y-4">
               {questions.length === 0 ? (
                 <p className="text-center text-gray-500 ">
@@ -631,9 +631,9 @@ const formRef = useRef<HTMLDivElement>(null);
                 questions.map((question) => (
                   <div
                     key={question.id}
-                    className="flex flex-col md:flex-row justify-between gap-4 p-6 border rounded-xl bg-white hover:bg-gray-50 transition-colors duration-200"
+                    className="flex flex-col md:flex-row justify-between gap-4 p-6 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition-colors duration-200 shadow-sm"
                   >
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 space-y-6">
                       <div className="mb-3">
                         <div 
                           className="text-[#0f172a] text-base leading-relaxed [&_table]:border [&_table]:border-gray-200 [&_table]:rounded [&_table]:overflow-hidden [&_table]:w-full [&_td]:p-3 [&_th]:p-3 [&_th]:bg-gray-50 [&_tr:not(:last-child)]:border-b [&_tr:not(:last-child)]:border-gray-100"
@@ -655,7 +655,7 @@ const formRef = useRef<HTMLDivElement>(null);
                           </div>
                         </div>
                       </div>
-                      <div className="mt-4 p-3 bg-green-50 rounded-md border border-green-100 mb-2">
+                      <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
                         <p className="text-sm text-green-700 font-medium">
                           Answer:{" "}
                           <span className="font-semibold">
@@ -664,7 +664,7 @@ const formRef = useRef<HTMLDivElement>(null);
                         </p>
                       </div>
                       {question.pyq && question.year && (
-                          <div className="p-3 bg-blue-50 rounded-md border border-blue-100">
+                          <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                             <p className="text-sm text-blue-700 font-medium">
                               PYQ Year:{" "}
                               <span className="font-semibold">
@@ -674,25 +674,25 @@ const formRef = useRef<HTMLDivElement>(null);
                           </div>
                         )}
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0 md:ml-4">
+                    <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-0 md:ml-6">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="rounded bg-blue-600 hover:bg-blue-700"
+                        className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
                         onClick={() => handleEditQuestion(question)}
                       >
-                        Edit
+                        <span className="text-sm font-medium">Edit</span>
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="rounded bg-red-600 hover:bg-red-700"
+                        className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2"
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeleteConfirmation({ isOpen: true, questionId: question.id });
                         }}
                       >
-                        Delete
+                        <span className="text-sm font-medium">Delete</span>
                       </Button>
                     </div>
                   </div>
@@ -725,23 +725,6 @@ const formRef = useRef<HTMLDivElement>(null);
                 Delete
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg text-white ${
-          toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        }`}>
-          <div className="flex items-center">
-            <span>{toast.message}</span>
-            <button 
-              onClick={() => setToast(null)}
-              className="ml-4 text-white hover:text-gray-200"
-            >
-              ✕
-            </button>
           </div>
         </div>
       )}

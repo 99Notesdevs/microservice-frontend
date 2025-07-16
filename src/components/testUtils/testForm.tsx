@@ -331,7 +331,7 @@ export function SimpleTestForm({ initialData, onSubmit, onCancel }: SimpleTestFo
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Time Taken (seconds)</label>
+          <label className="block text-sm font-medium mb-1">Time Taken (minutes)</label>
           <input
             type="number"
             name="timeTaken"
