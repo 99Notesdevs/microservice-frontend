@@ -302,11 +302,6 @@ export default function Dashboard() {
     }),
   };
 
-  const nextMessage = () => {
-    setDirection(1);
-    setCurrentIndex((prev) => (prev + 1) % globalMessages.length);
-  };
-
   const prevMessage = () => {
     setDirection(-1);
     setCurrentIndex((prev) => (prev - 1 + globalMessages.length) % globalMessages.length);
