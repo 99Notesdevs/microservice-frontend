@@ -586,15 +586,9 @@ const formRef = useRef<HTMLDivElement>(null);
                           setNewQuestion({ ...newQuestion, rating: e.target.value ? parseInt(e.target.value) : null })
                         }
                         className="block w-full rounded-md border-gray-300 pl-4 pr-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all sm:text-sm"
-                        placeholder="e.g., 75"
-                        min="0"
-                        max="100"
+                        placeholder="e.g., 5"
                       />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">%</span>
-                      </div>
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">0-100%</p>
                   </div>
                 </div>
                 <div className="flex gap-4 mt-6">
