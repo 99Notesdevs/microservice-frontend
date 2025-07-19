@@ -18,11 +18,11 @@ interface RadarDataPoint {
   raw?: number;
 }
 
-interface ReferenceRadarData {
-  subject: string;
-  inner: number;
-  outer: number;
-}
+// interface ReferenceRadarData {
+//   subject: string;
+//   inner: number;
+//   outer: number;
+// }
 
 interface RatingRadarChartProps {
   userRadarData: RadarDataPoint[];
