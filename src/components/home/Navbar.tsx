@@ -51,7 +51,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
 
         {/* Center Section - Logo */}
         <div className="flex-1 flex justify-center items-center">
-          <Link to="/about" className="flex items-center">
+          <Link to="/dashboard" className="flex items-center">
             <img 
               className="md:w-24 md:h-10 w-20 h-8" 
               src={logo} 

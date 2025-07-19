@@ -13,7 +13,7 @@ export const ProtectedRoute = ({
   allowedRoles?: ('admin' | 'user')[],
   children: React.ReactNode 
 }) => {
-  const { isAuthenticated, isLoading, admin } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [isPaid, setIsPaid] = useState<boolean | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 

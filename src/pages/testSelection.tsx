@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, LayoutGrid, Zap, CheckCircle, Clock, BarChart2, Settings, Award, ChevronRight } from 'lucide-react';
+import { BookOpen, LayoutGrid, CheckCircle, ChevronRight } from 'lucide-react';
 
 const TestSelection: React.FC = () => {
   const navigate = useNavigate();
@@ -30,46 +30,6 @@ const TestSelection: React.FC = () => {
     ]
   };
 
-  const FeatureItem = ({ 
-    icon: Icon, 
-    title, 
-    description, 
-    color = 'amber' 
-  }: { 
-    icon: any, 
-    title: string, 
-    description: string,
-    color?: 'amber' | 'blue'
-  }) => {
-    const colorClasses = {
-      amber: {
-        bg: 'from-yellow-50 to-amber-50',
-        text: 'text-amber-600',
-        hover: 'group-hover:from-amber-50 group-hover:to-yellow-50',
-        border: 'border-amber-50'
-      },
-      blue: {
-        bg: 'from-blue-50 to-indigo-50',
-        text: 'text-blue-600',
-        hover: 'group-hover:from-blue-50 group-hover:to-indigo-50',
-        border: 'border-blue-50'
-      }
-    };
-
-    return (
-      <div className="flex items-center space-x-4 group">
-        <div className="flex-shrink-0">
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorClasses[color].bg} ${colorClasses[color].text} ${colorClasses[color].hover} transition-all duration-300 shadow-sm border ${colorClasses[color].border} flex items-center justify-center`}>
-            <Icon className="w-5 h-5" />
-          </div>
-        </div>
-        <div>
-          <h4 className="font-medium text-gray-900 mb-0.5">{title}</h4>
-          <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">

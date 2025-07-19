@@ -18,6 +18,7 @@ interface RadarDataPoint {
   raw?: number;
 }
 
+
 // interface ReferenceRadarData {
 //   subject: string;
 //   inner: number;
@@ -69,12 +70,13 @@ const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
   strengths,
   weakness,
 }) => {
+
   // Function to determine fill color based on rating
   const getFillColor = (value: number) => {
     if (value >= 4) return '#10b981'; // Green for strong
     if (value >= 2.5) return '#f59e0b'; // Yellow for moderate
     return '#ef4444'; // Red for needs improvement
-  };
+  };  
   
   // Create a custom radar with dynamic colors
   const CustomRadar = (props: any) => {
