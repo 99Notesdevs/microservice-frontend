@@ -18,11 +18,15 @@ interface RadarDataPoint {
   raw?: number;
 }
 
+
+// interface ReferenceRadarData {
+//   subject: string;
+//   inner: number;
+//   outer: number;
+// }
+
 interface RatingRadarChartProps {
   userRadarData: RadarDataPoint[];
-  referenceRadarData: { subject: string; inner: number, outer: number }[];
-  minRating: number;
-  maxRating: number;
   strengths: string[];
   weakness: string[];
 }
@@ -63,17 +67,10 @@ const innerRadius = 36;
 
 const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
   userRadarData,
-  referenceRadarData: _referenceRadarData,
-  minRating: _minRating,
-  maxRating: _maxRating,
   strengths,
   weakness,
 }) => {
 
-  void _minRating;
-  void _maxRating;
-  void _referenceRadarData;
-  
   // Function to determine fill color based on rating
   const getFillColor = (value: number) => {
     if (value >= 4) return '#10b981'; // Green for strong
