@@ -23,11 +23,6 @@ interface TestSeriesData {
   bestScore: number;
 }
 
-interface RadarDataPoint {
-  subject: string;
-  rating: number;
-  fullMark: number;
-}
 
 interface TestSeriesData {
   testId: number;
@@ -81,9 +76,6 @@ export default function Dashboard() {
   const [progressLoading, setProgressLoading] = useState(true);
   const [progressError, setProgressError] = useState<any>(null);
   const [userData, setUserData] = useState<any>(null);
-  const [radarData, setRadarData] = useState<RadarDataPoint[]>([]);
-  const [minRating, setMinRating] = useState(0);
-  const [maxRating, setMaxRating] = useState(10);
   const [testSeriesData, setTestSeriesData] = useState<TestSeriesData[]>([]);
   const [progressConstraints, setProgressConstraints] = useState<{
     weakLimit: number;
@@ -176,18 +168,6 @@ export default function Dashboard() {
           // Update the data state with category names
           setData(dataWithCategoryNames);
 
-          // Process data for radar chart with actual category names
-          const formattedData = dataWithCategoryNames.map((item: any) => ({
-            subject: item.categoryName || `Category ${item.categoryId}`,
-            rating: (item.rating / 100) * 10, // Convert 0-500 to 0-10 scale
-            fullMark: 10
-          }));
-
-          setRadarData(formattedData);
-
-          // Set min and max ratings from progressConstraints
-          setMinRating((progressConstraints?.weakLimit || 250 / 100) * 2); // 100 -> 2/10
-          setMaxRating((progressConstraints?.strongLimit || 450 / 100) * 1.8); // 500 -> 9/10 (slightly below max for better visualization)
 
           const categoryMap: Record<number, string> = {};
           dataWithCategoryNames.forEach((item: any) => {
@@ -405,15 +385,6 @@ export default function Dashboard() {
     }));
   }, [data]);
 
-  // Reference circles: inner (0-200), outer (100-500)
-  const referenceRadarData = useMemo(() => {
-    // Use same subjects as userRadarData
-    return (userRadarData.length ? userRadarData : radarData).map(item => ({
-      subject: item.subject,
-      inner: mapRatingToRadar(200), // 200/500*10 = 4
-      outer: mapRatingToRadar(500), // 10
-    }));
-  }, [userRadarData, radarData]);
 
   if (loading || progressLoading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   if (error || progressError) return <div className="text-red-500 p-4">Error loading data</div>;
@@ -507,9 +478,6 @@ export default function Dashboard() {
           <div className="bg-white rounded-lg p-4 shadow radar-chart-container h-full">
             <RadarChartComponent
               userRadarData={userRadarData}
-              referenceRadarData={referenceRadarData}
-              minRating={minRating}
-              maxRating={maxRating}
               strengths={strengths}
               weakness={weakness}
             />
