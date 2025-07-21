@@ -1,12 +1,10 @@
 import { env } from "@/config/env";
-import Cookies from "js-cookie";
 
 const BASE_URL = env.API;
 
 const defaultHeaders: HeadersInit = {
-  Authorization: `Bearer ${Cookies.get("token") || ""}`,
   "Content-Type": "application/json",
-  "x-auth-type": "Admin"
+  "X-Auth-Type": "Admin"
 };
 
 async function request<T>(
@@ -15,6 +13,7 @@ async function request<T>(
 ): Promise<T> {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
+    credentials: "include",
     headers: {
       ...defaultHeaders,
       ...(options.headers || {}),
