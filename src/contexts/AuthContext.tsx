@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       try {
         // Check if admin first
-        const isAdmin = await checkAdminStatus(token);
+        const isAdmin = await checkAdminStatus();
         if (isAdmin) {
           setAdmin(true);
           setIsLoading(false);
@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         // If not admin, check regular user
-        const userData = await fetchUserData(token);
+        const userData = await fetchUserData();
         if (userData) {
           setUser(userData);
           localStorage.setItem("userId", userData.id.toString());
@@ -88,10 +88,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
-  const checkAdminStatus = async (token: string) => {
+  const checkAdminStatus = async () => {
     try {
       const response = await fetch(`${env.API_MAIN}/admin/check`, {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: "include",
       });
       return response.ok;
     } catch (error) {
@@ -100,10 +100,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const fetchUserData = async (token: string) => {
+  const fetchUserData = async () => {
     try {
       const response = await fetch(`${env.API_MAIN}/user`, {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -116,10 +116,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return null;
     }
   };
-  const fetchUserDetails = async (token: string) => {
+  const fetchUserDetails = async () => {
     try {
       const response = await fetch(`${env.API_MAIN}/user/validate`, {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -138,6 +138,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await fetch(`${env.API_MAIN}/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
@@ -145,13 +146,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error("Login failed");
       }
 
-      const data = await response.json();
-      const token = data.data.split(' ')[1];
-      if(Cookies.get("token")) {
-        Cookies.remove("token");
-      }
-      Cookies.set("token", token, { expires: 7 });
-      const userData = await fetchUserData(token);
+      const userData = await fetchUserData();
 
       if (!userData) {
         throw new Error("Failed to fetch user data");
@@ -175,6 +170,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await fetch(`${env.API_MAIN}/admin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password, secretKey }),
       });
 
@@ -186,7 +182,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = data.data.token;
 
       Cookies.set("token", token, { expires: 7 });
-      const isAdmin = await checkAdminStatus(token);
+      const isAdmin = await checkAdminStatus();
 
       if (!isAdmin) {
         throw new Error("Not authorized as admin");
@@ -205,7 +201,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const handleLogout = () => {
-    Cookies.remove("token");
     localStorage.removeItem("userId");
     setUser(null);
     setAdmin(false);
@@ -214,13 +209,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      const token = Cookies.get("token");
-      if (token) {
-        await fetch(`${env.API_MAIN}/logout`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      }
+      await fetch(`${env.API_MAIN}/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -231,7 +223,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAdmin = async () => {
     const token = Cookies.get("token");
     if (!token) return false;
-    return checkAdminStatus(token);
+    return checkAdminStatus();
   };
 
   // Google OAuth implementation
@@ -254,7 +246,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               const token = data.token.split(' ')[1];
               Cookies.set("token", token, { expires: 7 });
               
-              const userData = await fetchUserData(token);
+              const userData = await fetchUserData();
               if (userData) {
                 setUser(userData);
                 localStorage.setItem("userId", userData.id.toString());
