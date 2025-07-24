@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, Typography, Tag, Spin, Alert, Divider } from 'antd';
 import { UserOutlined, CrownOutlined, TagOutlined, StarOutlined } from '@ant-design/icons';
 import { env } from '../config/env';
-import Cookies from 'js-cookie';
 const { Title, Text } = Typography;
 
 interface UserData {
@@ -29,7 +28,7 @@ const UserDashboard: React.FC = () => {
     const fetchUserData = async () => {
       try {
         const response = await fetch(`${env.API_MAIN}/user`,{
-            headers:{'Authorization': `Bearer ${Cookies.get('token')}`}
+            credentials: "include",
         });
         const data = await response.json();
         setUser(data.data);
