@@ -2,8 +2,6 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { env } from '../config/env';
-import Cookies from 'js-cookie';
-
 export const ProtectedRoute = ({ 
   requirePaid = false, 
   allowedRoles: allowedRolesProp = ['user'], 
@@ -45,14 +43,9 @@ export const ProtectedRoute = ({
 
   const checkAdmin = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return false;
       const response = await fetch(`${env.API_MAIN}/admin/check`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: "include",
       });
-
       return response.ok;
     } catch (error) {
       console.error('Admin check failed:', error);
@@ -62,13 +55,8 @@ export const ProtectedRoute = ({
 
   const checkPaid = async () => {
     try {
-      const token = Cookies.get('token');
-      if (!token) return false;
-
       const response = await fetch(`${env.API_MAIN}/user/validate`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: "include",
       });
       
       if (!response.ok) {
@@ -94,13 +82,13 @@ export const ProtectedRoute = ({
   }
 
   // For non-admin routes, check authentication
-  if (!isAuthenticated) {
-    return <Navigate to={`${env.API_MAIN}/login`} replace />;
+  if (!isAuthenticated) { 
+    window.location.href = `${env.MAIN_PORTAL_API}/users/login`;
   }
 
   // Check if user has required role for non-admin routes
   if (!allowedRolesProp.includes('admin') && !isAuthenticated) {
-    return <Navigate to={`${env.API_MAIN}/login`} />;
+    window.location.href = `${env.MAIN_PORTAL_API}/users/login`;
   }
 
   // If route requires paid access and user hasn't paid, show subscription prompt

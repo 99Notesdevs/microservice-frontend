@@ -13,7 +13,7 @@ async function request<T>(
 ): Promise<T> {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
-    credentials: "include",
+    credentials:"include",
     headers: {
       ...defaultHeaders,
       ...(options.headers || {}),
