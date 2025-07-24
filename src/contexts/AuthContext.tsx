@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect, type ReactNode, type JSX } from "react"
-import Cookies from "js-cookie"
 import { env } from "../config/env"
 import { useNavigate } from "react-router-dom"
 
@@ -56,12 +55,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check authentication status on mount
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get("token");
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
         // Check if admin first
         const isAdmin = await checkAdminStatus();
@@ -178,10 +171,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error("Admin login failed");
       }
 
-      const data = await response.json();
-      const token = data.data.token;
+      // const data = await response.json();
+      // const token = data.data.token;
 
-      Cookies.set("token", token, { expires: 7 });
+      // Cookies.set("token", token, { expires: 7 });
       const isAdmin = await checkAdminStatus();
 
       if (!isAdmin) {
@@ -221,8 +214,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const checkAdmin = async () => {
-    const token = Cookies.get("token");
-    if (!token) return false;
     return checkAdminStatus();
   };
 
@@ -242,9 +233,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
 
             const data = await res.json();
-            if (data.token) {
-              const token = data.token.split(' ')[1];
-              Cookies.set("token", token, { expires: 7 });
+            if (data.success) {
+            
               
               const userData = await fetchUserData();
               if (userData) {

@@ -88,12 +88,9 @@ const formRef = useRef<HTMLDivElement>(null);
   // Fetch user name
   useEffect(() => {
     const fetchUserName = async () => {
-      const token = Cookies.get("token");
       const admin = await fetch(`${env.API_MAIN}/admin/`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
       if (admin) {
         const adminData = await admin.json();
