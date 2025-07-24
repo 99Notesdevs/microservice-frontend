@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("userId");
     setUser(null);
     setAdmin(false);
-    navigate(`${env.API_MAIN}/login`);
+    window.location.href = `${env.MAIN_PORTAL_API}/login`;
   };
 
   const logout = async () => {
