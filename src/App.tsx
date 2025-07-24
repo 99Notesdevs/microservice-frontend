@@ -6,7 +6,7 @@ import { HomeLayout } from './components/home/layout';
 import Dashboard from './pages/Dashboard';
 import Mytest from './pages/Mytest';
 import CalendarPage from './pages/Calendar';
-import LogIn from './pages/logIn';
+// import LogIn from './pages/logIn';
 import { AuthProvider } from './contexts/AuthContext';
 import { TestProvider } from "./contexts/TestContext"
 import { SocketProvider } from "./contexts/SocketContext"
@@ -64,7 +64,7 @@ function App() {
               <Route path="/user" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><UserDashboard /></ProtectedRoute>} />
               <Route path="/reportcard" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><ReportCard /></ProtectedRoute>} />
             </Route>
-            <Route path="/login" element={<LogIn />} />
+            {/* <Route path="/login" element={<LogIn />} /> */}
             {/* ADmin Routes */}
             <Route element={<AdminLayout />}>
             <Route path="/admin/login" element={<AdminLogin />} />
