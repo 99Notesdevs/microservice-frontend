@@ -95,12 +95,12 @@ export const ProtectedRoute = ({
 
   // For non-admin routes, check authentication
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`${env.API_MAIN}/login`} replace />;
   }
 
   // Check if user has required role for non-admin routes
   if (!allowedRolesProp.includes('admin') && !isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to={`${env.API_MAIN}/login`} />;
   }
 
   // If route requires paid access and user hasn't paid, show subscription prompt

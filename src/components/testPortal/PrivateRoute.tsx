@@ -3,7 +3,7 @@
 import type React from "react"
 import { Navigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
-
+import { env } from "../../config/env"
 interface PrivateRouteProps {
   element: React.ReactNode
 }
@@ -19,7 +19,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ element }) => {
     )
   }
 
-  return isAuthenticated ? <>{element}</> : <Navigate to="/login" replace />
+  return isAuthenticated ? <>{element}</> : <Navigate to={`${env.API_MAIN}/login`} replace />
 }
 
 export default PrivateRoute
