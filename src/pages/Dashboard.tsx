@@ -5,7 +5,6 @@ import {
 } from 'recharts';
 import { useEffect, useState, useMemo } from 'react';
 import { env } from '@/config/env';
-import Cookies from 'js-cookie';
 import RadarChartComponent from '@/components/home/RadarChart';
 import { api } from '@/api/route';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -196,9 +195,7 @@ export default function Dashboard() {
           setProgressError('Failed to fetch progress');
         }
         const responseP = await fetch(`${env.API_MAIN}/user`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get('token')}`,
-          },
+          credentials: "include",
         });
         const resultP = await responseP.json();
         if (resultP.success) {
