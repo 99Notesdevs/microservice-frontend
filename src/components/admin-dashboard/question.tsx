@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { env } from "@/config/env";
-import Cookies from "js-cookie";
 import CategorySelect from "@/components/testUtils/CategorySelect";
 import TiptapEditor from "@/components/ui/tiptapeditor";
 import { uploadImageToS3 } from "@/config/imageUploadS3";
