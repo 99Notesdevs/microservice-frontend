@@ -34,6 +34,7 @@ import Subscription from './pages/subscription'
 import ReportCard from './pages/reportcard';
 import AdminPermissions from './components/admin-dashboard/admin-permissions';
 import AdminMessages from './components/admin-dashboard/admin-messages';
+import { UserProvider } from './contexts/UserContext';
 // Layout wrapper component
 const LayoutWithSidebar = () => (
   <HomeLayout>
@@ -44,6 +45,7 @@ const LayoutWithSidebar = () => (
 function App() {
   return (
     <Router>
+      <UserProvider>
       <AuthProvider>
         <SocketProvider>
           <TestProvider>
@@ -94,6 +96,7 @@ function App() {
       </TestProvider>
     </SocketProvider>
       </AuthProvider>
+      </UserProvider>
     </Router>
   );
 }
