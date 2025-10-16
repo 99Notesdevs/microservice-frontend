@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { useAuthModal } from '../../hooks/useAuthModal';
 
 // import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
 import logo from '../../assets/logo.png';
-
+// import { Button } from 'antd';
+import { env } from '../../config/env';
 interface User {
   _id?: string;
   firstName?: string;
@@ -20,7 +23,26 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }) => {
-  const { logout } = useAuth();
+  const { logout , isAuthenticated } = useAuth();
+  const { showLogin } = useAuthModal();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authStatus = isAuthenticated;
+        setIsLoggedIn(authStatus);
+      } catch (error) {
+        console.error("Error checking auth status:", error);
+        setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   return (
     <>
       <div className="w-full" />
@@ -83,6 +105,26 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
             </svg>
             <span className="hidden md:inline text-sm font-medium text-gray-700">Report Card</span>
           </Link>
+            <div className="ml-2 flex items-center gap-4">
+                  {!isLoading &&
+                    (isLoggedIn ? (
+                      <div className="flex items-center">
+                        {/* User profile/dropdown can go here */}
+                        <button onClick={() => window.location.href = `${env.API_AUTH_PORTAL}/dashboard`}>
+                          My Account
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="hidden md:flex items-center space-x-2">
+                        <button
+                          onClick={showLogin}
+                        >
+                          Log in
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+          </div>
 
           {/* Profile Dropdown */}
           <div className="relative group">
@@ -128,7 +170,6 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
                 </button>
               </div>
             </div>
-          </div>
         </div>
       </nav>
     </>

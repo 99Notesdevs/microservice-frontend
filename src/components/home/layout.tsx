@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { TourProvider } from '@reactour/tour';
 import AppTour from './AppTour';
+import UserModal from '../UserModal';
 
 interface User {
   id: string;
@@ -30,36 +31,47 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       setIsMobile(isMobileScreen);
       if (isMobileScreen) {
         setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
       }
     };
 
+    // Initial check
     handleResize();
+
+    // Add event listener
     window.addEventListener('resize', handleResize);
+
+    // Clean up
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col relative">
-      <TourProvider
-        steps={[]}
-        styles={{
-          popover: (base) => ({
-            ...base,
-            borderRadius: '0.5rem',
-            padding: '1.5rem',
-            maxWidth: '320px',
-          }),
-        }}
-        position="right"
-        disableDotsNavigation={false}
-        showBadge={false}
-      >
-        <Navbar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} user={user as User} />
+    <TourProvider
+      steps={[]}
+      styles={{
+        popover: (base) => ({
+          ...base,
+          borderRadius: '0.5rem',
+          padding: '1.5rem',
+          maxWidth: '320px',
+        }),
+      }}
+      position="right"
+      disableDotsNavigation={false}
+      showBadge={false}
+    >
+      <div className="min-h-screen bg-gray-50 flex flex-col relative">
+        <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} user={user as User} />
         
         <div className="flex flex-1 relative h-[calc(120vh-4rem)]">
           <Sidebar 
-            isSidebarOpen={isSidebarOpen}
-            setIsSidebarOpen={setIsSidebarOpen}
+            isOpen={isSidebarOpen}
+            toggleSidebar={toggleSidebar}
             isMobile={isMobile}
           />
           
@@ -74,8 +86,9 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
           </div>
         </div>
         
+        <UserModal />
         <AppTour />
-      </TourProvider>
-    </div>
+      </div>
+    </TourProvider>
   );
 };
