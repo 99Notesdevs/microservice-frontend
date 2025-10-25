@@ -70,8 +70,8 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
         
         <div className="flex flex-1 relative h-[calc(120vh-4rem)]">
           <Sidebar 
-            isOpen={isSidebarOpen}
-            toggleSidebar={toggleSidebar}
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
             isMobile={isMobile}
           />
           

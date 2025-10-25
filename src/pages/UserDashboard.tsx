@@ -27,7 +27,7 @@ const UserDashboard: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`${env.API_MAIN}/user`,{
+        const response = await fetch(`${env.API_AUTH}/user`,{
             credentials: "include",
         });
         const data = await response.json();

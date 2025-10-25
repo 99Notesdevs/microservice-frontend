@@ -18,11 +18,11 @@ interface User {
 
 interface NavbarProps {
   isSidebarOpen: boolean;
-  setIsSidebarOpen: (open: boolean) => void;
+  toggleSidebar: () => void;
   user?: User;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }) => {
+const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, user }) => {
   const { logout , isAuthenticated } = useAuth();
   const { showLogin } = useAuthModal();
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +50,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen, user }
         {/* Left Section - Hamburger Menu */}
         <div className="flex items-center flex-1">
           <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            onClick={toggleSidebar}
             className="p-2 rounded-lg bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-200 hover:shadow-md"
             aria-label="Toggle menu"
           >

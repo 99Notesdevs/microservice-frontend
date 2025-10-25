@@ -194,7 +194,7 @@ export default function Dashboard() {
         } else {
           setProgressError('Failed to fetch progress');
         }
-        const responseP = await fetch(`${env.API_MAIN}/user`, {
+        const responseP = await fetch(`${env.API_AUTH}/user`, {
           credentials: "include",
         });
         const resultP = await responseP.json();

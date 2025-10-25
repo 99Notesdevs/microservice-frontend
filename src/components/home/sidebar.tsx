@@ -162,7 +162,38 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
           </div>
 
           {/* Bottom Section */}
-          <div className="mt-auto p-4 border-t border-gray-100">
+          <div className="mt-auto p-4 border-t border-gray-100 space-y-2">
+            {/* Community Link */}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                window.open('http://community.main.local:3002', '_blank');
+              }}
+              className="flex items-center w-full px-4 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group cursor-pointer"
+            >
+              <MessageSquare 
+                size={18} 
+                className="mr-3 transition-transform group-hover:scale-110" 
+              />
+              <span className="whitespace-nowrap">Community</span>
+            </motion.button>
+
+            {/* Shop Link */}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                window.open('http://shop.main.local:5174', '_blank');
+              }}
+              className="flex items-center w-full px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group cursor-pointer"
+            >
+              <ShoppingBag 
+                size={18} 
+                className="mr-3 transition-transform group-hover:scale-110" 
+              />
+              <span className="whitespace-nowrap">Shop</span>
+            </motion.button>
+
+            {/* Sign Out */}
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => {
