@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAdminStatus = async () => {
     try {
-      const response = await fetch(`${env.API_AUTH}/admin/check`, {
+      const response = await fetch(`${env.API_MAIN}/admin/check`, {
         credentials: "include",
       });
       return response.ok;
@@ -160,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const adminLogin = async (email: string, password: string, secretKey: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${env.API_AUTH}/admin`, {
+      const response = await fetch(`${env.API_MAIN}/admin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
