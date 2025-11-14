@@ -22,7 +22,7 @@ const links = [
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   const location = useLocation();
-  const { logout } = useAuth() as { logout: () => void };
+  const { logout, currentUser } = useAuth() as { logout: () => void; currentUser: any };
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
@@ -193,21 +193,23 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
               <span className="whitespace-nowrap">Shop</span>
             </motion.button>
 
-            {/* Sign Out */}
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                logout();
-                if (isMobile) setIsSidebarOpen(false);
-              }}
-              className="flex items-center w-full px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group cursor-pointer"
-            >
-              <Power 
-                size={18} 
-                className="mr-3 transition-transform group-hover:scale-110" 
-              />
-              <span className="whitespace-nowrap">Sign Out</span>
-            </motion.button>
+            {/* Sign Out - Only show if user is logged in */}
+            {currentUser && (
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  logout();
+                  if (isMobile) setIsSidebarOpen(false);
+                }}
+                className="flex items-center w-full px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group cursor-pointer"
+              >
+                <Power 
+                  size={18} 
+                  className="mr-3 transition-transform group-hover:scale-110" 
+                />
+                <span className="whitespace-nowrap">Sign Out</span>
+              </motion.button>
+            )}
           </div>
         </div>
       </motion.aside>
