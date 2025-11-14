@@ -90,36 +90,36 @@ export function AuthModal() {
   if (!isUserModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300 animate-fade-in">
       <div 
-        className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-[90%] max-w-md p-8 relative border border-gray-200 dark:border-gray-800 transition-all duration-300 transform"
+        className="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-8 relative border border-gray-100 transition-all duration-300 transform animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <Button
-            variant="outline"
+          variant="ghost"
           onClick={closeUserModal}
-          className="absolute right-4 top-4 rounded-full h-8 w-8 text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="absolute right-4 top-4 rounded-full h-9 w-9 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
           <span className="sr-only">Close</span>
         </Button>
 
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {activeTab === 'login' ? 'Welcome back!' : 'Create an account'}
           </h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-gray-500 text-sm">
             {activeTab === 'login' ? 'Sign in to continue' : 'Join our community today'}
           </p>
         </div>
 
-        <div className="flex mb-8 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex mb-8 border-b border-gray-100">
           <button
             className={cn(
-              'flex-1 py-3 font-medium text-sm transition-colors duration-200',
+              'flex-1 py-3.5 font-medium text-sm transition-all duration-200',
               activeTab === 'login' 
-                ? 'text-primary border-b-2 border-primary' 
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-gray-500 hover:text-gray-700'
             )}
             onClick={() => setActiveTab('login')}
           >
@@ -139,7 +139,7 @@ export function AuthModal() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-200 dark:border-red-800">
+          <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
             {error}
           </div>
         )}
@@ -147,11 +147,11 @@ export function AuthModal() {
         {activeTab === 'login' ? (
           <form onSubmit={(e) => handleSubmit(e, 'login')} className="space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="login-email" className="text-sm font-medium text-muted-foreground">
+              <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">
                 Email
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="login-email"
                   name="email"
@@ -160,26 +160,26 @@ export function AuthModal() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="pl-10 h-11"
+                  className="pl-10 h-11 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                 />
               </div>
             </div>
             
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="login-password" className="text-sm font-medium text-muted-foreground">
+                <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">
                   Password
                 </Label>
                 <button
                   type="button"
-                  className="text-xs text-primary hover:underline"
+                  className="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                   onClick={() => {}}
                 >
                   Forgot password?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="login-password"
                   name="password"
@@ -188,14 +188,14 @@ export function AuthModal() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="pl-10 h-11"
+                  className="pl-10 h-11 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                 />
               </div>
             </div>
             
             <Button 
               type="submit" 
-              className="w-full h-11 mt-6 font-medium" 
+              className="w-full h-11 mt-6 font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md transition-all duration-200" 
               disabled={isLoading}
             >
               {isLoading ? (
@@ -210,11 +210,11 @@ export function AuthModal() {
           <form onSubmit={(e) => handleSubmit(e, 'register')} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="register-firstName" className="text-sm font-medium text-muted-foreground">
+                <Label htmlFor="register-firstName" className="text-sm font-medium text-gray-700">
                   First Name
                 </Label>
                 <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
                     id="register-firstName"
                     name="firstName"
@@ -222,32 +222,35 @@ export function AuthModal() {
                     required
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="pl-10 h-11"
+                    className="pl-10 h-11 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="register-lastName" className="text-sm font-medium text-muted-foreground">
+                <Label htmlFor="register-lastName" className="text-sm font-medium text-gray-700">
                   Last Name
                 </Label>
-                <Input
-                  id="register-lastName"
-                  name="lastName"
-                  placeholder="Doe"
-                  required
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="h-11"
-                />
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 opacity-0" />
+                  <Input
+                    id="register-lastName"
+                    name="lastName"
+                    placeholder="Doe"
+                    required
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="pl-10 h-11 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  />
+                </div>
               </div>
             </div>
             
             <div className="space-y-1.5">
-              <Label htmlFor="register-email" className="text-sm font-medium text-muted-foreground">
+              <Label htmlFor="register-email" className="text-sm font-medium text-gray-700">
                 Email
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="register-email"
                   name="email"
@@ -256,17 +259,19 @@ export function AuthModal() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="pl-10 h-11"
+                  className="pl-10 h-11 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                 />
               </div>
             </div>
             
             <div className="space-y-1.5">
-              <Label htmlFor="register-password" className="text-sm font-medium text-muted-foreground">
-                Password
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="register-password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
+              </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="register-password"
                   name="password"
@@ -276,17 +281,17 @@ export function AuthModal() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="pl-10 h-11"
+                  className="pl-10 h-11 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-1.5">
+              <p className="text-xs text-gray-500 mt-1.5">
                 Password must be at least 6 characters long
               </p>
             </div>
             
             <Button 
               type="submit" 
-              className="w-full h-11 mt-2 font-medium" 
+              className="w-full h-11 mt-2 font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md transition-all duration-200" 
               disabled={isLoading}
             >
               {isLoading ? (
@@ -299,13 +304,13 @@ export function AuthModal() {
           </form>
         )}
         
-        <div className="mt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-6 text-center text-sm text-gray-600">
           {activeTab === 'login' ? (
             <p>
               Don't have an account?{' '}
               <button 
                 type="button" 
-                className="font-medium text-primary hover:underline"
+                className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                 onClick={() => setActiveTab('register')}
               >
                 Sign up
@@ -316,7 +321,7 @@ export function AuthModal() {
               Already have an account?{' '}
               <button 
                 type="button" 
-                className="font-medium text-primary hover:underline"
+                className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                 onClick={() => setActiveTab('login')}
               >
                 Sign in
@@ -325,25 +330,7 @@ export function AuthModal() {
           )}
         </div>
         
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-900 px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" type="button" disabled={isLoading}>
-            Google
-          </Button>
-          <Button variant="outline" type="button" disabled={isLoading}>
-            GitHub
-          </Button>
-        </div>
       </div>
     </div>
   );
