@@ -114,28 +114,45 @@ const RatingRadarChart: React.FC<RatingRadarChartProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl p-4 flex flex-col md:flex-row items-center" style={{ minHeight: 300 }}>
+    <div className="bg-white p-2 flex flex-col md:flex-row items-center" style={{ minHeight: 300 }}>
       {/* Left: Subjectwise Rating, Strength, Weakness */}
-      <div className="flex flex-col items-start justify-center min-w-[320px] mr-4">
-        <div className="w-full md:w-1/2 mt-6 md:mt-0 md:pl-4">
-        </div>
-        <div className="mb-10 w-full relative">
-          <div className="relative">
-            <span className="bg-white border-2 border-green-600 px-6 py-1 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-6 shadow-sm">Strength</span>
-            <div className="w-full min-h-12 bg-green-500 rounded-2xl opacity-80 flex items-center justify-center py-3 px-6">
-              <div className="text-lg font-serif text-black text-center whitespace-pre-wrap">
-                {strengths.join(', ')}
-              </div>
+      <div className="flex flex-col items-center md:items-start w-full md:w-[400px] space-y-8">
+        {/* Strengths Card */}
+        <div className="w-full relative">
+          <div className="relative bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-md">
+                Strengths
+              </span>
+            </div>
+            <div className="min-h-16 flex items-center justify-center">
+              <p className="text-gray-700 text-center leading-relaxed font-medium">
+                {strengths.map((strength, index) => (
+                  <span key={index} className="inline-block bg-green-50 text-green-800 text-sm font-medium px-3 py-1 rounded-full m-1">
+                    {strength}
+                  </span>
+                ))}
+              </p>
             </div>
           </div>
         </div>
+
+        {/* Weaknesses Card */}
         <div className="w-full relative">
-          <div className="relative">
-            <span className="bg-white border-2 border-yellow-500 px-6 py-1 rounded font-bold text-xl z-10 absolute left-1/2 -translate-x-1/2 -top-6 shadow-sm">Weakness</span>
-            <div className="w-full min-h-12 bg-yellow-400 rounded-2xl opacity-80 flex items-center justify-center py-3 px-6">
-              <div className="text-lg font-serif text-black text-center whitespace-pre-wrap">
-                {weakness.join(', ')}
-              </div>
+          <div className="relative bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span className="bg-orange-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-md">
+                Areas to Improve
+              </span>
+            </div>
+            <div className="min-h-16 flex items-center justify-center">
+              <p className="text-gray-700 text-center leading-relaxed font-medium">
+                {weakness.map((item, index) => (
+                  <span key={index} className="inline-block bg-orange-50 text-orange-800 text-sm font-medium px-3 py-1 rounded-full m-1">
+                    {item}
+                  </span>
+                ))}
+              </p>
             </div>
           </div>
         </div>

@@ -204,11 +204,11 @@ const ReviewPage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="max-w-md p-6 bg-white rounded-lg shadow-lg">
+        <div className="max-w-md p-6 bg-white rounded-none shadow-lg">
           <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700">{error}</p>
           <button
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-none hover:bg-blue-700"
             onClick={() => navigate("/")}
           >
             Go Back
@@ -243,7 +243,7 @@ const ReviewPage: React.FC = () => {
         </div>
         <button
           onClick={toggleFullScreen}
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-none transition-colors"
           title={isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           aria-label={isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         >
@@ -263,7 +263,7 @@ const ReviewPage: React.FC = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Left sidebar */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <div className="bg-white p-4 rounded-none shadow-sm">
               <h2 className="text-lg font-semibold mb-4">Questions</h2>
               <QuestionGrid
                 questions={testData.questions}
@@ -277,9 +277,9 @@ const ReviewPage: React.FC = () => {
 
             <TestStatusPanel questionStatuses={questionStatuses} isReviewMode={true} />
 
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <div className="bg-white p-4 rounded-none shadow-sm">
               <button
-                className="w-full py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors font-medium"
+                className="w-full py-3 bg-gray-600 text-white rounded-none hover:bg-gray-700 transition-colors font-medium"
                 onClick={() => navigate("/")}
               >
                 Exit Review

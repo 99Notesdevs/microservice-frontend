@@ -174,19 +174,27 @@ export default function ReportCard() {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     onClick: handleBarClick,
+    interaction: {
+      mode: 'nearest',
+      intersect: false
+    },
     plugins: {
       legend: {
-        display: false,
+        display: false
       },
       title: {
-        display: true,
-        text: currentPath.length > 0 ? 'Subcategories' : 'Root Categories',
-        font: {
-          size: 16
-        }
+        display: false
       },
       tooltip: {
+        backgroundColor: 'white',
+        titleColor: '#111827',
+        bodyColor: '#4B5563',
+        borderColor: '#E5E7EB',
+        borderWidth: 1,
+        padding: 12,
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         callbacks: {
           label: function(context: any) {
             return `Rating: ${context.raw.toFixed(1)}`;
@@ -197,16 +205,48 @@ export default function ReportCard() {
     scales: {
       y: {
         beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Rating'
+        max: 5,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)'
         },
         ticks: {
+          color: '#6B7280',
+          font: {
+            size: 12
+          },
           stepSize: 1,
           callback: function(value: any) {
-            return value.toFixed(1); 
+            return value.toFixed(1);
+          }
+        },
+        title: {
+          display: true,
+          text: 'Rating (1-5)',
+          color: '#4B5563',
+          font: {
+            size: 12,
+            weight: '500'
           }
         }
+      },
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          color: '#6B7280',
+          font: {
+            size: 12
+          }
+        }
+      }
+    },
+    elements: {
+      bar: {
+        borderRadius: 4,
+        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+        hoverBackgroundColor: 'rgba(37, 99, 235, 1)',
+        borderWidth: 0
       }
     }
   };
@@ -222,42 +262,69 @@ export default function ReportCard() {
   const renderCategoryCard = (category: CategoryDetails, level = 0) => {
     const hasChildren = category.children && category.children.length > 0;
     const isExpanded = expandedCategories.includes(category.id);
+    const rating = category.rating || 0;
+    const percentage = Math.min(100, Math.max(0, (rating / 5) * 100));
 
     return (
-      <div key={category.id} className="mb-4">
+      <div key={category.id} className="mb-2">
         <div 
-          className={`bg-white rounded-lg shadow-md p-4 transition-all duration-200
-            ${level > 0 ? 'ml-6 border-l-4 border-blue-200' : ''}
-            hover:shadow-lg cursor-pointer`}
-          onClick={() => toggleCategory(category.id)}
+          className={`bg-white hover:bg-gray-50 transition-colors duration-150 ${level > 0 ? 'pl-6 border-l-2 border-gray-100' : ''}`}
         >
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-medium text-gray-800">{category.name}</h3>
-              <div className="text-sm text-gray-500 mt-1">
-                Weight: {parseFloat(category.weight) * 100}%
+          <div 
+            className="flex items-center justify-between p-4 rounded hover:bg-gray-50 cursor-pointer"
+            onClick={() => toggleCategory(category.id)}
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center">
+                {hasChildren && (
+                  <svg 
+                    className={`w-4 h-4 mr-2 text-gray-400 transition-transform ${isExpanded ? 'transform rotate-90' : ''}`}
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
+                <h3 className="text-sm font-medium text-gray-900 truncate">{category.name}</h3>
+              </div>
+              <div className="mt-1 flex items-center">
+                <div className="w-32 bg-gray-200 rounded-full h-1.5 mr-2">
+                  <div 
+                    className="h-full rounded-full" 
+                    style={{
+                      width: `${percentage}%`,
+                      backgroundColor: getRatingColor(rating)
+                    }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-gray-500">
+                  {rating.toFixed(1)}/5.0
+                </span>
               </div>
             </div>
-            <div className="flex items-center">
-              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                {category.rating?.toFixed(1) || 'N/A'}
-              </span>
-              {hasChildren && (
+            <div className="ml-4 flex-shrink-0 flex items-center">
+              {/* <span className="text-xs text-gray-500 mr-3">
+                Weight: {(parseFloat(category.weight) * 100).toFixed(0)}%
+              </span> */}
+              {hasChildren ? (
                 <svg 
-                  className={`w-5 h-5 ml-2 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`}
+                  className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`}
                   fill="none" 
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
+              ) : (
+                <div className="w-4"></div>
               )}
             </div>
           </div>
         </div>
         
         {hasChildren && isExpanded && (
-          <div className="mt-2">
+          <div className="mt-1">
             {category.children?.map(child => renderCategoryCard(child, level + 1))}
           </div>
         )}
@@ -265,57 +332,141 @@ export default function ReportCard() {
     );
   };
 
+  // Helper function to get color based on rating
+  const getRatingColor = (rating: number) => {
+    if (rating >= 4) return '#10B981'; // Green
+    if (rating >= 3) return '#3B82F6'; // Blue
+    if (rating >= 2) return '#F59E0B'; // Yellow
+    return '#EF4444'; // Red
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
+        <p className="mt-4 text-sm font-medium text-gray-700">Loading performance data...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500 text-lg">{error}</div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-medium text-gray-900 mb-2">Unable to load data</h2>
+        <p className="text-sm text-gray-500 text-center max-w-md">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Performance Report</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">
-            {currentPath.length > 0 ? 'Subcategories' : 'Root Categories'}
-          </h2>
+      <div className="bg-white border border-gray-100 shadow-sm rounded p-6 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">
+              {currentPath.length > 0 ? 'Subcategory Performance' : 'Category Overview'}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Click on bars to drill down into subcategories
+            </p>
+          </div>
           {currentPath.length > 0 && (
             <button
               onClick={handleDrillUp}
-              className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+              className="mt-3 sm:mt-0 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Back to Parent
+              Back
             </button>
           )}
         </div>
-        <div className="h-80">
+        <div className="h-96">
           <Bar 
             data={chartData} 
             options={{
               ...chartOptions,
               onClick: handleBarClick,
+              maintainAspectRatio: false,
               plugins: {
                 ...chartOptions.plugins,
                 tooltip: {
+                  backgroundColor: 'white',
+                  titleColor: '#1F2937',
+                  bodyColor: '#4B5563',
+                  borderColor: '#E5E7EB',
+                  borderWidth: 1,
+                  padding: 12,
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                   callbacks: {
                     label: function(context: any) {
-                      return `Rating: ${(context.raw / 100).toFixed(1)}/5`;
+                      return `Rating: ${(context.raw).toFixed(1)}`;
+                    },
+                    title: function(context: any) {
+                      return context[0].label;
                     }
                   }
+                },
+                legend: {
+                  display: false
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                  },
+                  ticks: {
+                    color: '#6B7280',
+                    font: {
+                      size: 12
+                    },
+                    callback: function(value: any) {
+                      return value.toFixed(1);
+                    }
+                  },
+                  title: {
+                    display: true,
+                    text: 'Rating (1-5)',
+                    color: '#4B5563',
+                    font: {
+                      size: 12,
+                      weight: '500'
+                    }
+                  }
+                },
+                x: {
+                  grid: {
+                    display: false
+                  },
+                  ticks: {
+                    color: '#6B7280',
+                    font: {
+                      size: 12
+                    }
+                  }
+                }
+              },
+              elements: {
+                bar: {
+                  borderRadius: 4,
+                  backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                  hoverBackgroundColor: 'rgba(37, 99, 235, 1)',
+                  borderWidth: 0
                 }
               }
             }} 
@@ -323,10 +474,20 @@ export default function ReportCard() {
         </div>
       </div>
 
-      {/* Category Hierarchy */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-6">Category Hierarchy</h2>
-        <div className="space-y-4">
+      <div className="bg-white border border-gray-100 shadow-sm rounded p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">Detailed Breakdown</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Click on categories to expand and view subcategories
+            </p>
+          </div>
+          <div className="flex items-center text-sm text-gray-500">
+            <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+            <span>Rating</span>
+          </div>
+        </div>
+        <div className="space-y-3">
           {categories.map(category => renderCategoryCard(category))}
         </div>
       </div>

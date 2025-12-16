@@ -304,18 +304,15 @@ export default function Dashboard() {
       exit="exit"
       transition={{
         x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
+        opacity: { duration: 0.2 }
       }}
-      className="w-full h-full flex items-center justify-center absolute inset-0"
+      className="w-full"
     >
-      <div className="px-4">
-        <div className="text-sm font-semibold text-gray-500 mb-2">{title}</div>
-        <div className="text-gray-700">{message}</div>
-      </div>
+      <p className="text-gray-700 text-sm leading-relaxed">{message}</p>
     </motion.div>
   );
 
-  const messageBoxStyle = "bg-white p-6 rounded-xl shadow-lg mb-6 relative overflow-hidden min-h-[120px] flex items-center";
+  const messageBoxStyle = "bg-white/80 backdrop-blur-sm p-4 rounded-lg shadow-sm border border-gray-100 relative overflow-hidden min-h-[80px] flex items-center hover:shadow transition-shadow duration-200";
 
   // Stats
   const stats = useMemo(() => {
@@ -390,24 +387,27 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       {/* First Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        </div>
-        <div className="md:col-span-2">
-          <div className={`${messageBoxStyle} relative w-full global-message`}>
-            <button onClick={prevMessage} className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Previous message">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <div className="w-full relative h-full">
-              <AnimatePresence mode="wait" custom={direction}>
-                {globalMessages.length > 0 ? (
-                  <AnimatedMessage message={globalMessages[currentIndex].content} title="Global Message" />
-                ) : (
-                  <div className="text-center w-full">No global messages available</div>
-                )}
-              </AnimatePresence>
-            </div>
+      <div className="mb-4">
+        <div className={`${messageBoxStyle} w-full`}>
+          <button
+            onClick={prevMessage}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Previous message"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="w-full flex items-center justify-center min-h-[60px]">
+            <AnimatePresence mode="wait" custom={direction}>
+              {globalMessages.length > 0 ? (
+                <div className="w-full text-center px-4">
+                  <AnimatedMessage message={globalMessages[currentIndex].content} title="" />
+                </div>
+              ) : (
+                <div className="text-gray-500 text-sm py-2">No messages to display</div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -417,14 +417,14 @@ export default function Dashboard() {
         {/* Stats and Rating Column */}
         <div className="space-y-4">
           {/* Stats Box */}
-          <div className="bg-white rounded-xl p-4 shadow space-y-2 stats-box">
+          <div className="bg-white rounded-none p-6 shadow space-y-4 stats-box min-h-[240px] flex flex-col justify-center">
             {[
               { label: "Global Rating", value: userRating },
               { label: "Experience Level", value: experience },
               { label: "Test Attempted", value: `${stats?.completedCategories || 0}` },
               { label: "Status", value: status }
             ].map((item, idx) => (
-              <div key={idx} className="grid grid-cols-3 items-center text-sm">
+              <div key={idx} className="grid grid-cols-3 items-center text-base">
                 <span className="text-gray-500">{item.label}</span>
                 <span className="text-center text-gray-400">—</span>
                 <span className="text-right text-gray-800 font-semibold flex items-center justify-end gap-2">
@@ -436,7 +436,7 @@ export default function Dashboard() {
 
           {/* Message for Rating */}
           {userData?.userData?.rating && (
-            <div className="bg-white p-4 rounded-xl shadow relative overflow-hidden min-h-[120px] flex items-center rating-message">
+            <div className="bg-white p-4 rounded-none shadow relative overflow-hidden min-h-[120px] flex items-center rating-message">
               <button onClick={prevRatingMessage} className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1 text-gray-500 hover:text-gray-700" aria-label="Previous rating message">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
@@ -472,7 +472,7 @@ export default function Dashboard() {
 
         {/* Radar Chart */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg p-4 shadow radar-chart-container h-full">
+          <div className="bg-white rounded-none p-4 shadow radar-chart-container h-full">
             <RadarChartComponent
               userRadarData={userRadarData}
               strengths={strengths}

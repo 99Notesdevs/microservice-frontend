@@ -177,9 +177,6 @@ const MytestSeries = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className=" mx-auto">
-        <div className="text-gray-600 text-lg mb-6">
-            Review your completed tests and analyze your performance
-        </div>
 
         {loading ? (
           <div className="flex justify-center items-center py-16">
@@ -247,7 +244,7 @@ const MytestSeries = () => {
                       }
                     }
                   }}
-                  className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100 ${
+                  className={`bg-white rounded-md shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100 ${
                     selectedSeries === series.id ? 'ring-2 ring-orange-500' : ''
                   }`}
                   onMouseEnter={() => setSelectedSeries(series.id)}
@@ -262,19 +259,19 @@ const MytestSeries = () => {
                           <p className="text-gray-600 text-sm">{series.description}</p>
                         )}
                       </div>
-                      <div className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusBadgeStyle(series.status)}`}>
+                      <div className={`text-xs font-semibold px-3 py-1 rounded-md ${getStatusBadgeStyle(series.status)}`}>
                         {series.status === 'completed' ? 'Completed' : series.status === 'in-progress' ? 'In Progress' : 'Not Attempted'}
                       </div>
                     </div>
                     
                     <div className="mt-6 space-y-4">
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="bg-blue-50 p-3 rounded-md">
                           <p className="text-xs text-blue-600 mb-1">Score</p>
                           <p className="text-xl font-bold text-gray-800">
                             {series.score !== undefined ? `${series.score}/${series.totalMarks}` : '--/--'}
                           </p>
-                          <div className="h-1.5 bg-blue-100 rounded-full mt-2 overflow-hidden">
+                          <div className="h-1.5 bg-blue-100 rounded-md mt-2 overflow-hidden">
                             <div 
                               className="h-full bg-blue-500"
                               style={{ width: `${calculatePerformance(series)}%` }}
@@ -282,7 +279,7 @@ const MytestSeries = () => {
                           </div>
                         </div>
                         
-                        <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="bg-green-50 p-3 rounded-md">
                           <p className="text-xs text-green-600 mb-1">Correct</p>
                           <p className="text-xl font-bold text-gray-800">
                             {series.correctAnswers || 0}
@@ -326,7 +323,7 @@ const MytestSeries = () => {
           </motion.div>
         ) : (
           <motion.div 
-            className="text-center py-16 bg-white rounded-xl shadow-sm px-6 max-w-md mx-auto"
+            className="text-center py-16 bg-white rounded-md shadow-sm px-6 max-w-md mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
