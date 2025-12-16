@@ -96,7 +96,7 @@ export function AuthModal() {
         onClick={(e) => e.stopPropagation()}
       >
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={closeUserModal}
           className="absolute right-4 top-4 rounded-full h-9 w-9 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
         >

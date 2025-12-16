@@ -197,12 +197,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("userId");
     setUser(null);
     setAdmin(false);
-    window.location.href = `${env.API_AUTH_PORTAL}/login`;
+    navigate("/dashboard");
   };
+
 
   const logout = async () => {
     try {
-      await fetch(`${env.API_AUTH}/users/logout`, {
+      await fetch(`${env.API_AUTH}/user/logout`, {
         method: "POST",
         credentials: "include",
       });

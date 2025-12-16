@@ -23,32 +23,15 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, user }) => {
-  const { logout , isAuthenticated } = useAuth();
+  const { logout, isAuthenticated, isLoading } = useAuth();
   const { showLogin } = useAuthModal();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authStatus = isAuthenticated;
-        setIsLoggedIn(authStatus);
-      } catch (error) {
-        console.error("Error checking auth status:", error);
-        setIsLoggedIn(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
 
   return (
     <>
       <div className="w-full" />
       <nav className="sticky top-0 w-full bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.1)] z-40 h-20 flex items-center px-8">
         {/* Left Section - Hamburger Menu */}
-        <div className="flex items-center flex-1">
+        <div className="flex items-center">
           <button 
             onClick={toggleSidebar}
             className="p-2 rounded-lg bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-200 hover:shadow-md"
@@ -71,8 +54,8 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, user }) =
           </button>
         </div>
 
-        {/* Center Section - Logo */}
-        <div className="flex-1 flex justify-center items-center">
+        {/* Center Section - Logo - Absolute positioned for perfect centering */}
+        <div className="absolute left-1/2 transform -translate-x-1/2">
           <Link to="/dashboard" className="flex items-center">
             <img 
               className="md:w-24 md:h-10 w-20 h-8" 
@@ -83,7 +66,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, user }) =
         </div>
 
         {/* Right Section - Navigation */}
-        <div className="flex-1 flex justify-end items-center gap-4 ">
+        <div className="ml-auto flex items-center gap-4">
           {/* Report Card Button */}
           <Link 
             to="/reportcard" 
@@ -106,15 +89,8 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, user }) =
             <span className="hidden md:inline text-sm font-medium text-gray-700">Report Card</span>
           </Link>
             <div className="ml-2 flex items-center gap-4">
-                  {!isLoading &&
-                    (isLoggedIn ? (
-                      <div className="flex items-center">
-                        {/* User profile/dropdown can go here */}
-                        <button onClick={() => window.location.href = `${env.API_AUTH_PORTAL}/dashboard`}>
-                          My Account
-                        </button>
-                      </div>
-                    ) : (
+                    {!isLoading &&
+                    (isAuthenticated ? null : (
                       <div className="hidden md:flex items-center space-x-2">
                         <button
                           onClick={showLogin}
@@ -127,7 +103,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, user }) =
           </div>
 
           {/* Profile Dropdown - Only shown when logged in */}
-          {isLoggedIn && (
+          {isAuthenticated && (
             <div className="relative group">
               <div className="flex items-center gap-2 focus:outline-none cursor-pointer py-2 px-1 rounded-md hover:bg-gray-100">
                 <img 
