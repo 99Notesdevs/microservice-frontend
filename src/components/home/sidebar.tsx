@@ -1,4 +1,4 @@
-import { Home, CalendarDays, Pencil, ShoppingBag, Star, Power, MessageSquare, X } from "lucide-react";
+import { Home, CalendarDays, Pencil, ShoppingBag, Star, Power, MessageSquare, X, ArrowUpRight } from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,7 +22,7 @@ const links = [
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   const location = useLocation();
-  const { logout } = useAuth() as { logout: () => void };
+  const { logout } = useAuth() as { logout: () => void; currentUser?: any };
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
@@ -162,20 +162,39 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: S
           </div>
 
           {/* Bottom Section */}
-          <div className="mt-auto p-4 border-t border-gray-100">
+          <div className="mt-auto p-4 border-t border-gray-200 space-y-3">
+            {/* Community Link */}
             <motion.button
+              whileHover={{ x: 4 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                logout();
-                if (isMobile) setIsSidebarOpen(false);
-              }}
-              className="flex items-center w-full px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group cursor-pointer"
+              onClick={() => window.open('http://community.main.local:3002', '_blank')}
+              className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 group cursor-pointer border border-transparent hover:border-gray-200"
             >
-              <Power 
-                size={18} 
-                className="mr-3 transition-transform group-hover:scale-110" 
-              />
-              <span className="whitespace-nowrap">Sign Out</span>
+              <div className="p-1.5 mr-3 rounded-md bg-gray-50 group-hover:bg-white transition-colors duration-200">
+                <MessageSquare 
+                  size={16}
+                  className="text-gray-600 group-hover:text-gray-800 transition-colors duration-200"
+                />
+              </div>
+              <span className="font-medium">Community</span>
+              <ArrowUpRight size={14} className="ml-auto opacity-0 group-hover:opacity-70 transition-opacity duration-200" />
+            </motion.button>
+
+            {/* Shop Link */}
+            <motion.button
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => window.open('http://shop.main.local:5174', '_blank')}
+              className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 group cursor-pointer border border-transparent hover:border-gray-200"
+            >
+              <div className="p-1.5 mr-3 rounded-md bg-gray-50 group-hover:bg-white transition-colors duration-200">
+                <ShoppingBag 
+                  size={16}
+                  className="text-gray-600 group-hover:text-gray-800 transition-colors duration-200"
+                />
+              </div>
+              <span className="font-medium">Shop</span>
+              <ArrowUpRight size={14} className="ml-auto opacity-0 group-hover:opacity-70 transition-opacity duration-200" />
             </motion.button>
           </div>
         </div>

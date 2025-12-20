@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAdminStatus = async () => {
     try {
-      const response = await fetch(`${env.API_AUTH}/admin/check`, {
+      const response = await fetch(`${env.API_MAIN}/admin/check`, {
         credentials: "include",
       });
       return response.ok;
@@ -160,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const adminLogin = async (email: string, password: string, secretKey: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${env.API_AUTH}/admin`, {
+      const response = await fetch(`${env.API_MAIN}/admin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -197,12 +197,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("userId");
     setUser(null);
     setAdmin(false);
-    window.location.href = `${env.API_AUTH_PORTAL}/login`;
+    navigate("/dashboard");
   };
+
 
   const logout = async () => {
     try {
-      await fetch(`${env.API_AUTH}/users/logout`, {
+      await fetch(`${env.API_AUTH}/user/logout`, {
         method: "POST",
         credentials: "include",
       });
