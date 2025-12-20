@@ -67,8 +67,7 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
     >
       <div className="min-h-screen bg-gray-50 flex flex-col relative">
         <Navbar
-          isSidebarOpen={isSidebarOpen}
-          setIsSidebarOpen={toggleSidebar}
+          toggleSidebar={toggleSidebar}
           user={user as User}
         />
 

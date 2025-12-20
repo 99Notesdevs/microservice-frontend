@@ -294,7 +294,7 @@ export default function Dashboard() {
     setCurrentRatingIndex((prev) => (prev - 1 + ratingMessages.length) % ratingMessages.length);
   };
 
-  const AnimatedMessage = ({ message, title }: { message: string; title: string }) => (
+  const AnimatedMessage = ({ message }: { message: string; }) => (
     <motion.div
       key={message}
       custom={direction}
@@ -402,7 +402,7 @@ export default function Dashboard() {
             <AnimatePresence mode="wait" custom={direction}>
               {globalMessages.length > 0 ? (
                 <div className="w-full text-center px-4">
-                  <AnimatedMessage message={globalMessages[currentIndex].content} title="" />
+                  <AnimatedMessage message={globalMessages[currentIndex].content} />
                 </div>
               ) : (
                 <div className="text-gray-500 text-sm py-2">No messages to display</div>
