@@ -1,13 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useState, useEffect } from 'react';
 import { useAuthModal } from '../../hooks/useAuthModal';
-
-// import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
 import logo from '../../assets/logo.png';
-// import { Button } from 'antd';
-import { env } from '../../config/env';
+
 interface User {
   _id?: string;
   firstName?: string;
@@ -22,7 +18,7 @@ interface NavbarProps {
   user?: User;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, user }) => {
+const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, user }) => {
   const { logout, isAuthenticated, isLoading } = useAuth();
   const { showLogin } = useAuthModal();
 

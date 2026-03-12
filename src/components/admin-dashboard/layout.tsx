@@ -16,9 +16,11 @@ const Sidebar = ({ isCollapsed, toggleSidebar }: { isCollapsed: boolean; toggleS
       icon: FiList,
       items: [
         { icon: FiPlus, text: 'Add Questions', path: '/admin/add-question' },
+        { icon: FiEdit, text: 'Edit Questions', path: '/admin/edit-question' },
         { icon: FiPlus, text: 'Add Test Series', path: 'admin/addtestseries' },
         { icon: FiList, text: 'Test Forms', path: 'admin/test-form' },
         { icon: FiEdit, text: 'Test Series', path: 'admin/testseries' },
+        
         { icon: FiPlus, text: 'Add Test', path: 'admin/add-test' },
       ],
     },

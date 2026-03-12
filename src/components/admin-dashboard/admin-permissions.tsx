@@ -18,6 +18,8 @@ const AdminPermissions: React.FC = () => {
 //   const [constraints, setConstraints] = useState<ProgressConstraints | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     weakLimit: 0,
     strongLimit: 0,
@@ -49,7 +51,7 @@ const AdminPermissions: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching constraints:', error);
-        alert('Failed to load progress constraints');
+        setError('Failed to load progress constraints');
       } finally {
         setLoading(false);
       }
@@ -62,6 +64,9 @@ const AdminPermissions: React.FC = () => {
     const { name, value } = e.target;
     const numValue = Number(value);
     
+    // Clear error when user starts typing
+    if (error) setError(null);
+    
     setFormData(prev => ({
       ...prev,
       [name]: numValue
@@ -71,7 +76,7 @@ const AdminPermissions: React.FC = () => {
   // Add a new status
   const addStatus = () => {
     if (newStatus.rating <= 0) {
-      alert('Rating must be greater than 0');
+      setError('Rating must be greater than 0');
       return;
     }
     
@@ -118,6 +123,10 @@ const AdminPermissions: React.FC = () => {
   // Handle input changes for new status
   const handleNewStatusChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Clear error when user starts typing
+    if (error) setError(null);
+    
     setNewStatus(prev => ({
       ...prev,
       [name]: name === 'rating' ? Number(value) : value
@@ -128,7 +137,7 @@ const AdminPermissions: React.FC = () => {
     e.preventDefault();
     
     if (formData.weakLimit >= formData.strongLimit) {
-      alert('Weak limit must be less than strong limit');
+      setError('Weak limit must be less than strong limit');
       return;
     }
 
@@ -142,10 +151,12 @@ const AdminPermissions: React.FC = () => {
       const typedResponse = response as { success: boolean; data: any }
       if (!typedResponse.success) throw new Error("Failed to update constraints");
 
-      alert('Progress constraints updated successfully');
+      setSuccess('Progress constraints updated successfully');
+      setError(null);
     } catch (error) {
       console.error('Error updating constraints:', error);
-      alert(error instanceof Error ? error.message : 'Failed to update constraints');
+      setError(error instanceof Error ? error.message : 'Failed to update constraints');
+      setSuccess(null);
     } finally {
       setSaving(false);
     }
@@ -158,6 +169,31 @@ const AdminPermissions: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Progress Constraints Management</h1>
+      
+      {/* Error and Success Messages */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 relative">
+          <span className="block sm:inline">{error}</span>
+          <button 
+            onClick={() => setError(null)}
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+          >
+            <span className="text-red-500 hover:text-red-700">&times;</span>
+          </button>
+        </div>
+      )}
+      
+      {success && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 relative">
+          <span className="block sm:inline">{success}</span>
+          <button 
+            onClick={() => setSuccess(null)}
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+          >
+            <span className="text-green-500 hover:text-green-700">&times;</span>
+          </button>
+        </div>
+      )}
       
       <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto">
         {/* Limits Section */}

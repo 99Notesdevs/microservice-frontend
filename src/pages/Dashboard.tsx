@@ -1,4 +1,3 @@
-// ritik's code // implementation of the Dashboard component with mock data you can uncomment the api part below to take data from backend
 import {
   LineChart, Line,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
