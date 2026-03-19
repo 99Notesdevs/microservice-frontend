@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import CategorySelect from "@/components/testUtils/CategorySelect";
 import { api } from "@/api/route";
+import TiptapEditor from "@/components/ui/tiptapeditor";
+import { uploadImageToS3 } from "@/config/imageUploadS3";
 
 interface Question {
   id: string;
   question: string;
   answer: string;
   options: string[];
-  categoryId: number;
+  categoryIds: number[];
+  categoryId?: number;
   explaination: string;
   creatorName: string;
   multipleCorrectType: boolean;
@@ -18,18 +22,68 @@ interface Question {
 }
 
 export default function EditQuestionPage() {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [pageSize] = useState(50);
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     questionId: string | null;
   }>({ isOpen: false, questionId: null });
 
+  const normalizeCategoryIds = (question: Pick<Question, "categoryIds" | "categoryId">) => {
+    if (Array.isArray(question.categoryIds)) return question.categoryIds;
+    return typeof question.categoryId === "number" ? [question.categoryId] : [];
+  };
+
+  const toStoredAnswer = (answer: string, isMultiple: boolean) => {
+    if (isMultiple) {
+      return answer
+        .split(",")
+        .map((num) => parseInt(num.trim(), 10) - 1)
+        .filter((num) => !Number.isNaN(num))
+        .join(",");
+    }
+
+    const parsedAnswer = parseInt(answer, 10);
+    return Number.isNaN(parsedAnswer) ? "" : (parsedAnswer - 1).toString();
+  };
+
+  const toInputAnswer = (answer: string, isMultiple: boolean) => {
+    if (isMultiple) {
+      return answer
+        .split(",")
+        .map((num) => {
+          const parsed = parseInt(num.trim(), 10);
+          return Number.isNaN(parsed) ? "" : (parsed + 1).toString();
+        })
+        .filter(Boolean)
+        .join(",");
+    }
+
+    const parsedAnswer = parseInt(answer, 10);
+    return Number.isNaN(parsedAnswer) ? "" : (parsedAnswer + 1).toString();
+  };
+
+  // Auto-hide toast after 3 seconds.
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   // Fetch questions for selected category
   useEffect(() => {
-    if (!selectedCategory) {
+    if (selectedCategoryIds.length === 0) {
       setQuestions([]);
       return;
     }
@@ -37,12 +91,16 @@ export default function EditQuestionPage() {
     const fetchQuestions = async () => {
       setLoading(true);
       try {
-        const response = await api.get(`/questions/?categoryId=${selectedCategory}&limit=${pageSize}`);
+        const response = await api.get(`/questions/?categoryIds=${selectedCategoryIds.join(",")}&limit=${pageSize}`);
         const typedResponse = response as { success: boolean; data: any };
         
         if (!typedResponse.success) throw new Error("Failed to fetch questions");
         const { data } = typedResponse;
-        setQuestions(data);
+        const normalizedQuestions = (data as Question[]).map((question) => ({
+          ...question,
+          categoryIds: normalizeCategoryIds(question),
+        }));
+        setQuestions(normalizedQuestions);
       } catch (error) {
         console.error("Error fetching questions:", error);
         setQuestions([]);
@@ -52,7 +110,39 @@ export default function EditQuestionPage() {
     };
 
     fetchQuestions();
-  }, [selectedCategory, pageSize]);
+  }, [selectedCategoryIds, pageSize]);
+
+  const handleImageUpload = async (content: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, "text/html");
+    const imgTags = doc.querySelectorAll("img");
+
+    for (const img of imgTags) {
+      const src = img.getAttribute("src");
+      if (!src) continue;
+
+      const isBlob = src.startsWith("blob:");
+      const isBase64 = src.startsWith("data:image");
+
+      if (isBlob || isBase64) {
+        try {
+          const response = await fetch(src);
+          const blob = await response.blob();
+
+          const formData = new FormData();
+          formData.append("imageUrl", blob, "image.png");
+
+          const url = (await uploadImageToS3(formData, "ContentImages")) || "error";
+          img.setAttribute("src", url);
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          setToast({ message: "Failed to upload an image.", type: "error" });
+        }
+      }
+    }
+
+    return doc.body.innerHTML;
+  };
 
   const handleDeleteQuestion = async () => {
     if (!deleteConfirmation.questionId) return;
@@ -67,27 +157,114 @@ export default function EditQuestionPage() {
       
       // Close the confirmation dialog
       setDeleteConfirmation({ isOpen: false, questionId: null });
-      
-      alert('Question deleted successfully');
+
+      setToast({ message: "Question deleted successfully", type: "success" });
     } catch (error) {
       console.error('Error deleting question:', error);
-      alert('Failed to delete question');
+      setToast({ message: "Failed to delete question", type: "error" });
       setDeleteConfirmation({ isOpen: false, questionId: null });
     }
   };
 
   const handleEditQuestion = (question: Question) => {
-    // For now, we'll just show an alert. In a real implementation, 
-    // you would navigate to an edit form or open a modal
-    alert(`Edit functionality for question ID: ${question.id}\n\nThis would open an edit form with the question data.`);
+    const categoryIds = normalizeCategoryIds(question);
+    setSelectedCategoryIds(categoryIds);
+    setEditingQuestion({
+      ...question,
+      categoryIds,
+      answer: toInputAnswer(question.answer, question.multipleCorrectType),
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuestion(null);
+  };
+
+  const handleUpdateQuestion = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingQuestion || isSaving) return;
+
+    if (selectedCategoryIds.length === 0) {
+      setToast({ message: "Please select at least one category.", type: "error" });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const processedQuestion = await handleImageUpload(editingQuestion.question);
+      const processedOptions = await Promise.all(
+        editingQuestion.options.map((option) => handleImageUpload(option))
+      );
+      const processedExplanation = await handleImageUpload(editingQuestion.explaination);
+      const storedAnswer = toStoredAnswer(editingQuestion.answer, editingQuestion.multipleCorrectType);
+
+      const payload: Question = {
+        ...editingQuestion,
+        question: processedQuestion,
+        options: processedOptions,
+        explaination: processedExplanation,
+        answer: storedAnswer,
+        categoryIds: selectedCategoryIds,
+      };
+
+      const response = await api.put(`/questions/${editingQuestion.id}`, payload);
+      const typedResponse = response as { success: boolean; data: any };
+
+      if (!typedResponse.success) throw new Error("Failed to update question");
+
+      const updatedFromApi = (typedResponse.data ?? payload) as Question;
+      const normalizedUpdated = {
+        ...updatedFromApi,
+        categoryIds: normalizeCategoryIds(updatedFromApi),
+      };
+
+      setQuestions((prevQuestions) =>
+        prevQuestions.map((question) =>
+          question.id === editingQuestion.id ? normalizedUpdated : question
+        )
+      );
+
+      setEditingQuestion(null);
+      setToast({ message: "Question updated successfully", type: "success" });
+    } catch (error) {
+      console.error("Error updating question:", error);
+      setToast({ message: "Failed to update question", type: "error" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="min-h-screen w-full bg-gray-50 py-12 px-4 md:px-8 flex flex-col items-center">
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
+            toast.type === "success" ? "bg-slate-500" : "bg-red-500"
+          } transition-opacity duration-300`}
+        >
+          {toast.message}
+        </div>
+      )}
       <style>{`
         .question-content {
           max-height: 150px;
           overflow-y: auto;
+        }
+        .tiptap-editor-container {
+          max-height: 250px;
+          min-height: 100px;
+          overflow-y: auto;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.375rem;
+          padding: 0.5rem;
+          background: white;
+        }
+        .tiptap-editor-container .ProseMirror {
+          outline: none;
+          min-height: 100%;
+        }
+        .tiptap-editor-container .ProseMirror > * + * {
+          margin-top: 0.75em;
         }
         .question-content table {
           border: 1px solid #e5e7eb;
@@ -115,12 +292,205 @@ export default function EditQuestionPage() {
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
           {/* Category Selection */}
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Select Category</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Select Categories</h2>
             <CategorySelect
-              selectedCategoryId={selectedCategory}
-              onCategoryChange={setSelectedCategory}
+              isMulti
+              selectedCategoryIds={selectedCategoryIds}
+              onCategoryIdsChange={setSelectedCategoryIds}
             />
           </div>
+
+          {editingQuestion && (
+            <div className="mb-10 p-6 rounded-xl border border-indigo-200 bg-indigo-50/40">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Question</h2>
+              <form onSubmit={handleUpdateQuestion}>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block mb-1 font-semibold text-gray-800">Question</label>
+                    <div className="tiptap-editor-container">
+                      <TiptapEditor
+                        content={editingQuestion.question}
+                        onChange={(content) =>
+                          setEditingQuestion((prev) => (prev ? { ...prev, question: content } : prev))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="block font-semibold text-gray-800">Options</label>
+                    {editingQuestion.options.map((option, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <span className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-200 text-gray-700 font-bold text-sm border border-gray-300">
+                          {index + 1}
+                        </span>
+                        <div className="tiptap-editor-container flex-1">
+                          <TiptapEditor
+                            content={option}
+                            onChange={(content) =>
+                              setEditingQuestion((prev) => {
+                                if (!prev) return prev;
+                                return {
+                                  ...prev,
+                                  options: prev.options.map((opt, idx) => (idx === index ? content : opt)),
+                                };
+                              })
+                            }
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() =>
+                            setEditingQuestion((prev) => {
+                              if (!prev) return prev;
+                              return {
+                                ...prev,
+                                options: prev.options.filter((_, idx) => idx !== index),
+                              };
+                            })
+                          }
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setEditingQuestion((prev) =>
+                          prev ? { ...prev, options: [...prev.options, ""] } : prev
+                        )
+                      }
+                    >
+                      Add Option
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editingQuestion.multipleCorrectType}
+                        onChange={(event) =>
+                          setEditingQuestion((prev) =>
+                            prev
+                              ? { ...prev, multipleCorrectType: event.target.checked }
+                              : prev
+                          )
+                        }
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <label className="text-sm font-medium text-gray-700">
+                        Allow multiple correct answers
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1 font-semibold text-gray-800">Answer</label>
+                      <Input
+                        type="text"
+                        value={editingQuestion.answer}
+                        onChange={(event) =>
+                          setEditingQuestion((prev) =>
+                            prev ? { ...prev, answer: event.target.value } : prev
+                          )
+                        }
+                        placeholder={
+                          editingQuestion.multipleCorrectType
+                            ? "Enter comma-separated answer numbers (e.g., 1,3,4)"
+                            : "Enter answer number"
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 font-semibold text-gray-800">Explanation</label>
+                    <div className="tiptap-editor-container">
+                      <TiptapEditor
+                        content={editingQuestion.explaination}
+                        onChange={(content) =>
+                          setEditingQuestion((prev) =>
+                            prev ? { ...prev, explaination: content } : prev
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={editingQuestion.pyq}
+                        onChange={(event) =>
+                          setEditingQuestion((prev) =>
+                            prev ? { ...prev, pyq: event.target.checked } : prev
+                          )
+                        }
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      Previous Year Question (PYQ)
+                    </label>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                      <Input
+                        type="number"
+                        value={editingQuestion.year ?? ""}
+                        onChange={(event) =>
+                          setEditingQuestion((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  year: event.target.value ? parseInt(event.target.value, 10) : null,
+                                }
+                              : prev
+                          )
+                        }
+                        min="1900"
+                        max="2100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                      <Input
+                        type="number"
+                        value={editingQuestion.rating ?? ""}
+                        onChange={(event) =>
+                          setEditingQuestion((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  rating: event.target.value ? parseInt(event.target.value, 10) : null,
+                                }
+                              : prev
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="submit"
+                      disabled={isSaving}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    >
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Loading State */}
           {loading && (
@@ -131,19 +501,19 @@ export default function EditQuestionPage() {
           )}
 
           {/* No Category Selected */}
-          {!selectedCategory && !loading && (
+          {selectedCategoryIds.length === 0 && !loading && (
             <div className="text-center py-12">
               <div className="text-gray-400 mb-4">
                 <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <p className="text-gray-500 text-lg">Please select a category to view questions</p>
+              <p className="text-gray-500 text-lg">Please select at least one category to view questions</p>
             </div>
           )}
 
           {/* Questions List */}
-          {selectedCategory && !loading && (
+          {selectedCategoryIds.length > 0 && !loading && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Questions {questions.length > 0 && `(${questions.length})`}
@@ -202,7 +572,7 @@ export default function EditQuestionPage() {
                             {/* Answer and Metadata */}
                             <div className="flex flex-wrap items-center gap-3">
                               <div className="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded border border-green-100">
-                                Answer: {question.answer}
+                                Answer: {toInputAnswer(question.answer, question.multipleCorrectType)}
                               </div>
                               {question.pyq && question.year && (
                                 <div className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded border border-blue-100">

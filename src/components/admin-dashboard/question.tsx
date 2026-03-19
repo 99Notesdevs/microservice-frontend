@@ -11,7 +11,8 @@ interface Question {
   question: string;
   answer: string;
   options: string[];
-  categoryId: number;
+  categoryIds: number[];
+  categoryId?: number;
   explaination: string;
   creatorName: string;
   multipleCorrectType: boolean;
@@ -24,7 +25,7 @@ import { useRef } from "react";
 import { api } from "@/api/route";
 
 export default function AddQuestionsPage() {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [pageSize] = useState(10);
   const [creatorName, setCreatorName] = useState<string>("");
@@ -36,7 +37,7 @@ const formRef = useRef<HTMLDivElement>(null);
     question: "",
     answer: "",
     options: [] as string[],
-    categoryId: 0,
+    categoryIds: [],
     explaination: "",
     creatorName: "",
     multipleCorrectType: false,
@@ -49,11 +50,15 @@ const formRef = useRef<HTMLDivElement>(null);
     type: "success" | "error";
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     questionId: string | null;
   }>({ isOpen: false, questionId: null });
+
+  const normalizeCategoryIds = (question: Pick<Question, "categoryIds" | "categoryId">) => {
+    if (Array.isArray(question.categoryIds)) return question.categoryIds;
+    return typeof question.categoryId === "number" ? [question.categoryId] : [];
+  };
 
   // Fetch questions for selected category
   // Auto-hide toast after 3 seconds
@@ -67,22 +72,30 @@ const formRef = useRef<HTMLDivElement>(null);
   }, [toast]);
 
   useEffect(() => {
-    if (!selectedCategory) return;
+    if (selectedCategoryIds.length === 0) {
+      setQuestions([]);
+      return;
+    }
 
     const fetchQuestions = async () => {
       try {
-        const response = await api.get(`/questions/?categoryId=${selectedCategory}&limit=${pageSize}`)
+        const categoryIdsQuery = selectedCategoryIds.join(",");
+        const response = await api.get(`/questions/?categoryIds=${categoryIdsQuery}&limit=${pageSize}`)
         const typedResponse = response as { success: boolean; data: any }
         
         if (!typedResponse.success) throw new Error("Failed to fetch questions");
         const { data } = typedResponse;
-        setQuestions(data);
+        const normalizedQuestions = (data as Question[]).map((question) => ({
+          ...question,
+          categoryIds: normalizeCategoryIds(question),
+        }));
+        setQuestions(normalizedQuestions);
       } catch (error) {
         console.error("Error fetching questions:", error);
       }
     };
     fetchQuestions();
-  }, [selectedCategory]);
+  }, [selectedCategoryIds, pageSize]);
 
   // Fetch user name
   useEffect(() => {
@@ -139,6 +152,11 @@ const formRef = useRef<HTMLDivElement>(null);
   const handleCreateQuestion = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    if (selectedCategoryIds.length === 0) {
+      setToast({ message: "Please select at least one category.", type: "error" });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -160,7 +178,7 @@ const formRef = useRef<HTMLDivElement>(null);
           options: processedOptions,
           explaination: processedExplanation,
           answer,
-          categoryId: selectedCategory,
+          categoryIds: selectedCategoryIds,
           multipleCorrectType: newQuestion.multipleCorrectType
         })
       const typedResponse = response as { success: boolean; data: any }
@@ -169,7 +187,11 @@ const formRef = useRef<HTMLDivElement>(null);
       const createdQuestion = typedResponse.data
       
       // Update the questions list with the new question
-      setQuestions(prevQuestions => [createdQuestion, ...prevQuestions]);
+      const normalizedCreatedQuestion = {
+        ...(createdQuestion as Question),
+        categoryIds: normalizeCategoryIds(createdQuestion as Question),
+      };
+      setQuestions(prevQuestions => [normalizedCreatedQuestion, ...prevQuestions]);
       
       // Show success message
       setToast({ message: "Question added successfully!", type: "success" });
@@ -180,7 +202,7 @@ const formRef = useRef<HTMLDivElement>(null);
         question: "",
         answer: "",
         options: [],
-        categoryId: selectedCategory || 0,
+        categoryIds: selectedCategoryIds,
         explaination: "",
         creatorName: creatorName || "",
         multipleCorrectType: false,
@@ -205,33 +227,6 @@ const formRef = useRef<HTMLDivElement>(null);
     }
   };
   
-  const handleEditQuestion = async (question: Question) => {
-    try {
-      // Process all rich text fields for images
-      const processedQuestion = await handleImageUpload(question.question);
-      const processedOptions = await Promise.all(
-        question.options.map(option => handleImageUpload(option))
-      );
-      const processedExplanation = await handleImageUpload(question.explaination);
-  
-      setEditingQuestion(question);
-      setNewQuestion({
-        ...question,
-        question: processedQuestion,
-        options: processedOptions,
-        explaination: processedExplanation,
-        categoryId: question.categoryId,
-        multipleCorrectType: question.multipleCorrectType
-      });
-      
-      if (formRef.current) {
-        formRef.current.scrollIntoView({ behavior: "smooth" });
-      }
-    } catch (error) {
-      console.error("Error processing question data:", error);
-    }
-  };
-
   const handleDeleteQuestion = async () => {
     if (!deleteConfirmation.questionId) return;
     
@@ -253,68 +248,6 @@ const formRef = useRef<HTMLDivElement>(null);
       alert('Failed to delete question');
       setDeleteConfirmation({ isOpen: false, questionId: null });
     }
-  };
-
-  const handleUpdateQuestion = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editingQuestion) return;
-
-    try {
-      const answer = newQuestion.multipleCorrectType 
-        ? newQuestion.answer.split(',').map(num => parseInt(num) - 1).join(',')
-        : (parseInt(newQuestion.answer) - 1).toString();
-      
-      const response = await api.put(`/questions/${editingQuestion.id}`, {
-            ...newQuestion,
-            answer,
-            creatorName: creatorName || "",
-            multipleCorrectType: newQuestion.multipleCorrectType
-          })
-      const typedResponse = response as { success: boolean; data: any }
-      if (!typedResponse.success) throw new Error("Failed to update question");
-
-      // Update the question in the list
-      setQuestions((prevQuestions) =>
-        prevQuestions.map((q) =>
-          q.id === editingQuestion.id ? newQuestion : q
-        )
-      );
-
-      // Reset editing state
-      setEditingQuestion(null);
-      setNewQuestion({
-        id: "",
-        question: "",
-        answer: "",
-        options: [],
-        categoryId: selectedCategory || 0,
-        explaination: "",
-        creatorName: creatorName || "",
-        multipleCorrectType: false,
-        pyq: false,
-        year: null,
-        rating: null
-      });
-    } catch (error) {
-      console.error("Error updating question:", error);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingQuestion(null);
-    setNewQuestion({
-      id: "",
-      question: "",
-      answer: "",
-      options: [],
-      categoryId: selectedCategory || 0,
-      explaination: "",
-      creatorName: "",
-      multipleCorrectType: false,
-      pyq: false,
-      year: null,
-      rating: null
-    });
   };
 
   return (
@@ -354,20 +287,21 @@ const formRef = useRef<HTMLDivElement>(null);
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-12 space-y-8 scale-105 mx-auto mt-16">
           {/* Category Selection */}
           <CategorySelect
-            selectedCategoryId={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            isMulti
+            label="Select Categories"
+            selectedCategoryIds={selectedCategoryIds}
+            onCategoryIdsChange={(categoryIds) => {
+              setSelectedCategoryIds(categoryIds);
+              setNewQuestion((prev) => ({ ...prev, categoryIds }));
+            }}
           />
 
           {/* Question Form */}
           <div ref={formRef}>
             <h2 className="text-xl font-bold [color:var(--admin-bg-dark)] mb-4">
-              {editingQuestion ? "Edit Question" : "Add New Question"}
+              Add New Question
             </h2>
-            <form
-              onSubmit={
-                editingQuestion ? handleUpdateQuestion : handleCreateQuestion
-              }
-            >
+            <form onSubmit={handleCreateQuestion}>
               <div className="space-y-8">
                 <div>
                   <label className="block mb-1 [color:var(--admin-bg-dark)] font-semibold">
@@ -592,18 +526,8 @@ const formRef = useRef<HTMLDivElement>(null);
                     type="submit"
                     className="px-6 py-2 text-base font-semibold rounded bg-slate-600 hover:bg-slate-700 text-white transition"
                   >
-                    {editingQuestion ? "Update Question" : "Add Question"}
+                    Add Question
                   </Button>
-                  {editingQuestion && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="rounded"
-                      onClick={handleCancelEdit}
-                    >
-                      Cancel
-                    </Button>
-                  )}
                 </div>
               </div>
             </form>
@@ -655,14 +579,6 @@ const formRef = useRef<HTMLDivElement>(null);
                       </div>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0 sm:ml-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs h-12"
-                        onClick={() => handleEditQuestion(question)}
-                      >
-                        <span className="text-sm font-medium">Edit</span>
-                      </Button>
                       <Button
                         variant="destructive"
                         size="sm"

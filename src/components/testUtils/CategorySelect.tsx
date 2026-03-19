@@ -8,14 +8,22 @@ interface Category {
 }
 
 interface CategorySelectProps {
-  selectedCategoryId: number | null;
-  onCategoryChange: (categoryId: number) => void;
+  selectedCategoryId?: number | null;
+  onCategoryChange?: (categoryId: number) => void;
+  selectedCategoryIds?: number[];
+  onCategoryIdsChange?: (categoryIds: number[]) => void;
+  isMulti?: boolean;
+  label?: string;
   className?: string;
 }
 
 export default function CategorySelect({ 
   selectedCategoryId, 
   onCategoryChange,
+  selectedCategoryIds = [],
+  onCategoryIdsChange,
+  isMulti = false,
+  label,
   className = ""
 }: CategorySelectProps) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -40,27 +48,62 @@ export default function CategorySelect({
   return (
     <div className={className}>
       <label className="block mb-2 text-lg font-bold [color:var(--admin-bg-dark)]">
-        Select Category
+        {label || (isMulti ? "Select Categories" : "Select Category")}
       </label>
-      <Select
-        value={selectedCategoryId?.toString()}
-        onValueChange={(value) => onCategoryChange(Number(value))}
-      >
-        <SelectTrigger className="w-full bg-white text-white border border-gray-300 font-medium shadow focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition mb-3">
-          <SelectValue placeholder="Select a category" />
-        </SelectTrigger>
-        <SelectContent className="z-50 border border-gray-700 shadow-2xl rounded-lg mt-1 min-w-[200px]">
-          {categories.map((category) => (
-            <SelectItem
-              key={category.id}
-              value={category.id.toString()}
-              className="text-white px-4 py-2 hover:bg-[#2d323c] cursor-pointer rounded"
-            >
-              {category.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {isMulti ? (
+        <div className="border border-gray-300 rounded-lg p-3 bg-white mb-3">
+          <div className="max-h-48 overflow-y-auto space-y-2">
+            {categories.map((category) => {
+              const isChecked = selectedCategoryIds.includes(category.id);
+
+              return (
+                <label
+                  key={category.id}
+                  className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      const nextCategoryIds = checked
+                        ? [...selectedCategoryIds, category.id]
+                        : selectedCategoryIds.filter((id) => id !== category.id);
+
+                      onCategoryIdsChange?.(nextCategoryIds);
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  {category.name}
+                </label>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            Selected: {selectedCategoryIds.length}
+          </p>
+        </div>
+      ) : (
+        <Select
+          value={selectedCategoryId?.toString()}
+          onValueChange={(value) => onCategoryChange?.(Number(value))}
+        >
+          <SelectTrigger className="w-full bg-white text-white border border-gray-300 font-medium shadow focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition mb-3">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent className="z-50 border border-gray-700 shadow-2xl rounded-lg mt-1 min-w-[200px]">
+            {categories.map((category) => (
+              <SelectItem
+                key={category.id}
+                value={category.id.toString()}
+                className="text-white px-4 py-2 hover:bg-[#2d323c] cursor-pointer rounded"
+              >
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }

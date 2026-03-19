@@ -13,6 +13,6 @@ export default defineConfig({
   },
   server: {
     host: 'tests.main.local',
-    port: 5173
+    port: 5174
   }
 })
