@@ -9,6 +9,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  type InteractionMode,
 } from 'chart.js';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/api/route';
@@ -177,7 +178,7 @@ export default function ReportCard() {
     maintainAspectRatio: false,
     onClick: handleBarClick,
     interaction: {
-      mode: 'nearest',
+      mode: 'nearest' as InteractionMode,
       intersect: false
     },
     plugins: {
@@ -194,7 +195,7 @@ export default function ReportCard() {
         borderColor: '#E5E7EB',
         borderWidth: 1,
         padding: 12,
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        // boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         callbacks: {
           label: function(context: any) {
             return `Rating: ${context.raw.toFixed(1)}`;
@@ -225,7 +226,7 @@ export default function ReportCard() {
           color: '#4B5563',
           font: {
             size: 12,
-            weight: '500'
+            weight: 500
           }
         }
       },
@@ -410,7 +411,7 @@ export default function ReportCard() {
                   borderColor: '#E5E7EB',
                   borderWidth: 1,
                   padding: 12,
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  // boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                   callbacks: {
                     label: function(context: any) {
                       return `Rating: ${(context.raw).toFixed(1)}`;
@@ -445,7 +446,7 @@ export default function ReportCard() {
                     color: '#4B5563',
                     font: {
                       size: 12,
-                      weight: '500'
+                      weight: 500
                     }
                   }
                 },

@@ -13,7 +13,6 @@ interface User {
 }
 
 interface NavbarProps {
-  isSidebarOpen: boolean;
   toggleSidebar: () => void;
   user?: User;
 }

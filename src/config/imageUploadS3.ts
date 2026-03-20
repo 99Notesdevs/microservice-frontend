@@ -2,7 +2,11 @@ import { api } from "@/api/route";
 
 export const uploadImageToS3 = async (formData: FormData, folder: string, name?: string): Promise<string | null> => {
 
-  const res = await api.post(`/aws/upload-image?folder=${folder}&name=${name}`, formData);
+  const params = new URLSearchParams();
+  params.set("folder", folder);
+  if (name) params.set("name", name);
+
+  const res = await api.post(`/aws/upload-image?${params.toString()}`, formData);
   const typedRes = res as { success: boolean; data: string };
   if (!typedRes.success) return null;
 

@@ -56,9 +56,9 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       styles={{
         popover: (base) => ({
           ...base,
-          borderRadius: '0.5rem',
-          padding: '1.5rem',
-          maxWidth: '320px',
+          borderRadius: "0.5rem",
+          padding: "1.5rem",
+          maxWidth: "320px",
         }),
       }}
       position="right"
@@ -66,26 +66,27 @@ export const HomeLayout: React.FC<HomeLayoutProps> = ({
       showBadge={false}
     >
       <div className="min-h-screen bg-gray-50 flex flex-col relative">
-        <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} user={user as User} />
-        
+        <Navbar
+          toggleSidebar={toggleSidebar}
+          user={user as User}
+        />
+
         <div className="flex flex-1 relative h-[calc(120vh-4rem)]">
           <Sidebar 
             isSidebarOpen={isSidebarOpen}
             setIsSidebarOpen={setIsSidebarOpen}
             isMobile={isMobile}
           />
-          
-          <div 
+
+          <div
             className={`flex-1 transition-all duration-300 h-full overflow-auto ${
-              !isMobile && isSidebarOpen ? 'md:ml-[280px]' : 'md:ml-0'
+              !isMobile && isSidebarOpen ? "md:ml-[280px]" : "md:ml-0"
             }`}
           >
-            <div className="w-full">
-              {children}
-            </div>
+            <div className="w-full">{children}</div>
           </div>
         </div>
-        
+
         <UserModal />
         <AppTour />
       </div>
