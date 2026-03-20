@@ -17,32 +17,39 @@ export const ProtectedRoute = ({
   const { openUserModal } = useUser();
   const [isPaid, setIsPaid] = useState<boolean | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [showLoginPrompt, setShowLoginPrompt] = useState<boolean>(false);
 
   useEffect(() => {
     const verifyAuth = async () => {
-      // Only check admin status if the route requires admin access
-      if (allowedRolesProp.includes('admin')) {
-        const adminStatus = await checkAdmin();
-        setIsAdmin(adminStatus);
+      const currentPath = window.location.pathname;
+      const isAdminRoute = currentPath.startsWith('/admin/');
+      
+      // For admin routes, check admin authentication
+      if (isAdminRoute) {
+        if (allowedRolesProp.includes('admin')) {
+          const adminStatus = await checkAdmin();
+          setIsAdmin(adminStatus);
 
         // If user is admin and trying to access admin routes, no need to check paid status
         if (adminStatus) {
           return;
         }
+        }
       } else {
-        // For user routes, ensure admin status is false
-        setIsAdmin(false);
+        // For user routes, check user authentication first
+        if (!isAuthenticated) {
+          return;
+        }
+        
+        // Check paid status if required
+        const paidStatus = await checkPaid();
+        setIsPaid(paidStatus);
+        
+        // Also check if user is admin (for admins accessing user routes)
+        if (allowedRolesProp.includes('admin')) {
+          const adminStatus = await checkAdmin();
+          setIsAdmin(adminStatus);
+        }
       }
-
-      // For non-admin users or admin accessing user routes, check authentication and paid status
-      if (!isAuthenticated) {
-        setShowLoginPrompt(true);
-        return;
-      }
-
-      const paidStatus = await checkPaid();
-      setIsPaid(paidStatus);
     };
 
     verifyAuth();
@@ -50,10 +57,6 @@ export const ProtectedRoute = ({
 
   const handleLoginClick = () => {
     openUserModal('login');
-  };
-
-  const handleClose = () => {
-    setShowLoginPrompt(false);
   };
 
   const checkAdmin = async () => {
@@ -91,9 +94,19 @@ export const ProtectedRoute = ({
     return <div>Loading...</div>;
   }
 
-  // If route requires admin access and user is admin, allow access
-  if (allowedRolesProp.includes('admin') && isAdmin) {
-    return <>{children}<Outlet /></>;
+  const currentPath = window.location.pathname;
+  const isAdminRoute = currentPath.startsWith('/admin/');
+
+  // For admin routes
+  if (isAdminRoute) {
+    // If not authenticated or not admin, redirect to admin login
+    if (!isAuthenticated || !isAdmin) {
+      return <Navigate to="/admin/login" replace />;
+    }
+    // If admin route requires admin role and user is admin, allow access
+    if (allowedRolesProp.includes('admin') && isAdmin) {
+      return <>{children}<Outlet /></>;
+    }
   }
 
   // Show login prompt for non-authenticated users
@@ -118,19 +131,23 @@ export const ProtectedRoute = ({
             </button>
           </div>
         </div>
-      </div>
+      );
+    }
+
+    // If route requires paid access and user hasn't paid, show subscription prompt
+    if (requirePaid && isPaid === false) {
+      return <Navigate to="/subscription" />;
+    }
+
+    // Allow access to user routes for authenticated users (including admins)
+    return (
+      <>
+        {children}
+        <Outlet />
+      </>
     );
   }
 
-  // If route requires paid access and user hasn't paid, show subscription prompt
-  if (requirePaid && isPaid === false) {
-    return <Navigate to="/subscription" />;
-  }
-
-  return (
-    <>
-      {children}
-      <Outlet />
-    </>
-  );
+  // Fallback
+  return <>{children}<Outlet /></>;
 };
