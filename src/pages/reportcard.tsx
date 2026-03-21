@@ -9,7 +9,6 @@ import {
   Title,
   Tooltip,
   Legend,
-  type InteractionMode,
 } from 'chart.js';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/api/route';
