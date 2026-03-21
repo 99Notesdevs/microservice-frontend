@@ -56,7 +56,7 @@ export default function AddTestSeries() {
       setLoading(true)
       setError(null)
       
-      const url = `/questions?categoryId=${categoryId}&limit=${pageSize}&page=${page}`
+      const url = `/questions?categoryIds=${categoryId}&limit=${pageSize}&page=${page}`
       
       const response = await api.get(url)
       const typedResponse = response as { success: boolean; data: any }
@@ -166,7 +166,6 @@ export default function AddTestSeries() {
           questionIds: [],
         })
         setSelectedQuestionIds([])
-        navigate('/dashboard/testseries')
       } else {
         console.error('Failed to create test series')
       }

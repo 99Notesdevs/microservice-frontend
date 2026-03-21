@@ -15,9 +15,6 @@ import { api } from "@/api/route"
 // import { useAuth } from "../contexts/AuthContext"
 // API function to fetch test series data
 
-
-const TEST_DURATION = 30 * 60 // 30 minutes in seconds
-
 const TestSeriesPage: React.FC = () => {
   const navigate = useNavigate()
   const { testSeriesId } = useParams<{ testSeriesId: string }>()
@@ -35,11 +32,13 @@ const TestSeriesPage: React.FC = () => {
     handleSaveForLater,
     setTestData,
     setMarkingScheme,
+    setTimeElapsed,
   } = useTestContext()
   const [loading, setLoading] = useState(true)
   const [testStarted, setTestStarted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [remainingTime, setRemainingTime] = useState(TEST_DURATION)
+  const [remainingTime, setRemainingTime] = useState<number | 0>(0)
+  const [totalTimeInSeconds, setTotalTimeInSeconds] = useState<number>(0)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false)
   //const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
@@ -63,6 +62,9 @@ const TestSeriesPage: React.FC = () => {
         partialWrong: data.partialNotAttempted,
         partialUnattempted: data.partialWrongAttempted,
       }
+      const totalSeconds = data.timeTaken * 60
+      setRemainingTime(totalSeconds)
+      setTotalTimeInSeconds(totalSeconds)
       setMarkingScheme(markingScheme)
       console.log("Marking scheme:", markingScheme)
       // Extract questions from the response
@@ -162,7 +164,8 @@ const TestSeriesPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setTestStarted(false)
-
+      const elapsedSeconds = Math.max(totalTimeInSeconds - remainingTime, 0)
+      setTimeElapsed(elapsedSeconds)
       setShowConfirmSubmit(false)
       console.log("Submitting socket test...")
       const newtestSeriesObject = ({

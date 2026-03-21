@@ -1,5 +1,4 @@
-import { useNavigate } from 'react-router-dom'
-import { SimpleTestForm } from '@/components/testUtils/testForm'
+  import { SimpleTestForm } from '@/components/testUtils/testForm'
 import { api } from '@/api/route'
 
 interface TestFormData {
@@ -18,8 +17,6 @@ interface TestFormData {
 
 
 export default function AddTest() {
-  const navigate = useNavigate()
-
   const handleSubmit = async (data: TestFormData) => {
     try {
       const response = await api.post(`/test`, data)
@@ -27,12 +24,7 @@ export default function AddTest() {
 
       if (!typedResponse.success) throw new Error('Failed to create test')
       
-      
-      
-      // Navigate after modal is closed
-      setTimeout(() => {
-        navigate('/dashboard/testForms')
-      }, 2000)
+  
       
       return Promise.resolve()
     } catch (error) {

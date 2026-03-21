@@ -10,7 +10,7 @@ interface UseSocketConnectionProps {
   questions: any[]
   selectedAnswers: (string | null)[]
   questionStatuses: QuestionStatus[]
-  startTime: number
+  timeElapsed: number
   negativeMarking: boolean
   setQuestions: (questions: any[]) => void
   setQuestionStatuses: (statuses: QuestionStatus[]) => void
@@ -28,7 +28,7 @@ export const useSocketConnection = ({
   questions,
   selectedAnswers,
   questionStatuses,
-  startTime,
+  timeElapsed,
   negativeMarking,
   setQuestions,
   setQuestionStatuses,
@@ -45,6 +45,7 @@ export const useSocketConnection = ({
   const navigate = useNavigate()
   const questionsRef = useRef(questions)  
   const selectedAnswersRef = useRef(selectedAnswers)
+  const timeElapsedRef = useRef(timeElapsed)
   const [testSeriesObject, setTestSeriesObject] = useState<TestSeriesObject | null>(null)
   const testSeriesIdRef = useRef<TestSeriesObject | null>(null)
   useEffect(() => {
@@ -53,6 +54,9 @@ export const useSocketConnection = ({
   useEffect(() => {
     selectedAnswersRef.current = selectedAnswers
   }, [selectedAnswers])
+  useEffect(() => {
+    timeElapsedRef.current = timeElapsed
+  }, [timeElapsed])
   useEffect(() => {
     testSeriesIdRef.current = testSeriesObject
   }, [testSeriesObject])
@@ -154,7 +158,7 @@ export const useSocketConnection = ({
           score: Math.max(0, Math.round(data.score * 100) / 100),
           totalQuestions: questionsRef.current.length,
           negativeMarking,
-          timeTaken: Math.floor((Date.now() - startTime) / 1000),
+          timeTaken: Math.floor(timeElapsedRef.current),
           answers: formattedSelectedAnswers,
           correctAnswers,
           status: data.status,
@@ -166,41 +170,51 @@ export const useSocketConnection = ({
         
         // Set the test result in the context
         setTestResult(testResult)
+
+        // Parse comma-separated option strings like "1,3" into number arrays.
+        const parseSelectedOptions = (value: string | null): number[] => {
+          if (!value) return []
+          return value
+            .split(",")
+            .map((part) => Number.parseInt(part.trim(), 10))
+            .filter((num) => !Number.isNaN(num))
+        }
+
         const formattedResponse = selectedAnswersRef.current
           .map((answer, index) => {
-            const question = questionsRef.current[index];
-            if (!question) return null;
-            
+            const question = questionsRef.current[index]
+            if (!question) return null
+
             // Get correct answers from the question (assuming they're stored in question.answer)
-            const correctAnswers = question.answer 
-              ? question.answer.split(',').map((a: string) => parseInt(a.trim(), 10))
-              : [];
-            
-            // Get user's selected answers (convert to array of numbers)
-            const userAnswers = answer ? [parseInt(answer, 10)] : [];
-            
+            const correctAnswers = question.answer
+              ? question.answer.split(",").map((a: string) => Number.parseInt(a.trim(), 10)).filter((n: number) => !Number.isNaN(n))
+              : []
+
+            // Get user's selected answers (supports both single and multiple options)
+            const userAnswers = parseSelectedOptions(answer)
+
             // Check if answers are correct
             const isCorrect = arraysEqual(
               userAnswers.sort((a: number, b: number) => a - b),
-              correctAnswers.sort((a: number, b: number) => a - b)
-            );
-            
+              correctAnswers.sort((a: number, b: number) => a - b),
+            )
+
             return {
               questionId: question.id,
               selectedOptions: userAnswers,
               isCorrect,
-              ...(question.multipleCorrectType && { isPartiallyCorrect: false }) // Add if needed
-            };
+              ...(question.multipleCorrectType && { isPartiallyCorrect: false }),
+            }
           })
-          .filter(Boolean);
+          .filter(Boolean)
 
-          // Helper function to compare arrays
-          function arraysEqual(a: number[], b: number[]): boolean {
-            if (a.length !== b.length) return false;
-            const sortedA = [...a].sort();
-            const sortedB = [...b].sort();
-            return sortedA.every((val, index) => val === sortedB[index]);
-          }
+        // Helper function to compare arrays
+        function arraysEqual(a: number[], b: number[]): boolean {
+          if (a.length !== b.length) return false
+          const sortedA = [...a].sort()
+          const sortedB = [...b].sort()
+          return sortedA.every((val, index) => val === sortedB[index])
+        }
         console.log(testSeriesIdRef.current?.testId,"testSeriesIdRef.current?.testId")
         if(testSeriesIdRef.current?.testId){
           const requestBody = {
@@ -259,8 +273,13 @@ export const useSocketConnection = ({
       console.log("testData", testData)
       console.log("questions", questions)
       const submissions = questions.map((q, index) => {
-        // Get the answer if it's answered, otherwise use -1
-        const answer = questionStatuses[index] === "ANSWERED" ? String(selectedAnswers[index]) : "-1"
+        // Send the raw selected option string (e.g. "2" or "1,3") only for answered questions.
+        const selectedValue = selectedAnswers[index]
+        const answer =
+          questionStatuses[index] === "ANSWERED" && selectedValue
+            ? selectedValue
+            : "-1"
+
         return {
           questionId: q.id,
           selectedOption: answer,
@@ -300,7 +319,7 @@ export const useSocketConnection = ({
     questions,
     selectedAnswers,
     socket,
-    startTime,
+    timeElapsed,
     setError,
     setTestStarted,
     questionStatuses,

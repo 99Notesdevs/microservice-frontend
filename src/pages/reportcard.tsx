@@ -178,7 +178,7 @@ export default function ReportCard() {
     maintainAspectRatio: false,
     onClick: handleBarClick,
     interaction: {
-      mode: 'nearest' as InteractionMode,
+      mode: 'nearest' as const,
       intersect: false
     },
     plugins: {
@@ -195,7 +195,6 @@ export default function ReportCard() {
         borderColor: '#E5E7EB',
         borderWidth: 1,
         padding: 12,
-        // boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         callbacks: {
           label: function(context: any) {
             return `Rating: ${context.raw.toFixed(1)}`;
@@ -411,7 +410,6 @@ export default function ReportCard() {
                   borderColor: '#E5E7EB',
                   borderWidth: 1,
                   padding: 12,
-                  // boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                   callbacks: {
                     label: function(context: any) {
                       return `Rating: ${(context.raw).toFixed(1)}`;

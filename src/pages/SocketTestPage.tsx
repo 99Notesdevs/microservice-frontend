@@ -20,6 +20,7 @@ const SocketTestPage: React.FC = () => {
     questionStatuses,
     selectedAnswers,
     isReviewMode,
+    setTimeElapsed,
     setIsReviewMode,
     handleQuestionSelect,
     handleOptionSelect,
@@ -49,6 +50,13 @@ const SocketTestPage: React.FC = () => {
     setRemainingTime(testDuration)
   }, [testDuration])
 
+  // Keep elapsed time in context so submit flow can use it.
+  useEffect(() => {
+    if (!testStarted || isReviewMode || loading) return
+    const elapsedSeconds = Math.max(testDuration - remainingTime, 0)
+    setTimeElapsed(elapsedSeconds)
+  }, [testDuration, remainingTime, testStarted, isReviewMode, loading, setTimeElapsed])
+
   // Timer effect
   useEffect(() => {
     if (isReviewMode || loading || !testStarted) return
@@ -57,6 +65,7 @@ const SocketTestPage: React.FC = () => {
       setRemainingTime((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
+          setTimeElapsed(testDuration)
           submitSocketTest()
           return 0
         }
@@ -132,6 +141,7 @@ const SocketTestPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setShowConfirmSubmit(false)
+      setTimeElapsed(Math.max(testDuration - remainingTime, 0))
       console.log("Submitting socket test...")
       await submitSocketTest(undefined)
 
