@@ -293,7 +293,7 @@ export default function Dashboard() {
     setCurrentRatingIndex((prev) => (prev - 1 + ratingMessages.length) % ratingMessages.length);
   };
 
-  const AnimatedMessage = ({ message }: { message: string; }) => (
+  const AnimatedMessage = ({ message }: { message: string; title?: string }) => (
     <motion.div
       key={message}
       custom={direction}

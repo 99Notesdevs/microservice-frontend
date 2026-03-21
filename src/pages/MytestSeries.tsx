@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiClock, FiBookOpen, FiChevronRight, FiBarChart2, FiEye } from 'react-icons/fi';
+import { FiBookOpen, FiChevronRight, FiBarChart2, FiEye } from 'react-icons/fi';
 import { api } from '@/api/route';
 
 interface TestSeries {
@@ -265,38 +265,25 @@ const MytestSeries = () => {
                     </div>
                     
                     <div className="mt-6 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-blue-50 p-3 rounded-md">
-                          <p className="text-xs text-blue-600 mb-1">Score</p>
-                          <p className="text-xl font-bold text-gray-800">
-                            {series.score !== undefined ? `${series.score}/${series.totalMarks}` : '--/--'}
-                          </p>
-                          <div className="h-1.5 bg-blue-100 rounded-md mt-2 overflow-hidden">
-                            <div 
-                              className="h-full bg-blue-500"
-                              style={{ width: `${calculatePerformance(series)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-green-50 p-3 rounded-md">
-                          <p className="text-xs text-green-600 mb-1">Correct</p>
-                          <p className="text-xl font-bold text-gray-800">
-                            {series.correctAnswers || 0}
-                            <span className="text-xs font-normal text-gray-500 ml-1">answers</span>
-                          </p>
+                      <div className="bg-blue-50 p-3 rounded-md">
+                        <p className="text-xs text-blue-600 mb-1">Correct / Total</p>
+                        <p className="text-xl font-bold text-gray-800 mb-2">
+                          {series.correctAnswers || 0} / {series.totalQuestions}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Score = {series.score !== undefined ? series.score : 0}
+                        </p>
+                        <div className="h-1.5 bg-blue-100 rounded-md mt-2 overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-500"
+                            style={{ width: `${calculatePerformance(series)}%` }}
+                          ></div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <FiBookOpen className="mr-2 text-gray-500" />
-                          <span>{series.totalQuestions} Questions</span>
-                        </div>
-                        <div className="flex items-center">
-                          <FiClock className="mr-2 text-gray-500" />
-                          <span>{series.timeLimit} min</span>
-                        </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <FiBookOpen className="mr-2 text-gray-500" />
+                        <span>{series.totalQuestions} Questions</span>
                       </div>
                       
                       {series.attemptedOn && (

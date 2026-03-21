@@ -14,7 +14,7 @@ export function useSocketTest() {
     testData,
     questionStatuses,
     selectedAnswers,
-    startTime,
+    timeElapsed,
     negativeMarking,
     setQuestions,
     setQuestionStatuses,
@@ -51,7 +51,7 @@ export function useSocketTest() {
     questions: socketQuestions,
     selectedAnswers: socketSelectedAnswers,
     questionStatuses,
-    startTime,
+    timeElapsed,
     negativeMarking,
     setQuestions: (questions) => {
       // Map socket questions to our format
