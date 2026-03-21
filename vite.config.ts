@@ -5,14 +5,14 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/test/',
   plugins: [react(), tailwindcss()],
+  preview: {
+    allowedHosts: ['99notes.org', 'www.99notes.org', 'localhost']
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
   },
-  server: {
-    host: 'tests.main.local',
-    port: 5174
-  }
-})
+});
