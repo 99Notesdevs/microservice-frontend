@@ -2,10 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAuthModal } from '../../hooks/useAuthModal';
-
-// import { Pencil, CalendarDays, Mail, BookOpenCheck, ShoppingBag, Home } from 'lucide-react';
 import logo from '../../assets/logo.png';
-// import { Button } from 'antd';
+
 interface User {
   _id?: string;
   firstName?: string;

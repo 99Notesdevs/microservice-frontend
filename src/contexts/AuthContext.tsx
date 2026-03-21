@@ -56,19 +56,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Check if admin first
-        const isAdmin = await checkAdminStatus();
-        if (isAdmin) {
-          setAdmin(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // If not admin, check regular user
-        const userData = await fetchUserData();
-        if (userData) {
-          setUser(userData);
-          localStorage.setItem("userId", userData.id.toString());
+        const currentPath = window.location.pathname;
+        
+        // Check if we're on an admin route
+        const isAdminRoute = currentPath.startsWith('/admin/');
+        
+        if (isAdminRoute) {
+          // For admin routes, check admin authentication first
+          const isAdmin = await checkAdminStatus();
+          if (isAdmin) {
+            setAdmin(true);
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          // For user routes, check regular user authentication first
+          const userData = await fetchUserData();
+          if (userData) {
+            setUser(userData);
+            localStorage.setItem("userId", userData.id.toString());
+            setIsLoading(false);
+            return;
+          }
+          
+          // If not a regular user, check if they're an admin accessing user routes
+          const isAdmin = await checkAdminStatus();
+          if (isAdmin) {
+            setAdmin(true);
+          }
         }
       } catch (error) {
         console.error("Auth check failed:", error);
