@@ -12,6 +12,7 @@ interface Question {
   answer: string;
   options: string[];
   categoryIds: number[];
+  completed?: boolean;
   categoryId?: number;
   explaination: string;
   creatorName: string;

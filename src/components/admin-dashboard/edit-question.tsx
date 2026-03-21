@@ -14,6 +14,7 @@ interface Question {
   categoryIds: number[];
   categoryId?: number;
   explaination: string;
+  completed?: boolean;
   creatorName: string;
   multipleCorrectType: boolean;
   pyq: boolean;
@@ -533,8 +534,15 @@ export default function EditQuestionPage() {
                   {questions.map((question) => (
                     <div
                       key={question.id}
-                      className="border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200 shadow-sm"
+                      className="relative overflow-hidden border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200 shadow-sm"
                     >
+                      <div
+                        className={`h-1.5 w-full ${
+                          question.completed
+                            ? "bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600"
+                            : "bg-gradient-to-r from-rose-400 via-red-500 to-rose-600"
+                        }`}
+                      />
                       <div className="p-6">
                         <div className="flex justify-between items-start gap-4">
                           {/* Question Content */}
