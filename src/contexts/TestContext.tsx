@@ -17,7 +17,7 @@ interface TestContextProps {
   currentQuestionIndex: number
   questionStatuses: QuestionStatus[]
   selectedAnswers: UserAnswer[]
-  startTime: number
+  timeElapsed: number
   isReviewMode: boolean
   testResult: TestResult | null
   negativeMarking: boolean
@@ -35,6 +35,7 @@ interface TestContextProps {
   setTestResult: (result: TestResult | null) => void
   setNegativeMarking: (value: boolean) => void
   setMarkingScheme: (scheme: MarkingScheme | null) => void
+  setTimeElapsed: (value: number) => void
   setSelectedAnswers: (answers: UserAnswer[]) => void
 
   // Socket integration
@@ -62,7 +63,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
   const [questionStatuses, setQuestionStatuses] = useState<QuestionStatus[]>([])
   const [selectedAnswers, setSelectedAnswers] = useState<UserAnswer[]>([])
-  const [startTime] = useState<number>(Date.now())
+  const [timeElapsed, setTimeElapsed] = useState<number>(0)
   const [isReviewMode, setIsReviewMode] = useState<boolean>(false)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [negativeMarking, setNegativeMarking] = useState<boolean>(false)
@@ -228,8 +229,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
   const handleSubmitTest = async (submitFn?: SubmitFunction) => {
     if (!testData) return
     console.log("Submitting test... using this path")
-    const endTime = Date.now()
-    const timeTaken = Math.floor((endTime - startTime) / 1000) // Time taken in seconds
+    const timeTaken = Math.floor(timeElapsed) // Time taken in seconds
 
     // Count single and multiple choice questions
     const questionsSingle = testData.questions.filter((q) => !q.multipleCorrectType).length
@@ -344,7 +344,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     currentQuestionIndex,
     questionStatuses,
     selectedAnswers,
-    startTime,
+    timeElapsed,
     isReviewMode,
     testResult,
     negativeMarking,
@@ -360,6 +360,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({ children }) => {
     setIsReviewMode,
     setTestResult,
     setNegativeMarking,
+    setTimeElapsed,
     setSelectedAnswers,
 
     // Socket integration

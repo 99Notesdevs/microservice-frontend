@@ -34,7 +34,7 @@ const TestSelector: React.FC = () => {
             name: series.name,
             description: series.name, // Using name as description since API doesn't provide description
             totalQuestions: series.questions.length,
-            timeLimit: Math.ceil(series.timeTaken / 60), // Convert seconds to minutes
+            timeLimit: Math.ceil(series.timeTaken), // Convert seconds to minutes
             createdAt: series.createdAt
           })))
         } else {

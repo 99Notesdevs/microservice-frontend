@@ -1,5 +1,6 @@
 import { Home, CalendarDays, Pencil, ShoppingBag, Star, MessageSquare, X, ArrowUpRight } from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef } from "react";
 
@@ -21,6 +22,7 @@ const links = [
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
   const location = useLocation();
+  const { } = useAuth() as { logout: () => void; currentUser?: any };
 
   // Close sidebar when route changes on mobile
   useEffect(() => {

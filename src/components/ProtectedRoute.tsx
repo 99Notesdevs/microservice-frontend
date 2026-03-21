@@ -109,26 +109,29 @@ export const ProtectedRoute = ({
     }
   }
 
-  // Show login prompt for non-authenticated users
-  if (!isAuthenticated && showLoginPrompt) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold mb-4">Please Log In</h2>
-          <p className="mb-6 text-gray-600">You need to be logged in to view this content.</p>
-          <div className="flex justify-center space-x-4">
-            <button
-              onClick={handleLoginClick}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Log In
-            </button>
-            <button
-              onClick={handleClose}
-              className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Maybe Later
-            </button>
+  // For user routes
+  if (!isAdminRoute) {
+    // If not authenticated, show login prompt
+    if (!isAuthenticated) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
+          <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+            <h2 className="text-2xl font-bold mb-4">Please Log In</h2>
+            <p className="mb-6 text-gray-600">You need to be logged in to view this content.</p>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={handleLoginClick}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Log In
+              </button>
+              <button
+                onClick={() => {/* Maybe Later functionality */}}
+                className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Maybe Later
+              </button>
+            </div>
           </div>
         </div>
       );
