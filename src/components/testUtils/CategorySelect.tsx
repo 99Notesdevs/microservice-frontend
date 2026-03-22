@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useState, useEffect } from "react";
 import { api } from "@/api/route";
+import { Input } from "../ui/input";
 
 interface Category {
   id: number;
@@ -27,6 +28,11 @@ export default function CategorySelect({
   className = ""
 }: CategorySelectProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+  );
 
   // Fetch categories
   useEffect(() => {
@@ -52,8 +58,19 @@ export default function CategorySelect({
       </label>
       {isMulti ? (
         <div className="border border-gray-300 rounded-lg p-3 bg-white mb-3">
+          <Input
+            type="text"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search categories..."
+            className="mb-3"
+          />
           <div className="max-h-48 overflow-y-auto space-y-2">
-            {categories.map((category) => {
+            {filteredCategories.length === 0 && (
+              <p className="text-sm text-slate-500">No categories found.</p>
+            )}
+
+            {filteredCategories.map((category) => {
               const isChecked = selectedCategoryIds.includes(category.id);
 
               return (

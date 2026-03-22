@@ -16,7 +16,6 @@ import TestSeriesPage from "./pages/TestSeriesPage"
 import ReviewPage from "./pages/ReviewPage"
 import TestSelection from "./pages/testSelection"
 import About from "./pages/about"
-import {ProtectedRoute} from "./components/ProtectedRoute"
 import MytestSeries from "./pages/MytestSeries"
 import UserDashboard from "./pages/UserDashboard"
 import ReviewSocketPage from "./pages/ReviewSocketPage"
@@ -54,17 +53,17 @@ function App() {
               <Route element={<LayoutWithSidebar />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                
-              <Route path="/dashboard" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><Dashboard /></ProtectedRoute>} />
-              <Route path="/submit" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><SubmitPage /></ProtectedRoute>} />
-                <Route path="/about" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><About /></ProtectedRoute>} />
-                <Route path="/calendar" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><CalendarPage /></ProtectedRoute>} />
-                <Route path="/tests" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestSelection /></ProtectedRoute>} />
-                <Route path="/create-test" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><Category /></ProtectedRoute>} />
-              <Route path="/mytest" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><Mytest /></ProtectedRoute>} />
-              <Route path="/packages" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestSelector /></ProtectedRoute>} />
-              <Route path="/mytestseries" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><MytestSeries /></ProtectedRoute>} />
-              <Route path="/user" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><UserDashboard /></ProtectedRoute>} />
-              <Route path="/reportcard" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><ReportCard /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/submit" element={<SubmitPage />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/tests" element={<TestSelection />} />
+                <Route path="/create-test" element={<Category />} />
+              <Route path="/mytest" element={<Mytest />} />
+              <Route path="/packages" element={<TestSelector />} />
+              <Route path="/mytestseries" element={<MytestSeries />} />
+              <Route path="/user" element={<UserDashboard />} />
+              <Route path="/reportcard" element={<ReportCard />} />
             </Route>
             {/* User Login route - redirects to dashboard with login prompt */}
             <Route path="/login" element={<Navigate to="/dashboard" replace />} />
@@ -73,28 +72,28 @@ function App() {
             
             {/* Admin Routes with Layout - Protected */}
             <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><Navigate to="/admin/permissions" replace /></ProtectedRoute>} />
-              <Route path="/admin/add-test" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AddTest /></ProtectedRoute>} />
-              <Route path="/admin/edit-test/:id" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><EditTest /></ProtectedRoute>} />
-              <Route path="/admin/addtestSeries" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AddTestSeries /></ProtectedRoute>} />
-              <Route path="/admin/edit-testSeries/:id" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><EditTestSeries /></ProtectedRoute>} />
-              <Route path="/admin/add-question" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AddQuestion /></ProtectedRoute>} />
-              <Route path="/admin/edit-question" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><EditQuestionPage/></ProtectedRoute>} />
-              <Route path="/admin/test-form" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><TestForm /></ProtectedRoute>} />
-              <Route path="/admin/testSeries" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><TestSeries /></ProtectedRoute>} />
-              <Route path="/admin/permissions" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AdminPermissions /></ProtectedRoute>} />
-              <Route path="/admin/messages" element={<ProtectedRoute requirePaid={false} allowedRoles={["admin"]}><AdminMessages /></ProtectedRoute>} />
+              <Route path="/admin" element={<Navigate to="/admin/permissions" replace />} />
+              <Route path="/admin/add-test" element={<AddTest />} />
+              <Route path="/admin/edit-test/:id" element={<EditTest />} />
+              <Route path="/admin/addtestSeries" element={<AddTestSeries />} />
+              <Route path="/admin/edit-testSeries/:id" element={<EditTestSeries />} />
+              <Route path="/admin/add-question" element={<AddQuestion />} />
+              <Route path="/admin/edit-question" element={<EditQuestionPage/>} />
+              <Route path="/admin/test-form" element={<TestForm />} />
+              <Route path="/admin/testSeries" element={<TestSeries />} />
+              <Route path="/admin/permissions" element={<AdminPermissions />} />
+              <Route path="/admin/messages" element={<AdminMessages />} />
             </Route>
           
           {/* Test Portal route without Layout */}
           <Route path="/subscription" element={<Subscription />} />
-              <Route path="/test" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestPortal /></ProtectedRoute>} />
-              <Route path="/socket-test" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><SocketTestPage /></ProtectedRoute>} />
-              <Route path="/test-series/:testSeriesId" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestSeriesPage /></ProtectedRoute>} />
-              <Route path="/review/:testId" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><ReviewPage /></ProtectedRoute>} />
-              <Route path="/review-socket/:testId" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><ReviewSocketPage /></ProtectedRoute>} />
-              <Route path="/submit" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><SubmitPage /></ProtectedRoute>} />
-              <Route path="/testPortal" element={<ProtectedRoute requirePaid={true} allowedRoles={["admin", "user"]}><TestPortal /></ProtectedRoute>} />
+              <Route path="/test" element={<TestPortal />} />
+              <Route path="/socket-test" element={<SocketTestPage />} />
+              <Route path="/test-series/:testSeriesId" element={<TestSeriesPage />} />
+              <Route path="/review/:testId" element={<ReviewPage />} />
+              <Route path="/review-socket/:testId" element={<ReviewSocketPage />} />
+              <Route path="/submit" element={<SubmitPage />} />
+              <Route path="/testPortal" element={<TestPortal />} />
           
         </Routes>
       </TestProvider>
